@@ -1,0 +1,183 @@
+/* Emergency CSS fix for Safe section icon visibility */
+
+/* Target all possible safe section containers */
+[class*="safe"],
+[class*="Safe"],
+[data-feature*="safe"],
+.feature-card:nth-child(2),
+.safe-environment,
+.security-feature {
+  position: relative !important;
+}
+
+/* Fix all icons in safe sections */
+[class*="safe"] svg,
+[class*="Safe"] svg,
+[data-feature*="safe"] svg,
+.feature-card:nth-child(2) svg,
+.safe-environment svg,
+.security-feature svg,
+[class*="safe"] i,
+[class*="Safe"] i,
+[data-feature*="safe"] i,
+.feature-card:nth-child(2) i,
+[class*="safe"] .icon,
+[class*="Safe"] .icon,
+[data-feature*="safe"] .icon,
+.feature-card:nth-child(2) .icon {
+  fill: #6366f1 !important;
+  color: #6366f1 !important;
+  stroke: #6366f1 !important;
+  background: rgba(99, 102, 241, 0.1) !important;
+  border-radius: 50% !important;
+  padding: 8px !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 32px !important;
+  height: 32px !important;
+  margin: 0 auto !important;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2) !important;
+}
+
+/* Fix for shield icons specifically */
+svg[class*="shield"],
+i[class*="shield"],
+.shield-icon,
+[data-icon*="shield"] {
+  fill: #6366f1 !important;
+  color: #6366f1 !important;
+  stroke: #6366f1 !important;
+  background: rgba(99, 102, 241, 0.1) !important;
+  border-radius: 50% !important;
+  padding: 8px !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Fix progress bars and bottom lines */
+[class*="safe"] .progress,
+[class*="Safe"] .progress,
+[data-feature*="safe"] .progress,
+.feature-card:nth-child(2) .progress,
+[class*="safe"] [class*="progress"],
+[class*="Safe"] [class*="progress"],
+[data-feature*="safe"] [class*="progress"],
+.feature-card:nth-child(2) [class*="progress"],
+[class*="safe"] .line,
+[class*="Safe"] .line,
+[data-feature*="safe"] .line,
+.feature-card:nth-child(2) .line {
+  background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%) !important;
+  height: 4px !important;
+  border-radius: 2px !important;
+  width: 100% !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  margin-top: 16px !important;
+}
+
+/* Fix any white text in safe sections */
+[class*="safe"] *,
+[class*="Safe"] *,
+[data-feature*="safe"] *,
+.feature-card:nth-child(2) * {
+  color: #374151 !important;
+}
+
+[class*="safe"] h1,
+[class*="safe"] h2,
+[class*="safe"] h3,
+[class*="safe"] h4,
+[class*="Safe"] h1,
+[class*="Safe"] h2,
+[class*="Safe"] h3,
+[class*="Safe"] h4,
+[data-feature*="safe"] h1,
+[data-feature*="safe"] h2,
+[data-feature*="safe"] h3,
+[data-feature*="safe"] h4,
+.feature-card:nth-child(2) h1,
+.feature-card:nth-child(2) h2,
+.feature-card:nth-child(2) h3,
+.feature-card:nth-child(2) h4 {
+  color: #111827 !important;
+  font-weight: 600 !important;
+}
+
+/* Force visibility for any hidden elements */
+[class*="safe"] *[style*="color: white"],
+[class*="safe"] *[style*="fill: white"],
+[class*="safe"] *[style*="display: none"],
+[class*="safe"] *[style*="visibility: hidden"],
+[class*="safe"] *[style*="opacity: 0"] {
+  color: #6366f1 !important;
+  fill: #6366f1 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Fix for iframe content */
+iframe {
+  border: none !important;
+}
+
+/* Alternative selectors for external widgets */
+.widget-safe,
+.onboarding-safe,
+.feature-showcase .safe,
+.info-card.safe,
+div[title*="Safe"],
+div[title*="safe"] {
+  background: rgba(99, 102, 241, 0.05) !important;
+  border: 1px solid rgba(99, 102, 241, 0.2) !important;
+  border-radius: 8px !important;
+  padding: 16px !important;
+}
+
+.widget-safe svg,
+.onboarding-safe svg,
+.feature-showcase .safe svg,
+.info-card.safe svg,
+div[title*="Safe"] svg,
+div[title*="safe"] svg {
+  fill: #6366f1 !important;
+  color: #6366f1 !important;
+  stroke: #6366f1 !important;
+  background: rgba(99, 102, 241, 0.1) !important;
+  border-radius: 50% !important;
+  padding: 8px !important;
+}
+
+/* Fallback for any remaining invisible icons */
+svg[fill="white"],
+svg[fill="#ffffff"],
+svg[fill="#fff"],
+svg[color="white"],
+svg[color="#ffffff"],
+svg[color="#fff"] {
+  fill: #6366f1 !important;
+  color: #6366f1 !important;
+  stroke: #6366f1 !important;
+}
+
+/* Animation to make the fix more noticeable */
+@keyframes iconFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+[class*="safe"] svg,
+[class*="Safe"] svg,
+.shield-icon {
+  animation: iconFadeIn 0.5s ease-out !important;
+}

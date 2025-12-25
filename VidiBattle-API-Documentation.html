@@ -1,0 +1,3339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibtrix API Documentation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        .endpoint {
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+            min-width: 60px;
+            text-align: center;
+        }
+        .get {
+            background-color: #61affe;
+            color: white;
+        }
+        .post {
+            background-color: #49cc90;
+            color: white;
+        }
+        .put {
+            background-color: #fca130;
+            color: white;
+        }
+        .delete {
+            background-color: #f93e3e;
+            color: white;
+        }
+        pre {
+            background-color: #f6f8fa;
+            border-radius: 4px;
+            padding: 15px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-size: 14px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            height: 100%;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .nav ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .nav li {
+            margin-bottom: 5px;
+        }
+        .nav a {
+            text-decoration: none;
+            color: #333;
+        }
+        .nav a:hover {
+            color: #3498db;
+        }
+        .content {
+            margin-left: 270px;
+        }
+        @media (max-width: 768px) {
+            .nav {
+                position: static;
+                width: 100%;
+                height: auto;
+                margin-bottom: 20px;
+            }
+            .content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <h3>API Sections</h3>
+        <ul>
+            <li><a href="#authentication">Authentication</a></li>
+            <li><a href="#users">Users</a></li>
+            <li><a href="#posts">Posts</a></li>
+            <li><a href="#feed">Feed</a></li>
+            <li><a href="#competitions">Competitions</a></li>
+            <li><a href="#likes-comments">Likes & Comments</a></li>
+            <li><a href="#following">Following & Followers</a></li>
+            <li><a href="#messaging">Messaging</a></li>
+            <li><a href="#notifications">Notifications</a></li>
+            <li><a href="#bookmarks">Bookmarks</a></li>
+            <li><a href="#user-status">User Status</a></li>
+            <li><a href="#login-activity">Login Activity</a></li>
+            <li><a href="#payments">Payments</a></li>
+            <li><a href="#settings">Settings</a></li>
+            <li><a href="#stickers">Stickers</a></li>
+            <li><a href="#media">Media</a></li>
+            <li><a href="#health">Health & Status</a></li>
+            <li><a href="#search">Search</a></li>
+            <li><a href="#advertisements">Advertisements</a></li>
+            <li><a href="#reporting">Reporting</a></li>
+            <li><a href="#admin">Admin APIs</a></li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <h1>Vibtrix API Documentation</h1>
+        <p>This document provides comprehensive documentation for all APIs available in the Vibtrix platform.</p>
+
+        <h2 id="authentication">Authentication</h2>
+        <p>Vibtrix uses JWT (JSON Web Token) for authentication with two types of tokens:</p>
+        <ul>
+            <li><strong>Access Token</strong>: Short-lived token (1 hour) for API access</li>
+            <li><strong>Refresh Token</strong>: Long-lived token (7 days) to obtain new access tokens</li>
+        </ul>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/auth/token</code>
+            <h3>Generate Authentication Tokens</h3>
+            <p>Authenticates a user and returns access and refresh tokens.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>application/json</td>
+                </tr>
+            </table>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "username": "username",
+  "password": "password"
+}</code></pre>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": "user_id",
+    "username": "username",
+    "displayName": "Display Name",
+    "avatarUrl": "https://example.com/avatar.jpg",
+    "role": "USER"
+  }
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Missing username or password</li>
+                <li><code>401 Unauthorized</code>: Invalid credentials</li>
+                <li><code>403 Forbidden</code>: Account does not have permission to log in</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/auth/refresh</code>
+            <h3>Refresh Access Token</h3>
+            <p>Generates a new access token using a valid refresh token.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>application/json</td>
+                </tr>
+            </table>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}</code></pre>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Missing refresh token</li>
+                <li><code>401 Unauthorized</code>: Invalid or expired token</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/auth/revoke</code>
+            <h3>Revoke Refresh Token (Logout)</h3>
+            <p>Invalidates a refresh token, effectively logging the user out.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>application/json</td>
+                </tr>
+            </table>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}</code></pre>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "message": "Token revoked successfully"
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Missing refresh token</li>
+                <li><code>401 Unauthorized</code>: Invalid token</li>
+            </ul>
+        </div>
+
+        <h3>Using Authentication Tokens</h3>
+        <p>For all authenticated API requests, include the access token in the Authorization header:</p>
+        <pre><code>Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</code></pre>
+        <h2 id="users">Users</h2>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/users/username/{username}</code>
+            <h3>Get User Profile</h3>
+            <p>Retrieves a user's profile information by username.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>username</td>
+                    <td>string</td>
+                    <td>Username of the user to retrieve</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "id": "user_id",
+  "username": "username",
+  "displayName": "Display Name",
+  "avatarUrl": "https://example.com/avatar.jpg",
+  "bio": "User bio",
+  "isFollowing": false,
+  "isFollower": false,
+  "isBlocked": false,
+  "isProfilePublic": true,
+  "followersCount": 10,
+  "followingCount": 20,
+  "postsCount": 15
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>404 Not Found</code>: User not found</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/users/privacy-settings</code>
+            <h3>Get User Privacy Settings</h3>
+            <p>Retrieves the current user's privacy settings.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "showOnlineStatus": true,
+  "isProfilePublic": true,
+  "showWhatsappNumber": false,
+  "showDob": true,
+  "hideYear": true,
+  "showUpiId": false
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/users/privacy-settings</code>
+            <h3>Update User Privacy Settings</h3>
+            <p>Updates the current user's privacy settings.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>application/json</td>
+                </tr>
+            </table>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "showOnlineStatus": true,
+  "isProfilePublic": true,
+  "showWhatsappNumber": false,
+  "showDob": true,
+  "hideYear": true,
+  "showUpiId": false
+}</code></pre>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "showOnlineStatus": true,
+  "isProfilePublic": true,
+  "showWhatsappNumber": false,
+  "showDob": true,
+  "hideYear": true,
+  "showUpiId": false
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Invalid request body</li>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/users/{userId}/block</code>
+            <h3>Block User</h3>
+            <p>Blocks a user by their ID.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>userId</td>
+                    <td>string</td>
+                    <td>ID of the user to block</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "success": true
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Cannot block yourself</li>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>403 Forbidden</code>: User blocking feature is disabled</li>
+                <li><code>404 Not Found</code>: User not found</li>
+            </ul>
+        </div>
+
+        <h2 id="posts">Posts</h2>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/users/{userId}/posts</code>
+            <h3>Get User Posts</h3>
+            <p>Retrieves posts created by a specific user.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>No</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>userId</td>
+                    <td>string</td>
+                    <td>ID of the user whose posts to retrieve</td>
+                </tr>
+            </table>
+
+            <h4>Query Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>cursor</td>
+                    <td>string</td>
+                    <td>No</td>
+                    <td>Cursor for pagination</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "posts": [
+    {
+      "id": "post_id",
+      "content": "Post content",
+      "createdAt": "2023-01-01T00:00:00Z",
+      "user": {
+        "id": "user_id",
+        "username": "username",
+        "displayName": "Display Name",
+        "avatarUrl": "https://example.com/avatar.jpg"
+      },
+      "attachments": [
+        {
+          "id": "media_id",
+          "url": "https://example.com/media.jpg",
+          "type": "IMAGE"
+        }
+      ],
+      "_count": {
+        "likes": 10,
+        "comments": 5
+      },
+      "isLiked": false
+    }
+  ],
+  "nextCursor": "next_cursor_token"
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>403 Forbidden</code>: Profile is private</li>
+                <li><code>404 Not Found</code>: User not found</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/posts</code>
+            <h3>Create Post</h3>
+            <p>Creates a new post.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>application/json</td>
+                </tr>
+            </table>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "content": "Post content",
+  "mediaUrl": "https://utfs.io/f/image.jpg",
+  "mediaType": "IMAGE"
+}</code></pre>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "id": "post_id",
+  "content": "Post content",
+  "mediaUrl": "https://utfs.io/f/image.jpg",
+  "mediaType": "IMAGE",
+  "createdAt": "2023-01-01T00:00:00Z"
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Invalid request body</li>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/posts/{postId}/view</code>
+            <h3>Record Post View</h3>
+            <p>Records a view for a specific post.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>No</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>postId</td>
+                    <td>string</td>
+                    <td>ID of the post to record a view for</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "success": true
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>403 Forbidden</code>: Views feature is disabled</li>
+                <li><code>404 Not Found</code>: Post not found</li>
+            </ul>
+        </div>
+
+        <h2 id="feed">Feed</h2>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/posts/for-you</code>
+            <h3>Get For You Feed</h3>
+            <p>Retrieves posts for the "For You" feed, which includes a mix of popular and recent posts.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>No</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>Query Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>cursor</td>
+                    <td>string</td>
+                    <td>No</td>
+                    <td>Cursor for pagination</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "posts": [
+    {
+      "id": "post_id",
+      "content": "Post content",
+      "mediaUrl": "https://example.com/media.jpg",
+      "mediaType": "IMAGE",
+      "createdAt": "2023-01-01T00:00:00Z",
+      "user": {
+        "id": "user_id",
+        "username": "username",
+        "displayName": "Display Name",
+        "avatarUrl": "https://example.com/avatar.jpg"
+      },
+      "_count": {
+        "likes": 10,
+        "comments": 5
+      },
+      "isLiked": false
+    }
+  ],
+  "nextCursor": "next_cursor_token"
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/posts/following</code>
+            <h3>Get Following Feed</h3>
+            <p>Retrieves posts from users that the current user follows.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>Query Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>cursor</td>
+                    <td>string</td>
+                    <td>No</td>
+                    <td>Cursor for pagination</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "posts": [
+    {
+      "id": "post_id",
+      "content": "Post content",
+      "mediaUrl": "https://example.com/media.jpg",
+      "mediaType": "IMAGE",
+      "createdAt": "2023-01-01T00:00:00Z",
+      "user": {
+        "id": "user_id",
+        "username": "username",
+        "displayName": "Display Name",
+        "avatarUrl": "https://example.com/avatar.jpg"
+      },
+      "_count": {
+        "likes": 10,
+        "comments": 5
+      },
+      "isLiked": false
+    }
+  ],
+  "nextCursor": "next_cursor_token"
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/settings/feed-stickers</code>
+            <h3>Get Feed Stickers Setting</h3>
+            <p>Retrieves the setting that determines whether feed stickers are displayed.</p>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "showFeedStickers": true,
+  "fromCache": false
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/public/feed-stickers</code>
+            <h3>Get Public Feed Stickers</h3>
+            <p>Retrieves all active feed stickers for public display.</p>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "stickers": [
+    {
+      "id": "sticker_id",
+      "title": "Sticker Title",
+      "imageUrl": "https://example.com/sticker.png",
+      "position": "TOP_LEFT",
+      "limit": 10,
+      "isActive": true
+    }
+  ]
+}</code></pre>
+        </div>
+
+        <h2 id="competitions">Competitions</h2>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/competitions</code>
+            <h3>Get Competitions</h3>
+            <p>Retrieves a list of competitions.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>No</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>Query Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>status</td>
+                    <td>string</td>
+                    <td>No</td>
+                    <td>Filter by status (active, upcoming, past, all)</td>
+                </tr>
+                <tr>
+                    <td>cursor</td>
+                    <td>string</td>
+                    <td>No</td>
+                    <td>Cursor for pagination</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "competitions": [
+    {
+      "id": "competition_id",
+      "title": "Competition Title",
+      "description": "Competition description",
+      "bannerUrl": "https://example.com/banner.jpg",
+      "startDate": "2023-01-01T00:00:00Z",
+      "endDate": "2023-01-31T23:59:59Z",
+      "status": "ACTIVE",
+      "mediaType": "IMAGE",
+      "isPaid": true,
+      "entryFee": 100,
+      "currency": "INR",
+      "currentRound": {
+        "id": "round_id",
+        "roundNumber": 1,
+        "startDate": "2023-01-01T00:00:00Z",
+        "endDate": "2023-01-15T23:59:59Z",
+        "status": "ACTIVE"
+      },
+      "_count": {
+        "participants": 50
+      },
+      "isParticipating": false
+    }
+  ],
+  "nextCursor": "next_cursor_token"
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/competitions/{competitionId}/join</code>
+            <h3>Join Competition</h3>
+            <p>Joins a competition as a participant.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>competitionId</td>
+                    <td>string</td>
+                    <td>ID of the competition to join</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "success": true,
+  "participant": {
+    "id": "participant_id",
+    "status": "ACTIVE",
+    "createdAt": "2023-01-01T00:00:00Z"
+  }
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Already participating</li>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>404 Not Found</code>: Competition not found</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/competitions/{competitionId}/submit</code>
+            <h3>Submit Competition Entry</h3>
+            <p>Submits an entry for a competition round.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>application/json</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>competitionId</td>
+                    <td>string</td>
+                    <td>ID of the competition to submit an entry for</td>
+                </tr>
+            </table>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "mediaUrl": "https://utfs.io/f/image.jpg",
+  "content": "Entry caption",
+  "roundId": "round_id",
+  "stickerIds": ["sticker_id_1", "sticker_id_2"]
+}</code></pre>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "success": true,
+  "entry": {
+    "id": "entry_id",
+    "roundId": "round_id",
+    "postId": "post_id",
+    "createdAt": "2023-01-01T00:00:00Z"
+  }
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Invalid request body or not participating</li>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>403 Forbidden</code>: Round not active or already submitted</li>
+                <li><code>404 Not Found</code>: Competition or round not found</li>
+            </ul>
+        </div>
+
+        <h2 id="likes-comments">Likes & Comments</h2>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/posts/{postId}/likes</code>
+            <h3>Like a Post</h3>
+            <p>Adds a like to a post.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>postId</td>
+                    <td>string</td>
+                    <td>ID of the post to like</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "success": true
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>403 Forbidden</code>: Likes feature is disabled</li>
+                <li><code>404 Not Found</code>: Post not found</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method delete">DELETE</span>
+            <code>/api/posts/{postId}/likes</code>
+            <h3>Unlike a Post</h3>
+            <p>Removes a like from a post.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>postId</td>
+                    <td>string</td>
+                    <td>ID of the post to unlike</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "success": true
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>403 Forbidden</code>: Likes feature is disabled</li>
+                <li><code>404 Not Found</code>: Post not found or like not found</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/posts/{postId}/comments</code>
+            <h3>Get Post Comments</h3>
+            <p>Retrieves comments for a specific post.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>No</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>postId</td>
+                    <td>string</td>
+                    <td>ID of the post to get comments for</td>
+                </tr>
+            </table>
+
+            <h4>Query Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>cursor</td>
+                    <td>string</td>
+                    <td>No</td>
+                    <td>Cursor for pagination</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "comments": [
+    {
+      "id": "comment_id",
+      "content": "Comment content",
+      "createdAt": "2023-01-01T00:00:00Z",
+      "user": {
+        "id": "user_id",
+        "username": "username",
+        "displayName": "Display Name",
+        "avatarUrl": "https://example.com/avatar.jpg"
+      }
+    }
+  ],
+  "previousCursor": "previous_cursor_token"
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>403 Forbidden</code>: Comments feature is disabled</li>
+                <li><code>404 Not Found</code>: Post not found</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/posts/{postId}/comments</code>
+            <h3>Add Comment to Post</h3>
+            <p>Adds a comment to a post.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>application/json</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>postId</td>
+                    <td>string</td>
+                    <td>ID of the post to comment on</td>
+                </tr>
+            </table>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "content": "Comment content"
+}</code></pre>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "id": "comment_id",
+  "content": "Comment content",
+  "createdAt": "2023-01-01T00:00:00Z"
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Invalid request body</li>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>403 Forbidden</code>: Comments feature is disabled</li>
+                <li><code>404 Not Found</code>: Post not found</li>
+            </ul>
+        </div>
+
+        <h2 id="following">Following & Followers</h2>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/users/{userId}/followers</code>
+            <h3>Get User Followers Info</h3>
+            <p>Retrieves information about a user's followers.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>No</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>userId</td>
+                    <td>string</td>
+                    <td>ID of the user to get followers info for</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "followers": 10,
+  "isFollowedByUser": false
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>404 Not Found</code>: User not found</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/users/{userId}/followers</code>
+            <h3>Follow User</h3>
+            <p>Follows a user.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>userId</td>
+                    <td>string</td>
+                    <td>ID of the user to follow</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "success": true
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Cannot follow yourself</li>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>404 Not Found</code>: User not found</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method delete">DELETE</span>
+            <code>/api/users/{userId}/followers</code>
+            <h3>Unfollow User</h3>
+            <p>Unfollows a user.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>userId</td>
+                    <td>string</td>
+                    <td>ID of the user to unfollow</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "success": true
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>404 Not Found</code>: User not found or not following</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/users/{userId}/follow-request</code>
+            <h3>Send Follow Request</h3>
+            <p>Sends a follow request to a user with a private profile.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>userId</td>
+                    <td>string</td>
+                    <td>ID of the user to send a follow request to</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "status": "PENDING"
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Cannot follow yourself</li>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>404 Not Found</code>: User not found</li>
+            </ul>
+        </div>
+
+        <h2 id="messaging">Messaging</h2>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/chats</code>
+            <h3>Get User Chats</h3>
+            <p>Retrieves chats for the current user.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>Query Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>cursor</td>
+                    <td>string</td>
+                    <td>No</td>
+                    <td>Cursor for pagination</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "chats": [
+    {
+      "id": "chat_id",
+      "createdAt": "2023-01-01T00:00:00Z",
+      "updatedAt": "2023-01-02T00:00:00Z",
+      "lastMessage": {
+        "id": "message_id",
+        "content": "Message content",
+        "createdAt": "2023-01-02T00:00:00Z",
+        "senderId": "user_id"
+      },
+      "participants": [
+        {
+          "id": "user_id",
+          "username": "username",
+          "displayName": "Display Name",
+          "avatarUrl": "https://example.com/avatar.jpg",
+          "onlineStatus": "ONLINE"
+        }
+      ],
+      "unreadCount": 2
+    }
+  ],
+  "nextCursor": "next_cursor_token"
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>403 Forbidden</code>: Messaging feature is disabled</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/chats</code>
+            <h3>Create Chat</h3>
+            <p>Creates a new chat.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>application/json</td>
+                </tr>
+            </table>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "participantIds": ["user_id_1", "user_id_2"],
+  "name": "Chat Name",
+  "isGroupChat": false
+}</code></pre>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "id": "chat_id",
+  "name": "Chat Name",
+  "isGroupChat": false,
+  "createdAt": "2023-01-01T00:00:00Z",
+  "participants": [
+    {
+      "id": "user_id",
+      "username": "username",
+      "displayName": "Display Name",
+      "avatarUrl": "https://example.com/avatar.jpg"
+    }
+  ]
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Invalid request body</li>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>403 Forbidden</code>: Messaging feature is disabled</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/chats/{chatId}/messages</code>
+            <h3>Get Chat Messages</h3>
+            <p>Retrieves messages for a specific chat.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>chatId</td>
+                    <td>string</td>
+                    <td>ID of the chat to get messages for</td>
+                </tr>
+            </table>
+
+            <h4>Query Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>cursor</td>
+                    <td>string</td>
+                    <td>No</td>
+                    <td>Cursor for pagination</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "messages": [
+    {
+      "id": "message_id",
+      "content": "Message content",
+      "createdAt": "2023-01-01T00:00:00Z",
+      "isRead": true,
+      "sender": {
+        "id": "user_id",
+        "username": "username",
+        "displayName": "Display Name",
+        "avatarUrl": "https://example.com/avatar.jpg"
+      }
+    }
+  ],
+  "previousCursor": "previous_cursor_token"
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>403 Forbidden</code>: Messaging feature is disabled or not a participant</li>
+                <li><code>404 Not Found</code>: Chat not found</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/chats/{chatId}/messages</code>
+            <h3>Send Message</h3>
+            <p>Sends a message in a chat.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>application/json</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>chatId</td>
+                    <td>string</td>
+                    <td>ID of the chat to send a message in</td>
+                </tr>
+            </table>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "content": "Message content",
+  "recipientId": "user_id"
+}</code></pre>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "id": "message_id",
+  "content": "Message content",
+  "createdAt": "2023-01-01T00:00:00Z",
+  "isRead": false,
+  "sender": {
+    "id": "user_id",
+    "username": "username",
+    "displayName": "Display Name",
+    "avatarUrl": "https://example.com/avatar.jpg"
+  }
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Invalid request body</li>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>403 Forbidden</code>: Messaging feature is disabled or not a participant</li>
+                <li><code>404 Not Found</code>: Chat not found</li>
+            </ul>
+        </div>
+
+        <h2 id="notifications">Notifications</h2>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/notifications</code>
+            <h3>Get Notifications</h3>
+            <p>Retrieves notifications for the current user.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>Query Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>cursor</td>
+                    <td>string</td>
+                    <td>No</td>
+                    <td>Cursor for pagination</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "notifications": [
+    {
+      "id": "notification_id",
+      "type": "LIKE",
+      "message": "User liked your post",
+      "isRead": false,
+      "createdAt": "2023-01-01T00:00:00Z",
+      "issuer": {
+        "username": "username",
+        "displayName": "Display Name",
+        "avatarUrl": "https://example.com/avatar.jpg"
+      },
+      "post": {
+        "content": "Post content"
+      }
+    }
+  ],
+  "nextCursor": "next_cursor_token"
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/notifications/unread-count</code>
+            <h3>Get Unread Notifications Count</h3>
+            <p>Retrieves the count of unread notifications for the current user.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "unreadCount": 5
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method patch">PATCH</span>
+            <code>/api/notifications/mark-as-read</code>
+            <h3>Mark All Notifications as Read</h3>
+            <p>Marks all notifications as read for the current user.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/notifications/devices</code>
+            <h3>Get Registered Devices</h3>
+            <p>Retrieves all registered device tokens for the current user.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "deviceTokens": [
+    {
+      "id": "device_token_id",
+      "token": "firebase-device-token",
+      "deviceType": "ANDROID",
+      "lastUsed": "2023-01-01T00:00:00Z",
+      "createdAt": "2023-01-01T00:00:00Z"
+    }
+  ]
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/notifications/devices</code>
+            <h3>Register Device for Push Notifications</h3>
+            <p>Registers a device token for push notifications.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>application/json</td>
+                </tr>
+            </table>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "token": "firebase-device-token",
+  "deviceType": "ANDROID" // or "IOS", "WEB"
+}</code></pre>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "message": "Device token registered successfully",
+  "deviceToken": {
+    "id": "device_token_id",
+    "token": "firebase-device-token",
+    "deviceType": "ANDROID",
+    "userId": "user_id",
+    "isActive": true,
+    "lastUsed": "2023-01-01T00:00:00Z",
+    "createdAt": "2023-01-01T00:00:00Z",
+    "updatedAt": "2023-01-01T00:00:00Z"
+  }
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Invalid request body</li>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>403 Forbidden</code>: Push notifications are disabled</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method delete">DELETE</span>
+            <code>/api/notifications/devices</code>
+            <h3>Unregister Device</h3>
+            <p>Removes a device token for push notifications.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>Query Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>token</td>
+                    <td>string</td>
+                    <td>Yes</td>
+                    <td>The device token to remove</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "success": true
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Token is required</li>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>404 Not Found</code>: Device token not found</li>
+            </ul>
+        </div>
+
+        <h2 id="bookmarks">Bookmarks</h2>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/posts/{postId}/bookmark</code>
+            <h3>Get Bookmark Status</h3>
+            <p>Checks if a post is bookmarked by the current user.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>postId</td>
+                    <td>string</td>
+                    <td>ID of the post to check bookmark status for</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "isBookmarkedByUser": true
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>403 Forbidden</code>: Bookmarks feature is disabled</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/posts/{postId}/bookmark</code>
+            <h3>Bookmark Post</h3>
+            <p>Bookmarks a post for the current user.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>postId</td>
+                    <td>string</td>
+                    <td>ID of the post to bookmark</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>403 Forbidden</code>: Bookmarks feature is disabled</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method delete">DELETE</span>
+            <code>/api/posts/{postId}/bookmark</code>
+            <h3>Remove Bookmark</h3>
+            <p>Removes a bookmark from a post for the current user.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>postId</td>
+                    <td>string</td>
+                    <td>ID of the post to remove bookmark from</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>403 Forbidden</code>: Bookmarks feature is disabled</li>
+            </ul>
+        </div>
+
+        <h2 id="user-status">User Status</h2>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/users/online-status</code>
+            <h3>Get User Online Status</h3>
+            <p>Retrieves the online status of a user.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>No</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>Query Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>userId</td>
+                    <td>string</td>
+                    <td>Yes</td>
+                    <td>ID of the user to get online status for</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "onlineStatus": "ONLINE", // or "OFFLINE", "AWAY", "BUSY"
+  "lastActiveAt": "2023-01-01T00:00:00Z"
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: User ID is required</li>
+                <li><code>404 Not Found</code>: User not found</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/users/online-status</code>
+            <h3>Update User Online Status</h3>
+            <p>Updates the online status of the current user.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>application/json</td>
+                </tr>
+            </table>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "status": "ONLINE" // or "OFFLINE", "AWAY", "BUSY"
+}</code></pre>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "success": true
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Invalid status</li>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+            </ul>
+        </div>
+
+        <h2 id="login-activity">Login Activity</h2>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/login-activity/clear</code>
+            <h3>Clear All Login Activities</h3>
+            <p>Clears all login activity records for the current user.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "success": true,
+  "message": "All login activities cleared successfully",
+  "count": 10
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>403 Forbidden</code>: Login activity tracking is disabled</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/login-activity/delete</code>
+            <h3>Delete Specific Login Activity</h3>
+            <p>Deletes a specific login activity record for the current user.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>application/json</td>
+                </tr>
+            </table>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "activityId": "activity_id"
+}</code></pre>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "success": true,
+  "message": "Login activity deleted successfully"
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Activity ID is required</li>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>404 Not Found</code>: Activity not found</li>
+            </ul>
+        </div>
+
+        <h2 id="payments">Payments</h2>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/payments/create-order</code>
+            <h3>Create Payment Order</h3>
+            <p>Creates a new payment order for competition entry using Razorpay.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>application/json</td>
+                </tr>
+            </table>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "competitionId": "competition_id"
+}</code></pre>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "success": true,
+  "order": {
+    "id": "order_id",
+    "entity": "order",
+    "amount": 10000,
+    "amount_paid": 0,
+    "amount_due": 10000,
+    "currency": "INR",
+    "receipt": "receipt_id",
+    "status": "created",
+    "attempts": 0,
+    "created_at": 1631234567
+  },
+  "payment": {
+    "id": "payment_id",
+    "amount": 100,
+    "currency": "INR"
+  },
+  "qrCode": "data:image/png;base64,...",
+  "keyId": "razorpay_key_id"
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Competition ID is required</li>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>404 Not Found</code>: Competition not found</li>
+                <li><code>500 Internal Server Error</code>: Payment gateway not configured</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/payments/verify</code>
+            <h3>Verify Payment</h3>
+            <p>Verifies a Razorpay payment and updates the payment status.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>application/json</td>
+                </tr>
+            </table>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "orderId": "order_id",
+  "paymentId": "payment_id",
+  "signature": "razorpay_signature",
+  "competitionId": "competition_id"
+}</code></pre>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "success": true,
+  "message": "Payment verified successfully",
+  "participant": {
+    "id": "participant_id",
+    "status": "ACTIVE"
+  }
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Missing required payment details</li>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>403 Forbidden</code>: Invalid payment signature</li>
+                <li><code>500 Internal Server Error</code>: Payment gateway not configured</li>
+            </ul>
+        </div>
+
+        <h2 id="settings">Settings</h2>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/settings</code>
+            <h3>Get Feature Settings</h3>
+            <p>Retrieves the current feature settings for the application.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>No</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "firebaseEnabled": true,
+  "pushNotificationsEnabled": true,
+  "likesEnabled": true,
+  "commentsEnabled": true,
+  "sharingEnabled": true,
+  "messagingEnabled": true,
+  "userBlockingEnabled": true,
+  "loginActivityTrackingEnabled": true,
+  "viewsEnabled": true,
+  "bookmarksEnabled": true,
+  "advertisementsEnabled": true,
+  "reportingEnabled": true
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>404 Not Found</code>: Settings not found</li>
+            </ul>
+        </div>
+
+        <h2 id="stickers">Stickers</h2>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/stickers</code>
+            <h3>Get All Stickers</h3>
+            <p>Retrieves all competition stickers.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>[
+  {
+    "id": "sticker_id",
+    "name": "Sticker Name",
+    "imageUrl": "https://example.com/sticker.png",
+    "position": "TOP_LEFT",
+    "isDefault": false,
+    "createdAt": "2023-01-01T00:00:00Z"
+  }
+]</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required or not an admin</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/stickers</code>
+            <h3>Create Sticker</h3>
+            <p>Creates a new competition sticker.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>application/json</td>
+                </tr>
+            </table>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "name": "Sticker Name",
+  "imageUrl": "https://example.com/sticker.png",
+  "position": "TOP_LEFT",
+  "isDefault": false
+}</code></pre>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "id": "sticker_id",
+  "name": "Sticker Name",
+  "imageUrl": "https://example.com/sticker.png",
+  "position": "TOP_LEFT",
+  "isDefault": false,
+  "createdAt": "2023-01-01T00:00:00Z"
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Missing required fields or invalid position</li>
+                <li><code>401 Unauthorized</code>: Authentication required or not an admin</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/stickers/upload</code>
+            <h3>Upload Sticker Image</h3>
+            <p>Uploads a sticker image file.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>multipart/form-data</td>
+                </tr>
+            </table>
+
+            <h4>Request Body (multipart/form-data)</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>file</td>
+                    <td>File</td>
+                    <td>Yes</td>
+                    <td>The sticker image file to upload</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "success": true,
+  "stickerUrl": "https://example.com/sticker.png"
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: No file provided or invalid file type</li>
+                <li><code>401 Unauthorized</code>: Authentication required or not an admin</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/feed-stickers</code>
+            <h3>Get All Feed Stickers</h3>
+            <p>Retrieves all feed stickers.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "stickers": [
+    {
+      "id": "sticker_id",
+      "title": "Sticker Title",
+      "imageUrl": "https://example.com/sticker.png",
+      "position": "TOP_LEFT",
+      "limit": 10,
+      "isActive": true,
+      "competitionId": "feed",
+      "createdAt": "2023-01-01T00:00:00Z"
+    }
+  ]
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required or not an admin</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/feed-stickers</code>
+            <h3>Create Feed Sticker</h3>
+            <p>Creates a new feed sticker.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>application/json</td>
+                </tr>
+            </table>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "title": "Sticker Title",
+  "imageUrl": "https://example.com/sticker.png",
+  "position": "TOP_LEFT",
+  "limit": 10,
+  "isActive": true
+}</code></pre>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "success": true,
+  "sticker": {
+    "id": "sticker_id",
+    "title": "Sticker Title",
+    "imageUrl": "https://example.com/sticker.png",
+    "position": "TOP_LEFT",
+    "limit": 10,
+    "isActive": true,
+    "competitionId": "feed",
+    "createdAt": "2023-01-01T00:00:00Z"
+  }
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Missing required fields or invalid position</li>
+                <li><code>401 Unauthorized</code>: Authentication required or not an admin</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method patch">PATCH</span>
+            <code>/api/feed-stickers/{stickerId}</code>
+            <h3>Update Feed Sticker</h3>
+            <p>Updates an existing feed sticker.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>application/json</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>stickerId</td>
+                    <td>string</td>
+                    <td>ID of the feed sticker to update</td>
+                </tr>
+            </table>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "title": "Updated Sticker Title",
+  "imageUrl": "https://example.com/updated-sticker.png",
+  "position": "BOTTOM_RIGHT",
+  "limit": 20,
+  "isActive": false
+}</code></pre>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "success": true,
+  "sticker": {
+    "id": "sticker_id",
+    "title": "Updated Sticker Title",
+    "imageUrl": "https://example.com/updated-sticker.png",
+    "position": "BOTTOM_RIGHT",
+    "limit": 20,
+    "isActive": false,
+    "competitionId": "feed",
+    "updatedAt": "2023-01-02T00:00:00Z"
+  }
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Invalid position</li>
+                <li><code>401 Unauthorized</code>: Authentication required or not an admin</li>
+                <li><code>404 Not Found</code>: Feed sticker not found</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method delete">DELETE</span>
+            <code>/api/feed-stickers/{stickerId}</code>
+            <h3>Delete Feed Sticker</h3>
+            <p>Deletes a feed sticker.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>stickerId</td>
+                    <td>string</td>
+                    <td>ID of the feed sticker to delete</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "success": true,
+  "message": "Feed sticker deleted successfully"
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required or not an admin</li>
+                <li><code>404 Not Found</code>: Feed sticker not found</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/settings/stickered-media</code>
+            <h3>Get Stickered Media Setting</h3>
+            <p>Retrieves the setting that determines whether stickered advertisements are displayed.</p>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "showStickeredAdvertisements": true
+}</code></pre>
+        </div>
+
+        <h2 id="media">Media</h2>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/upload/custom</code>
+            <h3>Upload Media</h3>
+            <p>Uploads a media file (image or video).</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>multipart/form-data</td>
+                </tr>
+            </table>
+
+            <h4>Request Body (multipart/form-data)</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>file</td>
+                    <td>File</td>
+                    <td>Yes</td>
+                    <td>The file to upload</td>
+                </tr>
+                <tr>
+                    <td>uploadType</td>
+                    <td>string</td>
+                    <td>Yes</td>
+                    <td>Type of upload (avatar, attachment, sticker)</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "url": "https://utfs.io/f/uploaded-file.jpg",
+  "type": "IMAGE",
+  "size": 1024000
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Invalid file or upload type</li>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>413 Payload Too Large</code>: File size exceeds limit</li>
+            </ul>
+        </div>
+
+        <h2 id="search">Search</h2>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/search</code>
+            <h3>Search</h3>
+            <p>Searches for posts and users.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>No</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>Query Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>q</td>
+                    <td>string</td>
+                    <td>Yes</td>
+                    <td>Search query</td>
+                </tr>
+                <tr>
+                    <td>cursor</td>
+                    <td>string</td>
+                    <td>No</td>
+                    <td>Cursor for pagination</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "posts": [
+    {
+      "id": "post_id",
+      "content": "Post content matching search query",
+      "createdAt": "2023-01-01T00:00:00Z",
+      "user": {
+        "id": "user_id",
+        "username": "username",
+        "displayName": "Display Name",
+        "avatarUrl": "https://example.com/avatar.jpg"
+      }
+    }
+  ],
+  "nextCursor": "next_cursor_token"
+}</code></pre>
+        </div>
+
+        <h2 id="advertisements">Advertisements</h2>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/advertisements</code>
+            <h3>Get Advertisements</h3>
+            <p>Retrieves active advertisements.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>No</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "advertisements": [
+    {
+      "id": "ad_id",
+      "title": "Advertisement Title",
+      "description": "Advertisement description",
+      "mediaUrl": "https://example.com/ad.jpg",
+      "mediaType": "IMAGE",
+      "targetUrl": "https://example.com/target",
+      "startDate": "2023-01-01T00:00:00Z",
+      "endDate": "2023-01-31T23:59:59Z"
+    }
+  ]
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>403 Forbidden</code>: Advertisements feature is disabled</li>
+            </ul>
+        </div>
+
+        <h2 id="reporting">Reporting</h2>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/posts/{postId}/report</code>
+            <h3>Report Post</h3>
+            <p>Reports a post for violating community guidelines.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>application/json</td>
+                </tr>
+            </table>
+
+            <h4>URL Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>postId</td>
+                    <td>string</td>
+                    <td>ID of the post to report</td>
+                </tr>
+            </table>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "reason": "INAPPROPRIATE_CONTENT", // or "SPAM", "HARASSMENT", "VIOLENCE", "OTHER"
+  "description": "Optional description of the report"
+}</code></pre>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "success": true,
+  "message": "Report submitted successfully"
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Invalid reason or already reported</li>
+                <li><code>401 Unauthorized</code>: Authentication required</li>
+                <li><code>403 Forbidden</code>: Reporting feature is disabled</li>
+                <li><code>404 Not Found</code>: Post not found</li>
+            </ul>
+        </div>
+
+        <h2 id="health">Health & Status</h2>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api</code>
+            <h3>API Health Check</h3>
+            <p>Checks if the API is working.</p>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "status": "ok",
+  "message": "API is working",
+  "timestamp": "2023-01-01T00:00:00Z"
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/health</code>
+            <h3>Detailed Health Check</h3>
+            <p>Performs a detailed health check of the application, including database connectivity.</p>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "status": "ok",
+  "timestamp": "2023-01-01T00:00:00Z",
+  "environment": "production",
+  "database": {
+    "status": "connected",
+    "error": null
+  },
+  "system": {
+    "nodeVersion": "v18.12.1",
+    "uptime": 3600,
+    "memory": {
+      "rss": "150MB",
+      "heapTotal": "100MB",
+      "heapUsed": "75MB"
+    }
+  },
+  "performance": {
+    "responseTime": "50ms"
+  }
+}</code></pre>
+        </div>
+
+        <h2 id="admin">Admin APIs</h2>
+        <p>These APIs are restricted to users with administrative roles (ADMIN, MANAGER, or SUPER_ADMIN).</p>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/admin/profile</code>
+            <h3>Get Admin Profile</h3>
+            <p>Retrieves the profile information for the current admin user.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "user": {
+    "id": "user_id",
+    "username": "admin_username",
+    "displayName": "Admin Name",
+    "email": "admin@example.com",
+    "avatarUrl": "https://example.com/avatar.jpg"
+  }
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required or not an admin</li>
+                <li><code>404 Not Found</code>: User not found</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/admin/users</code>
+            <h3>Get All Users</h3>
+            <p>Retrieves a list of all users in the system.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>Query Parameters</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>search</td>
+                    <td>string</td>
+                    <td>No</td>
+                    <td>Search term for filtering users</td>
+                </tr>
+                <tr>
+                    <td>page</td>
+                    <td>number</td>
+                    <td>No</td>
+                    <td>Page number for pagination</td>
+                </tr>
+                <tr>
+                    <td>limit</td>
+                    <td>number</td>
+                    <td>No</td>
+                    <td>Number of users per page</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "users": [
+    {
+      "id": "user_id",
+      "username": "username",
+      "displayName": "Display Name",
+      "email": "user@example.com",
+      "role": "USER",
+      "createdAt": "2023-01-01T00:00:00Z",
+      "isActive": true
+    }
+  ],
+  "totalCount": 100,
+  "totalPages": 10,
+  "currentPage": 1
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required or not an admin</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/admin/permissions</code>
+            <h3>Get All Permissions</h3>
+            <p>Retrieves a list of all permissions in the system.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "permissions": [
+    {
+      "id": "permission_id",
+      "name": "MANAGE_USERS",
+      "description": "Allows managing users"
+    }
+  ]
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Authentication required or not an admin</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/admin/permissions</code>
+            <h3>Create Permission</h3>
+            <p>Creates a new permission in the system.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {accessToken}</td>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>Yes</td>
+                    <td>application/json</td>
+                </tr>
+            </table>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "name": "MANAGE_USERS",
+  "description": "Allows managing users"
+}</code></pre>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "id": "permission_id",
+  "name": "MANAGE_USERS",
+  "description": "Allows managing users",
+  "createdAt": "2023-01-01T00:00:00Z"
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>400 Bad Request</code>: Permission name is required</li>
+                <li><code>401 Unauthorized</code>: Authentication required or not a super admin</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/admin/advertisements/check-expired</code>
+            <h3>Check Expired Advertisements</h3>
+            <p>Checks and updates the status of expired advertisements. This endpoint is typically called by a cron job.</p>
+
+            <h4>Headers</h4>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td>Yes</td>
+                    <td>Bearer {CRON_SECRET}</td>
+                </tr>
+            </table>
+
+            <h4>Success Response (200 OK)</h4>
+            <pre><code>{
+  "success": true,
+  "results": {
+    "expired": 5,
+    "activated": 2
+  }
+}</code></pre>
+
+            <h4>Error Responses</h4>
+            <ul>
+                <li><code>401 Unauthorized</code>: Invalid authorization header</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

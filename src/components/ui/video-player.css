@@ -1,0 +1,160 @@
+/* Instagram-style Video Player */
+
+.instagram-video-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background-color: black;
+  aspect-ratio: 16/9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Video element styling */
+.instagram-video-container video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  background-color: black;
+}
+
+/* Play button overlay */
+.instagram-video-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+  pointer-events: none;
+  /* Allow clicks to pass through to the video */
+}
+
+.instagram-video-overlay.visible {
+  opacity: 1;
+}
+
+.instagram-play-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.9;
+  filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.5));
+  transform: scale(1.2);
+}
+
+/* Progress bar styling */
+.instagram-progress-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0;
+  z-index: 20;
+  pointer-events: auto;
+  /* Ensure the progress bar is clickable */
+}
+
+.instagram-progress-bar {
+  height: 3px;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.2);
+  position: relative;
+  cursor: pointer;
+}
+
+.instagram-progress-bar:hover {
+  height: 5px;
+}
+
+.instagram-progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background-color: #3897f0;
+  /* Instagram blue */
+  transition: width 0.1s linear;
+}
+
+.instagram-progress-bar:hover .instagram-progress-fill {
+  background-color: #58a6f5;
+  /* Lighter blue on hover */
+}
+
+/* Volume control */
+.instagram-video-controls {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.instagram-control-button {
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: all 0.2s ease;
+  margin: 0 2px;
+}
+
+.instagram-control-button:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* Double-click heart animation */
+@keyframes heart-scale {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+
+  15% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+
+  30% {
+    transform: scale(0.9);
+  }
+
+  45% {
+    transform: scale(1.1);
+  }
+
+  80% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+.heart-animation {
+  animation: heart-scale 1s ease-in-out forwards;
+}

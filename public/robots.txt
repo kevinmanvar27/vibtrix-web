@@ -1,0 +1,11 @@
+# Allow all web crawlers
+User-agent: *
+Allow: /
+
+# Disallow admin and API routes
+Disallow: /admin/
+Disallow: /admin-login/
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://vibtrix.com/sitemap.xml

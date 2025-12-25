@@ -1,0 +1,899 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+model User {
+  id                     String                       @id
+  username               String                       @unique
+  displayName            String
+  email                  String?                      @unique
+  emailVerified          Boolean                      @default(false)
+  passwordHash           String?
+  googleId               String?                      @unique
+  appleId                String?                      @unique
+  avatarUrl              String?
+  bio                    String?
+  createdAt              DateTime                     @default(now())
+  isActive               Boolean                      @default(true)
+  isAdmin                Boolean                      @default(false)
+  onlineStatus           OnlineStatus                 @default(OFFLINE)
+  lastActiveAt           DateTime?
+  showOnlineStatus       Boolean                      @default(true)
+  isProfilePublic        Boolean                      @default(true)
+  role                   UserRole                     @default(USER)
+  roleId                 String?
+  dateOfBirth            String?
+  gender                 String?
+  showDob                Boolean                      @default(false)
+  showFullDob            Boolean                      @default(false)
+  showWhatsappNumber     Boolean                      @default(false)
+  whatsappNumber         String?
+  hideYear               Boolean                      @default(true)
+  isManagementUser       Boolean                      @default(false)
+  showUpiId              Boolean                      @default(false)
+  socialLinks            Json?
+  upiId                  String?
+
+  // Modeling feature fields
+  interestedInModeling   Boolean                      @default(false)
+  photoshootPricePerDay  Float?
+  videoAdsParticipation  Boolean                      @default(false)
+
+  // Brand Ambassadorship feature fields
+  interestedInBrandAmbassadorship Boolean              @default(false)
+  brandAmbassadorshipPricing      String?
+  brandPreferences                String?
+  bookmarks              Bookmark[]
+  participatedChats      ChatParticipant[]
+  comments               Comment[]
+  competitions           CompetitionParticipant[]
+  deviceTokens           DeviceToken[]
+  receivedFollowRequests FollowRequest[]              @relation("ReceivedFollowRequests")
+  sentFollowRequests     FollowRequest[]              @relation("SentFollowRequests")
+  following              Follow[]                     @relation("Following")
+  followers              Follow[]                     @relation("Followers")
+  likes                  Like[]
+  receivedMessages       Message[]                    @relation("Recipient")
+  sentMessages           Message[]                    @relation("Sender")
+  issuedNotifications    Notification[]               @relation("Issuer")
+  receivedNotifications  Notification[]               @relation("Recipient")
+  payments               Payment[]
+  post_reports           post_reports[]
+  reportedByUsers        user_reports[]               @relation("ReportedUser")
+  userReportsSubmitted   user_reports[]               @relation("Reporter")
+  commentReportsSubmitted comment_reports[]
+  posts                  Post[]
+  receivedPrizes         PrizePayment[]
+  sessions               Session[]
+  blockedBy              UserBlock[]                  @relation("Blocked")
+  blockedUsers           UserBlock[]                  @relation("Blocker")
+  loginActivities        UserLoginActivity[]
+  notificationPrefs      UserNotificationPreferences?
+  permissions            UserPermission[]
+  customRole             Role?                        @relation(fields: [roleId], references: [id])
+  passwordResetTokens    PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  shares                 Share[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Follow {
+  followerId  String
+  followingId String
+  follower    User   @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User   @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model FollowRequest {
+  id          String        @id @default(cuid())
+  requesterId String
+  recipientId String
+  status      RequestStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  recipient   User          @relation("ReceivedFollowRequests", fields: [recipientId], references: [id], onDelete: Cascade)
+  requester   User          @relation("SentFollowRequests", fields: [requesterId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, recipientId])
+  @@map("follow_requests")
+}
+
+model Post {
+  id                  String                  @id @default(cuid())
+  content             String
+  userId              String
+  createdAt           DateTime                @default(now())
+  bookmarks           Bookmark[]
+  comments            Comment[]
+  competitionEntries  CompetitionRoundEntry[]
+  likes               Like[]
+  linkedNotifications Notification[]
+  attachments         Media[]
+  post_reports        post_reports[]
+  views               PostView[]
+  shares              Share[]
+  user                User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("posts")
+}
+
+model Media {
+  id                        String            @id @default(cuid())
+  postId                    String?
+  type                      MediaType
+  url                       String
+  urlHigh                   String?
+  urlMedium                 String?
+  urlLow                    String?
+  urlThumbnail              String?
+  posterUrl                 String?
+  width                     Int?
+  height                    Int?
+  duration                  Float?
+  size                      Int?
+  createdAt                 DateTime          @default(now())
+  appliedPromotionStickerId String?
+  advertisements            Advertisement[]
+  appliedPromotionSticker   PromotionSticker? @relation(fields: [appliedPromotionStickerId], references: [id])
+  post                      Post?             @relation(fields: [postId], references: [id])
+
+  @@map("post_media")
+}
+
+model Comment {
+  id        String            @id @default(cuid())
+  content   String
+  userId    String
+  postId    String
+  parentId  String?           // For nested replies - null means top-level comment
+  createdAt DateTime          @default(now())
+  post      Post              @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent    Comment?          @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[]         @relation("CommentReplies")
+  reports   comment_reports[]
+
+  @@index([parentId])
+  @@map("comments")
+}
+
+model Like {
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("likes")
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("bookmarks")
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  recipientId String
+  issuerId    String
+  postId      String?
+  type        NotificationType
+  read        Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  issuer      User             @relation("Issuer", fields: [issuerId], references: [id], onDelete: Cascade)
+  post        Post?            @relation(fields: [postId], references: [id], onDelete: Cascade)
+  recipient   User             @relation("Recipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Competition {
+  id                 String                   @id @default(cuid())
+  title              String
+  description        String
+  isPaid             Boolean                  @default(false)
+  entryFee           Float?
+  mediaType          CompetitionMediaType     @default(BOTH)
+  minLikes           Int?
+  maxDuration        Int?
+  isActive           Boolean                  @default(true)
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+  maxAge             Int?
+  minAge             Int?
+  slug               String?                  @unique
+  hasPrizes          Boolean                  @default(false)
+  defaultHashtag     String?
+  showStickeredMedia Boolean                  @default(true)
+  showFeedStickers   Boolean                  @default(true)
+  requiredGender     String?
+  completionReason   String?
+  DefaultStickers    DefaultStickers[]
+  OptionalStickers   OptionalStickers[]
+  advertisements     Advertisement[]
+  participants       CompetitionParticipant[]
+  prizes             CompetitionPrize[]
+  rounds             CompetitionRound[]
+  payments           Payment[]
+  prizePayments      PrizePayment[]
+  promotionStickers  PromotionSticker[]
+
+  @@map("competitions")
+}
+
+model CompetitionParticipant {
+  id                          String                  @id @default(cuid())
+  userId                      String
+  competitionId               String
+  createdAt                   DateTime                @default(now())
+  currentRoundId              String?
+  hasPaid                     Boolean                 @default(false)
+  isDisqualified              Boolean                 @default(false)
+  disqualifyReason            String?
+  hasAppealedDisqualification Boolean                 @default(false)
+  competition                 Competition             @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  user                        User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roundEntries                CompetitionRoundEntry[]
+
+  @@unique([userId, competitionId])
+  @@map("competition_participants")
+}
+
+model CompetitionSticker {
+  id               String             @id @default(cuid())
+  name             String
+  imageUrl         String
+  position         StickerPosition
+  isDefault        Boolean            @default(false)
+  createdAt        DateTime           @default(now())
+  DefaultStickers  DefaultStickers[]
+  OptionalStickers OptionalStickers[]
+
+  @@map("competition_stickers")
+}
+
+model Page {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  content     String
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("pages")
+}
+
+model SiteSettings {
+  id                                  String   @id @default("settings")
+  maxImageSize                        Int      @default(5242880)
+  minVideoDuration                    Int      @default(3)
+  maxVideoDuration                    Int      @default(60)
+  logoUrl                             String?
+  googleLoginEnabled                  Boolean  @default(true)
+  manualSignupEnabled                 Boolean  @default(true)
+  paytmEnabled                        Boolean  @default(false)
+  phonePeEnabled                      Boolean  @default(false)
+  gPayEnabled                         Boolean  @default(false)
+  razorpayEnabled                     Boolean  @default(false)
+  updatedAt                           DateTime @updatedAt
+  faviconUrl                          String?
+  logoHeight                          Int?     @default(30)
+  logoWidth                           Int?     @default(150)
+  timezone                            String   @default("Asia/Kolkata")
+  razorpayKeyId                       String?
+  razorpayKeySecret                   String?
+  commentsEnabled                     Boolean  @default(true)
+  likesEnabled                        Boolean  @default(true)
+  loginActivityTrackingEnabled        Boolean  @default(true)
+  messagingEnabled                    Boolean  @default(true)
+  sharingEnabled                      Boolean  @default(true)
+  userBlockingEnabled                 Boolean  @default(true)
+  viewsEnabled                        Boolean  @default(true)
+  bookmarksEnabled                    Boolean  @default(true)
+  advertisementsEnabled               Boolean  @default(true)
+  reportingEnabled                    Boolean  @default(true)
+  showStickeredMediaInFeed            Boolean  @default(true)
+  showStickeredAdvertisements         Boolean  @default(true)
+  showFeedStickers                    Boolean  @default(true)
+  firebase_enabled                    Boolean  @default(false)
+  firebase_api_key                    String?
+  firebase_auth_domain                String?
+  firebase_project_id                 String?
+  firebase_storage_bucket             String?
+  firebase_messaging_sender_id        String?
+  firebase_app_id                     String?
+  firebase_measurement_id             String?
+  push_notifications_enabled          Boolean  @default(false)
+  googleAnalyticsEnabled              Boolean  @default(false)
+  googleAnalyticsId                   String?
+  brandAmbassadorshipEnabled          Boolean  @default(false)
+  brandAmbassadorshipMinFollowers     Int      @default(5000)
+  brandAmbassadorshipPreferencesLabel String?  @default("Brand Preferences")
+  brandAmbassadorshipPricingLabel     String?  @default("Pricing Information")
+  modelingFeatureEnabled              Boolean  @default(false)
+  modelingMinFollowers                Int      @default(1000)
+  modelingPhotoshootLabel             String?  @default("Photoshoot Price Per Day")
+  modelingVideoAdsLabel               String?  @default("Video Ads Note")
+
+  // Mobile app configuration
+  maintenanceMode                     Boolean  @default(false)
+  maintenanceMessage                  String?
+  minAppVersionIOS                    String?  @default("1.0.0")
+  minAppVersionAndroid                String?  @default("1.0.0")
+  appStoreUrl                         String?
+  playStoreUrl                        String?
+  appDeepLinkScheme                   String?  @default("vidibattle")
+  appUniversalLinkDomain              String?
+
+  @@map("site_settings")
+}
+
+model CompetitionRound {
+  id            String                  @id @default(cuid())
+  name          String
+  competitionId String
+  startDate     DateTime
+  endDate       DateTime
+  likesToPass   Int?
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+  entries       CompetitionRoundEntry[]
+  competition   Competition             @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+
+  @@map("competition_rounds")
+}
+
+model Chat {
+  id            String            @id @default(cuid())
+  name          String?
+  isGroupChat   Boolean           @default(false)
+  lastMessageAt DateTime          @default(now())
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  participants  ChatParticipant[]
+  messages      Message[]
+
+  @@map("chats")
+}
+
+model ChatParticipant {
+  id         String   @id @default(cuid())
+  userId     String
+  chatId     String
+  hasUnread  Boolean  @default(false)
+  lastReadAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  chat       Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chatId])
+  @@map("chat_participants")
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  content     String
+  senderId    String
+  recipientId String?
+  chatId      String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  chat        Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  recipient   User?    @relation("Recipient", fields: [recipientId], references: [id])
+  sender      User     @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model UserBlock {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+  blocked   User     @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+  blocker   User     @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@map("user_blocks")
+}
+
+model UserNotificationPreferences {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  likeNotifications     Boolean  @default(true)
+  followNotifications   Boolean  @default(true)
+  commentNotifications  Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  push_notifications    Boolean? @default(true)
+  competition_updates   Boolean? @default(true)
+  message_notifications Boolean? @default(true)
+  pushNotifications     Boolean? @default(true)
+  competitionUpdates    Boolean? @default(true)
+  messageNotifications  Boolean? @default(true)
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_notification_preferences")
+}
+
+model CompetitionRoundEntry {
+  id                       String                 @id @default(cuid())
+  participantId            String
+  roundId                  String
+  postId                   String?
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
+  qualifiedForNextRound    Boolean?
+  visibleInCompetitionFeed Boolean                @default(true)
+  visibleInNormalFeed      Boolean                @default(false)
+  winnerPosition           Int?
+  participant              CompetitionParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  post                     Post?                  @relation(fields: [postId], references: [id])
+  round                    CompetitionRound       @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  @@unique([participantId, roundId])
+  @@map("competition_round_entries")
+}
+
+model DefaultStickers {
+  A                    String
+  B                    String
+  competitions         Competition        @relation(fields: [A], references: [id], onDelete: Cascade)
+  competition_stickers CompetitionSticker @relation(fields: [B], references: [id], onDelete: Cascade)
+
+  @@unique([A, B], map: "_DefaultStickers_AB_unique")
+  @@index([B], map: "_DefaultStickers_B_index")
+  @@map("_DefaultStickers")
+}
+
+model OptionalStickers {
+  A                    String
+  B                    String
+  competitions         Competition        @relation(fields: [A], references: [id], onDelete: Cascade)
+  competition_stickers CompetitionSticker @relation(fields: [B], references: [id], onDelete: Cascade)
+
+  @@unique([A, B], map: "_OptionalStickers_AB_unique")
+  @@index([B], map: "_OptionalStickers_B_index")
+  @@map("_OptionalStickers")
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  description String?
+  isSystem    Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  permissions RolePermission[]
+  users       User[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  id           String     @id @default(cuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  roles       RolePermission[]
+  users       UserPermission[]
+
+  @@map("permissions")
+}
+
+model UserPermission {
+  id           String     @id @default(cuid())
+  userId       String
+  permissionId String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permissionId])
+  @@map("user_permissions")
+}
+
+model Payment {
+  id            String         @id @default(cuid())
+  userId        String
+  competitionId String?
+  amount        Float
+  currency      String         @default("INR")
+  status        PaymentStatus
+  gateway       PaymentGateway
+  transactionId String?
+  orderId       String?
+  paymentId     String?
+  signature     String?
+  refunded      Boolean        @default(false)
+  refundReason  String?
+  qrCode        String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  competition   Competition?   @relation(fields: [competitionId], references: [id])
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model PromotionSticker {
+  id             String          @id @default(cuid())
+  title          String
+  imageUrl       String
+  position       StickerPosition
+  limit          Int?
+  isActive       Boolean         @default(true)
+  competitionId  String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  appliedToMedia Media[]
+  competition    Competition     @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  usages         StickerUsage[]
+
+  @@map("promotion_stickers")
+}
+
+model StickerUsage {
+  id        String           @id @default(cuid())
+  stickerId String
+  mediaUrl  String
+  isDeleted Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  sticker   PromotionSticker @relation(fields: [stickerId], references: [id], onDelete: Cascade)
+
+  @@map("sticker_usages")
+}
+
+model PostView {
+  id       String   @id @default(cuid())
+  postId   String
+  userId   String?
+  viewedAt DateTime @default(now())
+  post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("post_views")
+}
+
+model UserLoginActivity {
+  id              String   @id @default(cuid())
+  userId          String
+  ipAddress       String?
+  userAgent       String?
+  browser         String?
+  operatingSystem String?
+  deviceType      String?
+  deviceBrand     String?
+  deviceModel     String?
+  location        String?
+  city            String?
+  region          String?
+  country         String?
+  loginAt         DateTime @default(now())
+  status          String   @default("SUCCESS")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_login_activities")
+}
+
+model Advertisement {
+  id               String              @id @default(cuid())
+  title            String
+  adType           MediaType
+  mediaId          String
+  skipDuration     Int
+  displayFrequency Int
+  scheduleDate     DateTime
+  expiryDate       DateTime
+  status           AdvertisementStatus
+  url              String?
+  competitionId    String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  competition      Competition?        @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  media            Media               @relation(fields: [mediaId], references: [id])
+
+  @@map("advertisements")
+}
+
+model CompetitionPrize {
+  id            String         @id @default(cuid())
+  competitionId String
+  position      PrizePosition
+  amount        Float
+  description   String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  competition   Competition    @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  prizePayments PrizePayment[]
+
+  @@unique([competitionId, position])
+  @@map("competition_prizes")
+}
+
+model PrizePayment {
+  id            String             @id @default(cuid())
+  competitionId String
+  prizeId       String
+  userId        String
+  amount        Float
+  status        PrizePaymentStatus @default(PENDING)
+  transactionId String?
+  upiId         String?
+  notes         String?
+  processedAt   DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  competition   Competition        @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  prize         CompetitionPrize   @relation(fields: [prizeId], references: [id], onDelete: Cascade)
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("prize_payments")
+}
+
+model post_reports {
+  id          String       @id
+  postId      String
+  reporterId  String
+  reason      String
+  description String?
+  status      ReportStatus @default(PENDING)
+  reviewedAt  DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime
+  posts       Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  users       User         @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, reporterId])
+}
+
+model user_reports {
+  id          String       @id
+  userId      String
+  reporterId  String
+  reason      String
+  description String?
+  status      ReportStatus @default(PENDING)
+  reviewedAt  DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime
+  user        User         @relation("ReportedUser", fields: [userId], references: [id], onDelete: Cascade)
+  reporter    User         @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, reporterId])
+}
+
+model comment_reports {
+  id          String       @id
+  commentId   String
+  reporterId  String
+  reason      String
+  description String?
+  status      ReportStatus @default(PENDING)
+  reviewedAt  DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime
+  comment     Comment      @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  reporter    User         @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, reporterId])
+}
+
+model feedback {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String
+  message     String
+  screenshotUrl String?
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DeviceToken {
+  id         String   @id @default(cuid())
+  userId     String
+  token      String   @unique
+  deviceType String
+  isActive   Boolean  @default(true)
+  lastUsed   DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("device_tokens")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  MANAGER
+  SUPER_ADMIN
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum NotificationType {
+  LIKE
+  FOLLOW
+  COMMENT
+  SHARE
+  FOLLOW_REQUEST
+  FOLLOW_REQUEST_ACCEPTED
+  MUTUAL_FOLLOW
+}
+
+enum CompetitionMediaType {
+  IMAGE_ONLY
+  VIDEO_ONLY
+  BOTH
+}
+
+enum StickerPosition {
+  TOP_LEFT
+  TOP_RIGHT
+  BOTTOM_LEFT
+  BOTTOM_RIGHT
+  CENTER
+}
+
+enum OnlineStatus {
+  ONLINE
+  IDLE
+  OFFLINE
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentGateway {
+  PAYTM
+  PHONEPE
+  GPAY
+  RAZORPAY
+}
+
+enum AdvertisementStatus {
+  ACTIVE
+  PAUSED
+  SCHEDULED
+  EXPIRED
+}
+
+enum PrizePosition {
+  FIRST
+  SECOND
+  THIRD
+  FOURTH
+  FIFTH
+  PARTICIPATION
+}
+
+enum PrizePaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  DISMISSED
+}
+
+// Password Reset Token model for forgot/reset password functionality
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  otp       String?  // 6-digit OTP for email verification
+  email     String?  // Store email for OTP-based reset
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}
+
+// Email Verification Token model for OTP-based email verification
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  otp       String   // 6-digit OTP
+  email     String
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([userId])
+  @@map("email_verification_tokens")
+}
+
+// Refresh Token model for JWT authentication
+model RefreshToken {
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  isRevoked Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// Share model for tracking post shares
+model Share {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  platform  String?  // Optional: track which platform (whatsapp, twitter, etc.)
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("shares")
+}

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <rect width="800" height="450" fill="#f0f0f0"/>
+  <text x="400" y="225" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="#666">Advertisement Image Not Available</text>
+  <text x="400" y="260" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="#888">Please check the media file in the admin panel</text>
+</svg>

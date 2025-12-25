@@ -1,0 +1,129 @@
+.page-editor {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.page-editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border-bottom: 1px solid hsl(var(--border));
+  background-color: hsl(var(--muted));
+}
+
+.page-editor-content {
+  padding: 1rem;
+  min-height: 300px;
+  max-height: 600px;
+  overflow-y: auto;
+  background-color: hsl(var(--background));
+}
+
+.page-editor-content .ProseMirror {
+  outline: none;
+  height: 100%;
+  min-height: 300px;
+}
+
+.page-editor-content .ProseMirror p.is-editor-empty:first-child::before {
+  color: hsl(var(--muted-foreground));
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* HTML Dialog Preview */
+.html-preview {
+  background-color: hsl(var(--background));
+  overflow: auto;
+  max-height: 200px;
+}
+
+.page-editor-image {
+  max-width: 100%;
+  height: auto;
+  margin: 1rem 0;
+  border-radius: var(--radius);
+}
+
+/* Basic styling for content */
+.page-editor-content .ProseMirror h1 {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin: 1rem 0;
+}
+
+.page-editor-content .ProseMirror h2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 1rem 0;
+}
+
+.page-editor-content .ProseMirror h3 {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 1rem 0;
+}
+
+.page-editor-content .ProseMirror ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.page-editor-content .ProseMirror ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.page-editor-content .ProseMirror a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+}
+
+.page-editor-content .ProseMirror blockquote {
+  border-left: 3px solid hsl(var(--primary));
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: hsl(var(--muted-foreground));
+}
+
+.page-editor-content .ProseMirror p {
+  margin: 0.5rem 0;
+}
+
+/* Code block styling for HTML */
+.page-editor-code-block {
+  background-color: hsl(var(--muted));
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin: 1rem 0;
+  font-family: monospace;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  position: relative;
+}
+
+.page-editor-code-block::before {
+  content: 'HTML';
+  position: absolute;
+  top: 0.25rem;
+  right: 0.5rem;
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  font-family: sans-serif;
+}
+
+/* Style for rendered HTML content */
+.page-content .html-content {
+  border: 1px dashed hsl(var(--border));
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: var(--radius);
+}
