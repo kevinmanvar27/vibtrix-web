@@ -8,8 +8,16 @@ import DOMPurify from "isomorphic-dompurify";
 import { sanitizeInput, validatePasswordStrength } from "./security";
 
 // Enhanced validation schemas with security checks
-const secureString = z.string().transform((val) => sanitizeInput(val));
-const requiredSecureString = secureString.min(1, "Required");
+// Helper function to create secure string schemas with sanitization
+const createSecureString = (minLen?: number, maxLen?: number, minMsg?: string, maxMsg?: string) => {
+  let schema = z.string();
+  if (minLen !== undefined) schema = schema.min(minLen, minMsg || `Must be at least ${minLen} characters`);
+  if (maxLen !== undefined) schema = schema.max(maxLen, maxMsg || `Must be no more than ${maxLen} characters`);
+  return schema.transform((val) => sanitizeInput(val));
+};
+
+const secureString = createSecureString();
+const requiredSecureString = createSecureString(1, undefined, "Required");
 
 // Username validation with security checks
 const usernameSchema = z.string()
@@ -46,9 +54,11 @@ const passwordSchema = z.string()
   }, "Password does not meet security requirements");
 
 // Content validation with XSS protection
-const contentSchema = z.string()
-  .max(10000, "Content too long")
-  .transform((val) => {
+const createContentSchema = (minLen?: number, maxLen: number = 10000, minMsg?: string, maxMsg?: string) => {
+  let schema = z.string();
+  if (minLen !== undefined) schema = schema.min(minLen, minMsg || `Must be at least ${minLen} characters`);
+  schema = schema.max(maxLen, maxMsg || "Content too long");
+  return schema.transform((val) => {
     // Sanitize HTML content
     return DOMPurify.sanitize(val, {
       ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a'],
@@ -56,6 +66,9 @@ const contentSchema = z.string()
       ALLOW_DATA_ATTR: false,
     });
   });
+};
+
+const contentSchema = createContentSchema();
 
 // URL validation with security checks
 const urlSchema = z.string()
@@ -128,8 +141,8 @@ export const secureCreatePostSchema = z.object({
 });
 
 export const secureUpdateUserProfileSchema = z.object({
-  displayName: secureString.min(1, "Display name required").max(50, "Display name too long"),
-  bio: contentSchema.max(500, "Bio too long").optional(),
+  displayName: createSecureString(1, 50, "Display name required", "Display name too long"),
+  bio: createContentSchema(undefined, 500, undefined, "Bio too long").optional(),
   email: emailSchema.optional(),
   username: usernameSchema.optional(),
   avatarUrl: urlSchema.optional(),
@@ -171,17 +184,17 @@ export const secureUpdateUserProfileSchema = z.object({
 
   // Brand Ambassadorship feature fields with validation
   interestedInBrandAmbassadorship: z.boolean().optional().default(false),
-  brandAmbassadorshipPricing: secureString.max(200, "Pricing info too long").optional().nullable(),
-  brandPreferences: secureString.max(500, "Brand preferences too long").optional().nullable(),
+  brandAmbassadorshipPricing: createSecureString(undefined, 200, undefined, "Pricing info too long").optional().nullable(),
+  brandPreferences: createSecureString(undefined, 500, undefined, "Brand preferences too long").optional().nullable(),
 });
 
 export const secureCreateCommentSchema = z.object({
-  content: contentSchema.min(1, "Comment cannot be empty").max(1000, "Comment too long"),
+  content: createContentSchema(1, 1000, "Comment cannot be empty", "Comment too long"),
 });
 
 export const secureCompetitionSchema = z.object({
-  title: secureString.min(1, "Title required").max(100, "Title too long"),
-  description: contentSchema.max(2000, "Description too long"),
+  title: createSecureString(1, 100, "Title required", "Title too long"),
+  description: createContentSchema(undefined, 2000, undefined, "Description too long"),
   startDate: z.string().datetime("Invalid start date"),
   endDate: z.string().datetime("Invalid end date"),
   entryFee: z.number().min(0, "Entry fee cannot be negative").max(10000, "Entry fee too high"),
