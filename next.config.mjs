@@ -49,6 +49,11 @@ const nextConfig = {
         hostname: "api.qrserver.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        pathname: "/**",
+      },
     ],
     // Enable image optimization for better performance
     unoptimized: false,
@@ -73,7 +78,7 @@ const nextConfig = {
           {
             key: "Content-Security-Policy",
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://*.razorpay.com https://*.gstatic.com https://*.googleapis.com https://www.googletagmanager.com; connect-src 'self' https://*.googleapis.com https://*.google-analytics.com https://*.analytics.google.com https://*.firebaseio.com https://*.cloudfunctions.net https://*.firebase.googleapis.com wss://*.firebaseio.com https://*.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://*.gstatic.com https://*.googleapis.com https://utfs.io https://api.dicebear.com https://api.qrserver.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://*.razorpay.com https://*.youtube.com https://*.google.com https://*.firebase.com https://*.firebaseapp.com; worker-src 'self' blob:;",
+              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://*.razorpay.com https://*.gstatic.com https://*.googleapis.com https://www.googletagmanager.com; connect-src 'self' https://*.googleapis.com https://*.google-analytics.com https://*.analytics.google.com https://*.firebaseio.com https://*.cloudfunctions.net https://*.firebase.googleapis.com wss://*.firebaseio.com https://*.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://*.gstatic.com https://*.googleapis.com https://utfs.io https://api.dicebear.com https://api.qrserver.com https://images.unsplash.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://*.razorpay.com https://*.youtube.com https://*.google.com https://*.firebase.com https://*.firebaseapp.com; worker-src 'self' blob:;",
           },
         ],
       },

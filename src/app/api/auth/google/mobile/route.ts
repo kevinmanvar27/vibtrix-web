@@ -18,6 +18,14 @@ import { OAuth2Client } from "google-auth-library";
 // Initialize Google OAuth2 client
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+// Valid audience client IDs for token verification
+// Mobile apps use their platform-specific client IDs, so we need to accept both
+const VALID_AUDIENCE_CLIENT_IDS = [
+  process.env.GOOGLE_CLIENT_ID, // Web client ID
+  process.env.GOOGLE_ANDROID_CLIENT_ID, // Android client ID
+  process.env.GOOGLE_IOS_CLIENT_ID, // iOS client ID (for future)
+].filter(Boolean) as string[];
+
 // Validation schema for Google Sign-In request
 const googleSignInSchema = z.object({
   idToken: z.string().min(1, "ID token is required"),
@@ -43,12 +51,15 @@ interface GoogleUserInfo {
 async function verifyGoogleToken(idToken: string): Promise<GoogleUserInfo> {
   console.log("🔑 verifyGoogleToken called");
   console.log("   GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID?.substring(0, 20) + "...");
+  console.log("   GOOGLE_ANDROID_CLIENT_ID:", process.env.GOOGLE_ANDROID_CLIENT_ID?.substring(0, 20) + "...");
+  console.log("   Valid audiences:", VALID_AUDIENCE_CLIENT_IDS.length);
   
   try {
     console.log("   Calling googleClient.verifyIdToken...");
+    // Accept tokens from web, Android, and iOS clients
     const ticket = await googleClient.verifyIdToken({
       idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: VALID_AUDIENCE_CLIENT_IDS,
     });
     console.log("   Ticket received, getting payload...");
     
@@ -59,6 +70,8 @@ async function verifyGoogleToken(idToken: string): Promise<GoogleUserInfo> {
     }
     
     console.log("   ✅ Payload received:", payload.email, payload.sub);
+    console.log("   Token audience (aud):", payload.aud);
+    console.log("   Token authorized party (azp):", payload.azp);
 
     return {
       sub: payload.sub,
