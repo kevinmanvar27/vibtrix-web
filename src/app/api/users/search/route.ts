@@ -75,8 +75,8 @@ export async function GET(request: NextRequest) {
     const users = await prisma.user.findMany({
       where: {
         OR: [
-          { displayName: { contains: query, mode: "insensitive" } },
-          { username: { contains: query, mode: "insensitive" } },
+          { displayName: { contains: query } },
+          { username: { contains: query } },
         ],
         isActive: true,
         // Only show users with role "USER"

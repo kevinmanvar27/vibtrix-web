@@ -33,12 +33,10 @@ export async function GET(
     const loggedInUser = await getAuthenticatedUser(req);
     const isLoggedIn = !!loggedInUser;
 
+    // Note: MySQL with default collation is case-insensitive by default
     const user = await prisma.user.findFirst({
       where: {
-        username: {
-          equals: username,
-          mode: "insensitive",
-        },
+        username: username,
         // Only show users with role "USER"
         role: "USER",
       },

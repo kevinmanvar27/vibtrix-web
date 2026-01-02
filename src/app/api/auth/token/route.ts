@@ -60,13 +60,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Find user by username (case insensitive)
+    // Find user by username
+    // Note: MySQL with default collation is case-insensitive by default
     const user = await prisma.user.findFirst({
       where: {
-        username: {
-          equals: username,
-          mode: "insensitive",
-        },
+        username: username,
       },
     });
 

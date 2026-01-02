@@ -25,7 +25,7 @@ const prismaClientSingleton = () => {
         errorFormat: 'minimal',
         datasources: {
           db: {
-            url: process.env.POSTGRES_PRISMA_URL,
+            url: process.env.DATABASE_URL,
           },
         },
       });
@@ -36,7 +36,7 @@ const prismaClientSingleton = () => {
         errorFormat: 'pretty',
         datasources: {
           db: {
-            url: process.env.POSTGRES_PRISMA_URL,
+            url: process.env.DATABASE_URL,
           },
         },
       });
@@ -100,8 +100,7 @@ async function testDatabaseConnection(client: PrismaClient, retryAttempt = 0): P
 
     // Log database connection details for debugging
     debug.error(`Database connection details from environment variables:
-      URL: ${process.env.POSTGRES_PRISMA_URL?.replace(/:[^:@]+@/, ':****@') || 'not set'}
-      Non-pooling URL: ${process.env.POSTGRES_URL_NON_POOLING?.replace(/:[^:@]+@/, ':****@') || 'not set'}
+      URL: ${process.env.DATABASE_URL?.replace(/:[^:@]+@/, ':****@') || 'not set'}
     `);
 
     return false;
@@ -112,8 +111,8 @@ async function testDatabaseConnection(client: PrismaClient, retryAttempt = 0): P
 if (typeof window === 'undefined') {
   try {
     // Check if we have environment variables for database connection
-    if (!process.env.POSTGRES_PRISMA_URL) {
-      debug.error('POSTGRES_PRISMA_URL environment variable is not set');
+    if (!process.env.DATABASE_URL) {
+      debug.error('DATABASE_URL environment variable is not set');
       throw new Error('Database connection URL is not configured');
     }
 

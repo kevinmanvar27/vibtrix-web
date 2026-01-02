@@ -1,6 +1,6 @@
-import prisma from "@/lib/prisma";
 import { NextRequest } from "next/server";
 import debug from "@/lib/debug";
+import prisma from "@/lib/prisma";
 
 // Cache the setting value for 10 seconds to reduce database queries
 let cachedSetting: { value: boolean, timestamp: number } | null = null;
@@ -26,8 +26,16 @@ export async function GET(req: NextRequest) {
 
     // No valid cache, query the database
     // First, make sure the column exists (only do this once per server start)
+    // MySQL syntax: use backticks for identifiers, TINYINT(1) for BOOLEAN
     if (!cachedSetting) {
-      await prisma.$executeRaw`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "showFeedStickers" BOOLEAN NOT NULL DEFAULT true;`;
+      try {
+        await prisma.$executeRawUnsafe(
+          "ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS `showFeedStickers` TINYINT(1) NOT NULL DEFAULT 1"
+        );
+      } catch (error) {
+        // Column might already exist, continue
+        debug.log("Column showFeedStickers might already exist:", error);
+      }
     }
 
     // Get site settings directly with a simple query

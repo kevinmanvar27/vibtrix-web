@@ -27,10 +27,11 @@ export async function GET(request: NextRequest) {
     // Build the where clause
     const where: any = {};
     
+    // Note: MySQL with default collation is case-insensitive by default
     if (search) {
       where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
+        { name: { contains: search } },
+        { description: { contains: search } },
       ];
     }
 

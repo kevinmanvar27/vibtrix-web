@@ -113,13 +113,33 @@ const getTrendingTopics = unstable_cache(
         return [];
       }
 
-      const result = await prisma.$queryRaw<{ hashtag: string; count: bigint }[]>`
-              SELECT LOWER(unnest(regexp_matches(content, '#[[:alnum:]_]+', 'g'))) AS hashtag, COUNT(*) AS count
-              FROM posts
-              GROUP BY (hashtag)
-              ORDER BY count DESC, hashtag ASC
-              LIMIT 5
-          `;
+      // MySQL version: Extract hashtags using SUBSTRING_INDEX and a recursive approach
+      // For MySQL, we'll use a different approach - fetch posts and extract hashtags in JS
+      const posts = await prisma.post.findMany({
+        select: { content: true },
+        take: 1000, // Limit to recent posts for performance
+        orderBy: { createdAt: 'desc' }
+      });
+
+      // Extract hashtags from posts content
+      const hashtagCounts = new Map<string, number>();
+      const hashtagRegex = /#[a-zA-Z0-9_]+/g;
+      
+      for (const post of posts) {
+        const matches = post.content.match(hashtagRegex);
+        if (matches) {
+          for (const match of matches) {
+            const hashtag = match.toLowerCase();
+            hashtagCounts.set(hashtag, (hashtagCounts.get(hashtag) || 0) + 1);
+          }
+        }
+      }
+
+      // Sort by count and get top 5
+      const result = Array.from(hashtagCounts.entries())
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .slice(0, 5)
+        .map(([hashtag, count]) => ({ hashtag, count: BigInt(count) }));
 
       return result.map((row) => ({
         hashtag: row.hashtag,

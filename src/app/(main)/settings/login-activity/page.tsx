@@ -1,10 +1,8 @@
-import { validateRequest } from "@/auth";
 import { Shield } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import LoginActivityClient from "./LoginActivityClient";
 import prisma from "@/lib/prisma";
-import { getFeatureSettings } from "@/lib/get-feature-settings";
-import { secureRawQuery } from "@/lib/sql-security";
+import { validateRequest } from "@/auth";
 
 import debug from "@/lib/debug";
 
@@ -30,39 +28,40 @@ export default async function LoginActivityPage() {
     return redirect('/settings');
   }
 
-  // Get the user's login activity using a raw SQL query to avoid Prisma client issues
-  let loginActivities = [];
+  // Get the user's login activity using Prisma (database-agnostic)
+  let loginActivities: any[] = [];
   try {
     debug.log("Fetching login activities for user ID:", user.id);
 
-    // Use a secure raw SQL query to get login activities
-    const selectQuery = `
-      SELECT
-        id,
-        "userId",
-        "ipAddress",
-        "userAgent",
-        browser,
-        "operatingSystem",
-        "deviceType",
-        "deviceBrand",
-        "deviceModel",
-        location,
-        city,
-        region,
-        country,
-        "loginAt",
-        status
-      FROM user_login_activities
-      WHERE "userId" = $1
-      ORDER BY "loginAt" DESC
-      LIMIT 20
-    `;
-    const secureQuery = secureRawQuery(selectQuery, [user.id]);
-    const activities = await prisma.$queryRawUnsafe(secureQuery.query, ...secureQuery.params);
+    // Use Prisma's native query methods for MySQL compatibility
+    const activities = await prisma.userLoginActivity.findMany({
+      where: {
+        userId: user.id,
+      },
+      orderBy: {
+        loginAt: 'desc',
+      },
+      take: 20,
+      select: {
+        id: true,
+        userId: true,
+        ipAddress: true,
+        userAgent: true,
+        browser: true,
+        operatingSystem: true,
+        deviceType: true,
+        deviceBrand: true,
+        deviceModel: true,
+        location: true,
+        city: true,
+        region: true,
+        country: true,
+        loginAt: true,
+        status: true,
+      },
+    });
 
-    // Convert the result to an array
-    loginActivities = Array.isArray(activities) ? activities : [];
+    loginActivities = activities;
 
     debug.log("Login activities fetched:", loginActivities.length);
 

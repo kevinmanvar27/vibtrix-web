@@ -147,12 +147,10 @@ export async function PUT(req: NextRequest) {
 
     // Check if username is being changed and if it's already taken
     if (data.username && data.username !== user.username) {
+      // Note: MySQL with default collation is case-insensitive by default
       const existingUsername = await prisma.user.findFirst({
         where: {
-          username: {
-            equals: data.username,
-            mode: "insensitive",
-          },
+          username: data.username,
           NOT: {
             id: user.id,
           },

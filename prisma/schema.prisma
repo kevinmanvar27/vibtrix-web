@@ -1,12 +1,10 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL")
-  directUrl = env("POSTGRES_URL_NON_POOLING")
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -18,8 +16,8 @@ model User {
   passwordHash           String?
   googleId               String?                      @unique
   appleId                String?                      @unique
-  avatarUrl              String?
-  bio                    String?
+  avatarUrl              String?                      @db.Text
+  bio                    String?                      @db.Text
   createdAt              DateTime                     @default(now())
   isActive               Boolean                      @default(true)
   isAdmin                Boolean                      @default(false)
@@ -49,7 +47,7 @@ model User {
   // Brand Ambassadorship feature fields
   interestedInBrandAmbassadorship Boolean              @default(false)
   brandAmbassadorshipPricing      String?
-  brandPreferences                String?
+  brandPreferences                String?              @db.Text
   bookmarks              Bookmark[]
   participatedChats      ChatParticipant[]
   comments               Comment[]
@@ -91,6 +89,7 @@ model Session {
   expiresAt DateTime
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("sessions")
 }
 
@@ -100,7 +99,8 @@ model Follow {
   follower    User   @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
   following   User   @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
 
-  @@unique([followerId, followingId])
+  @@id([followerId, followingId])
+  @@index([followingId])
   @@map("follows")
 }
 
@@ -115,12 +115,13 @@ model FollowRequest {
   requester   User          @relation("SentFollowRequests", fields: [requesterId], references: [id], onDelete: Cascade)
 
   @@unique([requesterId, recipientId])
+  @@index([recipientId])
   @@map("follow_requests")
 }
 
 model Post {
   id                  String                  @id @default(cuid())
-  content             String
+  content             String                  @db.Text
   userId              String
   createdAt           DateTime                @default(now())
   bookmarks           Bookmark[]
@@ -134,6 +135,8 @@ model Post {
   shares              Share[]
   user                User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([createdAt])
   @@map("posts")
 }
 
@@ -141,12 +144,12 @@ model Media {
   id                        String            @id @default(cuid())
   postId                    String?
   type                      MediaType
-  url                       String
-  urlHigh                   String?
-  urlMedium                 String?
-  urlLow                    String?
-  urlThumbnail              String?
-  posterUrl                 String?
+  url                       String            @db.Text
+  urlHigh                   String?           @db.Text
+  urlMedium                 String?           @db.Text
+  urlLow                    String?           @db.Text
+  urlThumbnail              String?           @db.Text
+  posterUrl                 String?           @db.Text
   width                     Int?
   height                    Int?
   duration                  Float?
@@ -157,12 +160,13 @@ model Media {
   appliedPromotionSticker   PromotionSticker? @relation(fields: [appliedPromotionStickerId], references: [id])
   post                      Post?             @relation(fields: [postId], references: [id])
 
+  @@index([postId])
   @@map("post_media")
 }
 
 model Comment {
   id        String            @id @default(cuid())
-  content   String
+  content   String            @db.Text
   userId    String
   postId    String
   parentId  String?           // For nested replies - null means top-level comment
@@ -174,6 +178,8 @@ model Comment {
   reports   comment_reports[]
 
   @@index([parentId])
+  @@index([postId])
+  @@index([userId])
   @@map("comments")
 }
 
@@ -184,7 +190,8 @@ model Like {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, postId])
+  @@id([userId, postId])
+  @@index([postId])
   @@map("likes")
 }
 
@@ -197,6 +204,7 @@ model Bookmark {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
+  @@index([postId])
   @@map("bookmarks")
 }
 
@@ -212,13 +220,15 @@ model Notification {
   post        Post?            @relation(fields: [postId], references: [id], onDelete: Cascade)
   recipient   User             @relation("Recipient", fields: [recipientId], references: [id], onDelete: Cascade)
 
+  @@index([recipientId])
+  @@index([issuerId])
   @@map("notifications")
 }
 
 model Competition {
   id                 String                   @id @default(cuid())
   title              String
-  description        String
+  description        String                   @db.Text
   isPaid             Boolean                  @default(false)
   entryFee           Float?
   mediaType          CompetitionMediaType     @default(BOTH)
@@ -235,7 +245,7 @@ model Competition {
   showStickeredMedia Boolean                  @default(true)
   showFeedStickers   Boolean                  @default(true)
   requiredGender     String?
-  completionReason   String?
+  completionReason   String?                  @db.Text
   DefaultStickers    DefaultStickers[]
   OptionalStickers   OptionalStickers[]
   advertisements     Advertisement[]
@@ -257,20 +267,21 @@ model CompetitionParticipant {
   currentRoundId              String?
   hasPaid                     Boolean                 @default(false)
   isDisqualified              Boolean                 @default(false)
-  disqualifyReason            String?
+  disqualifyReason            String?                 @db.Text
   hasAppealedDisqualification Boolean                 @default(false)
   competition                 Competition             @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   user                        User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   roundEntries                CompetitionRoundEntry[]
 
   @@unique([userId, competitionId])
+  @@index([competitionId])
   @@map("competition_participants")
 }
 
 model CompetitionSticker {
   id               String             @id @default(cuid())
   name             String
-  imageUrl         String
+  imageUrl         String             @db.Text
   position         StickerPosition
   isDefault        Boolean            @default(false)
   createdAt        DateTime           @default(now())
@@ -284,7 +295,7 @@ model Page {
   id          String   @id @default(cuid())
   title       String
   slug        String   @unique
-  content     String
+  content     String   @db.LongText
   isPublished Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -297,7 +308,7 @@ model SiteSettings {
   maxImageSize                        Int      @default(5242880)
   minVideoDuration                    Int      @default(3)
   maxVideoDuration                    Int      @default(60)
-  logoUrl                             String?
+  logoUrl                             String?  @db.Text
   googleLoginEnabled                  Boolean  @default(true)
   manualSignupEnabled                 Boolean  @default(true)
   paytmEnabled                        Boolean  @default(false)
@@ -305,7 +316,7 @@ model SiteSettings {
   gPayEnabled                         Boolean  @default(false)
   razorpayEnabled                     Boolean  @default(false)
   updatedAt                           DateTime @updatedAt
-  faviconUrl                          String?
+  faviconUrl                          String?  @db.Text
   logoHeight                          Int?     @default(30)
   logoWidth                           Int?     @default(150)
   timezone                            String   @default("Asia/Kolkata")
@@ -346,11 +357,11 @@ model SiteSettings {
 
   // Mobile app configuration
   maintenanceMode                     Boolean  @default(false)
-  maintenanceMessage                  String?
+  maintenanceMessage                  String?  @db.Text
   minAppVersionIOS                    String?  @default("1.0.0")
   minAppVersionAndroid                String?  @default("1.0.0")
-  appStoreUrl                         String?
-  playStoreUrl                        String?
+  appStoreUrl                         String?  @db.Text
+  playStoreUrl                        String?  @db.Text
   appDeepLinkScheme                   String?  @default("vidibattle")
   appUniversalLinkDomain              String?
 
@@ -369,6 +380,7 @@ model CompetitionRound {
   entries       CompetitionRoundEntry[]
   competition   Competition             @relation(fields: [competitionId], references: [id], onDelete: Cascade)
 
+  @@index([competitionId])
   @@map("competition_rounds")
 }
 
@@ -397,12 +409,13 @@ model ChatParticipant {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, chatId])
+  @@index([chatId])
   @@map("chat_participants")
 }
 
 model Message {
   id          String   @id @default(cuid())
-  content     String
+  content     String   @db.Text
   senderId    String
   recipientId String?
   chatId      String
@@ -413,6 +426,8 @@ model Message {
   recipient   User?    @relation("Recipient", fields: [recipientId], references: [id])
   sender      User     @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
 
+  @@index([chatId])
+  @@index([senderId])
   @@map("messages")
 }
 
@@ -425,6 +440,7 @@ model UserBlock {
   blocker   User     @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
 
   @@unique([blockerId, blockedId])
+  @@index([blockedId])
   @@map("user_blocks")
 }
 
@@ -463,6 +479,8 @@ model CompetitionRoundEntry {
   round                    CompetitionRound       @relation(fields: [roundId], references: [id], onDelete: Cascade)
 
   @@unique([participantId, roundId])
+  @@index([roundId])
+  @@index([postId])
   @@map("competition_round_entries")
 }
 
@@ -472,7 +490,7 @@ model DefaultStickers {
   competitions         Competition        @relation(fields: [A], references: [id], onDelete: Cascade)
   competition_stickers CompetitionSticker @relation(fields: [B], references: [id], onDelete: Cascade)
 
-  @@unique([A, B], map: "_DefaultStickers_AB_unique")
+  @@id([A, B])
   @@index([B], map: "_DefaultStickers_B_index")
   @@map("_DefaultStickers")
 }
@@ -483,7 +501,7 @@ model OptionalStickers {
   competitions         Competition        @relation(fields: [A], references: [id], onDelete: Cascade)
   competition_stickers CompetitionSticker @relation(fields: [B], references: [id], onDelete: Cascade)
 
-  @@unique([A, B], map: "_OptionalStickers_AB_unique")
+  @@id([A, B])
   @@index([B], map: "_OptionalStickers_B_index")
   @@map("_OptionalStickers")
 }
@@ -491,7 +509,7 @@ model OptionalStickers {
 model Role {
   id          String           @id @default(cuid())
   name        String           @unique
-  description String?
+  description String?          @db.Text
   isSystem    Boolean          @default(false)
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
@@ -511,13 +529,14 @@ model RolePermission {
   role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@unique([roleId, permissionId])
+  @@index([permissionId])
   @@map("role_permissions")
 }
 
 model Permission {
   id          String           @id @default(cuid())
   name        String           @unique
-  description String?
+  description String?          @db.Text
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   roles       RolePermission[]
@@ -536,6 +555,7 @@ model UserPermission {
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, permissionId])
+  @@index([permissionId])
   @@map("user_permissions")
 }
 
@@ -552,20 +572,22 @@ model Payment {
   paymentId     String?
   signature     String?
   refunded      Boolean        @default(false)
-  refundReason  String?
-  qrCode        String?
+  refundReason  String?        @db.Text
+  qrCode        String?        @db.Text
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   competition   Competition?   @relation(fields: [competitionId], references: [id])
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([competitionId])
   @@map("payments")
 }
 
 model PromotionSticker {
   id             String          @id @default(cuid())
   title          String
-  imageUrl       String
+  imageUrl       String          @db.Text
   position       StickerPosition
   limit          Int?
   isActive       Boolean         @default(true)
@@ -576,18 +598,20 @@ model PromotionSticker {
   competition    Competition     @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   usages         StickerUsage[]
 
+  @@index([competitionId])
   @@map("promotion_stickers")
 }
 
 model StickerUsage {
   id        String           @id @default(cuid())
   stickerId String
-  mediaUrl  String
+  mediaUrl  String           @db.Text
   isDeleted Boolean          @default(false)
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
   sticker   PromotionSticker @relation(fields: [stickerId], references: [id], onDelete: Cascade)
 
+  @@index([stickerId])
   @@map("sticker_usages")
 }
 
@@ -598,6 +622,7 @@ model PostView {
   viewedAt DateTime @default(now())
   post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
+  @@index([postId])
   @@map("post_views")
 }
 
@@ -605,7 +630,7 @@ model UserLoginActivity {
   id              String   @id @default(cuid())
   userId          String
   ipAddress       String?
-  userAgent       String?
+  userAgent       String?  @db.Text
   browser         String?
   operatingSystem String?
   deviceType      String?
@@ -619,6 +644,7 @@ model UserLoginActivity {
   status          String   @default("SUCCESS")
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("user_login_activities")
 }
 
@@ -632,13 +658,15 @@ model Advertisement {
   scheduleDate     DateTime
   expiryDate       DateTime
   status           AdvertisementStatus
-  url              String?
+  url              String?             @db.Text
   competitionId    String?
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
   competition      Competition?        @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   media            Media               @relation(fields: [mediaId], references: [id])
 
+  @@index([competitionId])
+  @@index([mediaId])
   @@map("advertisements")
 }
 
@@ -647,7 +675,7 @@ model CompetitionPrize {
   competitionId String
   position      PrizePosition
   amount        Float
-  description   String?
+  description   String?        @db.Text
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   competition   Competition    @relation(fields: [competitionId], references: [id], onDelete: Cascade)
@@ -666,7 +694,7 @@ model PrizePayment {
   status        PrizePaymentStatus @default(PENDING)
   transactionId String?
   upiId         String?
-  notes         String?
+  notes         String?            @db.Text
   processedAt   DateTime?
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
@@ -674,6 +702,9 @@ model PrizePayment {
   prize         CompetitionPrize   @relation(fields: [prizeId], references: [id], onDelete: Cascade)
   user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([competitionId])
+  @@index([prizeId])
+  @@index([userId])
   @@map("prize_payments")
 }
 
@@ -682,7 +713,7 @@ model post_reports {
   postId      String
   reporterId  String
   reason      String
-  description String?
+  description String?      @db.Text
   status      ReportStatus @default(PENDING)
   reviewedAt  DateTime?
   createdAt   DateTime     @default(now())
@@ -691,6 +722,7 @@ model post_reports {
   users       User         @relation(fields: [reporterId], references: [id], onDelete: Cascade)
 
   @@unique([postId, reporterId])
+  @@index([reporterId])
 }
 
 model user_reports {
@@ -698,7 +730,7 @@ model user_reports {
   userId      String
   reporterId  String
   reason      String
-  description String?
+  description String?      @db.Text
   status      ReportStatus @default(PENDING)
   reviewedAt  DateTime?
   createdAt   DateTime     @default(now())
@@ -707,6 +739,7 @@ model user_reports {
   reporter    User         @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
 
   @@unique([userId, reporterId])
+  @@index([reporterId])
 }
 
 model comment_reports {
@@ -714,7 +747,7 @@ model comment_reports {
   commentId   String
   reporterId  String
   reason      String
-  description String?
+  description String?      @db.Text
   status      ReportStatus @default(PENDING)
   reviewedAt  DateTime?
   createdAt   DateTime     @default(now())
@@ -723,17 +756,18 @@ model comment_reports {
   reporter    User         @relation(fields: [reporterId], references: [id], onDelete: Cascade)
 
   @@unique([commentId, reporterId])
+  @@index([reporterId])
 }
 
 model feedback {
-  id          String   @id @default(cuid())
-  userId      String
-  type        String
-  message     String
-  screenshotUrl String?
-  status      String   @default("PENDING")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(cuid())
+  userId        String
+  type          String
+  message       String   @db.Text
+  screenshotUrl String?  @db.Text
+  status        String   @default("PENDING")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model DeviceToken {
@@ -854,6 +888,7 @@ model PasswordResetToken {
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("password_reset_tokens")
 }
 
@@ -895,5 +930,6 @@ model Share {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([postId, userId])
+  @@index([userId])
   @@map("shares")
 }

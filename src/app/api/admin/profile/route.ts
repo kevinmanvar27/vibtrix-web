@@ -67,13 +67,11 @@ export async function POST(req: NextRequest) {
     }
     
     // Check if username is already taken by another user
+    // Note: MySQL with default collation is case-insensitive by default
     if (data.username !== user.username) {
       const existingUser = await prisma.user.findFirst({
         where: {
-          username: {
-            equals: data.username,
-            mode: "insensitive",
-          },
+          username: data.username,
           id: { not: user.id },
         },
       });
@@ -87,10 +85,7 @@ export async function POST(req: NextRequest) {
     if (data.email !== user.email) {
       const existingUser = await prisma.user.findFirst({
         where: {
-          email: {
-            equals: data.email,
-            mode: "insensitive",
-          },
+          email: data.email,
           id: { not: user.id },
         },
       });

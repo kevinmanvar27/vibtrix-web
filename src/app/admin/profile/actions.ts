@@ -39,13 +39,11 @@ export async function updateAdminProfile(
     const validatedData = profileSchema.parse(data);
 
     // Check if username is already taken by another user
+    // Note: MySQL with default collation is case-insensitive by default
     if (validatedData.username !== user.username) {
       const existingUser = await prisma.user.findFirst({
         where: {
-          username: {
-            equals: validatedData.username,
-            mode: "insensitive",
-          },
+          username: validatedData.username,
           id: { not: userId },
         },
       });
@@ -59,10 +57,7 @@ export async function updateAdminProfile(
     if (validatedData.email !== user.email) {
       const existingUser = await prisma.user.findFirst({
         where: {
-          email: {
-            equals: validatedData.email,
-            mode: "insensitive",
-          },
+          email: validatedData.email,
           id: { not: userId },
         },
       });

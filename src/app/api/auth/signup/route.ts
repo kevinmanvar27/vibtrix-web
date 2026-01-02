@@ -47,13 +47,11 @@ export async function POST(req: NextRequest) {
 
     const { username, email, password } = validation.data;
 
-    // Check if username already exists (case insensitive)
+    // Check if username already exists
+    // Note: MySQL with default collation is case-insensitive by default
     const existingUsername = await prisma.user.findFirst({
       where: {
-        username: {
-          equals: username,
-          mode: "insensitive",
-        },
+        username: username,
       },
     });
 
@@ -65,13 +63,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if email already exists (case insensitive)
+    // Check if email already exists
     const existingEmail = await prisma.user.findFirst({
       where: {
-        email: {
-          equals: email,
-          mode: "insensitive",
-        },
+        email: email,
       },
     });
 

@@ -1,12 +1,8 @@
-import { validateRequest } from "@/auth";
-import { PrismaClient } from "@prisma/client";
 import { NextRequest } from "next/server";
-import { secureRawQuery } from "@/lib/sql-security";
+import prisma from "@/lib/prisma";
+import { validateRequest } from "@/auth";
 
 import debug from "@/lib/debug";
-
-// This is a server-side API endpoint, so it's safe to create a new PrismaClient here
-const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,17 +29,19 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: "Login activity tracking is currently disabled" }, { status: 403 });
     }
 
-    // Use a secure raw SQL query to delete all login activities for this user
-    const deleteQuery = `DELETE FROM user_login_activities WHERE "userId" = $1`;
-    const secureQuery = secureRawQuery(deleteQuery, [user.id]);
-    const result = await prisma.$executeRawUnsafe(secureQuery.query, ...secureQuery.params);
+    // Use Prisma's native deleteMany for MySQL compatibility
+    const result = await prisma.userLoginActivity.deleteMany({
+      where: {
+        userId: user.id,
+      },
+    });
 
-    debug.log("API: SQL query executed, deleted records:", result);
+    debug.log("API: Deleted records:", result.count);
 
     return Response.json({
       success: true,
       message: "All login activities cleared successfully",
-      count: result
+      count: result.count
     });
 
   } catch (error) {

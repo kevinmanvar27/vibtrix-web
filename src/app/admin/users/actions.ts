@@ -42,13 +42,11 @@ export async function updateUser(userId: string, data: z.infer<typeof userUpdate
   const validatedData = userUpdateSchema.parse(data);
 
   // Check if username is already taken by another user
+  // Note: MySQL with default collation is case-insensitive by default
   if (validatedData.username !== undefined) {
     const existingUser = await prisma.user.findFirst({
       where: {
-        username: {
-          equals: validatedData.username,
-          mode: "insensitive",
-        },
+        username: validatedData.username,
         id: {
           not: userId,
         },

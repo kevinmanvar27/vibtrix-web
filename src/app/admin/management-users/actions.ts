@@ -26,12 +26,10 @@ export async function createManagementUser(data: z.infer<typeof createUserSchema
   const validatedData = createUserSchema.parse(data);
 
   // Check if username is already taken
+  // Note: MySQL with default collation is case-insensitive by default
   const existingUsername = await prisma.user.findFirst({
     where: {
-      username: {
-        equals: validatedData.username,
-        mode: "insensitive",
-      },
+      username: validatedData.username,
     },
   });
 
@@ -43,10 +41,7 @@ export async function createManagementUser(data: z.infer<typeof createUserSchema
   if (validatedData.email) {
     const existingEmail = await prisma.user.findFirst({
       where: {
-        email: {
-          equals: validatedData.email,
-          mode: "insensitive",
-        },
+        email: validatedData.email,
       },
     });
 
@@ -205,12 +200,10 @@ export async function updateManagementUser(userId: string, data: z.infer<typeof 
   const validatedData = updateUserSchema.parse(data);
 
   // Check if username is already taken by another user
+  // Note: MySQL with default collation is case-insensitive by default
   const existingUsername = await prisma.user.findFirst({
     where: {
-      username: {
-        equals: validatedData.username,
-        mode: "insensitive",
-      },
+      username: validatedData.username,
       id: {
         not: userId,
       },
@@ -225,10 +218,7 @@ export async function updateManagementUser(userId: string, data: z.infer<typeof 
   if (validatedData.email) {
     const existingEmail = await prisma.user.findFirst({
       where: {
-        email: {
-          equals: validatedData.email,
-          mode: "insensitive",
-        },
+        email: validatedData.email,
         id: {
           not: userId,
         },

@@ -1,11 +1,8 @@
-import { validateRequest } from "@/auth";
-import { PrismaClient } from "@prisma/client";
 import { NextRequest } from "next/server";
+import prisma from "@/lib/prisma";
+import { validateRequest } from "@/auth";
 
 import debug from "@/lib/debug";
-
-// This is a server-side API endpoint, so it's safe to create a new PrismaClient here
-const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,14 +27,16 @@ export async function POST(req: NextRequest) {
     
     debug.log(`API: User authenticated, ID: ${user.id}, deleting activity: ${activityId}`);
     
-    // First, check if the activity belongs to the user
-    const activityCheck = await prisma.$queryRaw`
-      SELECT id FROM user_login_activities 
-      WHERE id = ${activityId} AND "userId" = ${user.id}
-      LIMIT 1
-    `;
+    // First, check if the activity belongs to the user using Prisma
+    const activityCheck = await prisma.userLoginActivity.findFirst({
+      where: {
+        id: activityId,
+        userId: user.id,
+      },
+      select: { id: true },
+    });
     
-    if (!activityCheck || (Array.isArray(activityCheck) && activityCheck.length === 0)) {
+    if (!activityCheck) {
       debug.log("API: Activity not found or doesn't belong to user");
       return Response.json({ 
         error: "Activity not found", 
@@ -45,13 +44,14 @@ export async function POST(req: NextRequest) {
       }, { status: 404 });
     }
     
-    // Use a raw SQL query to delete the specific login activity
-    const result = await prisma.$executeRaw`
-      DELETE FROM user_login_activities
-      WHERE id = ${activityId} AND "userId" = ${user.id}
-    `;
+    // Use Prisma's native delete for MySQL compatibility
+    await prisma.userLoginActivity.delete({
+      where: {
+        id: activityId,
+      },
+    });
     
-    debug.log("API: SQL query executed, deleted records:", result);
+    debug.log("API: Activity deleted successfully");
     
     return Response.json({ 
       success: true, 

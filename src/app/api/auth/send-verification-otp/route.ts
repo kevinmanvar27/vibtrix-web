@@ -85,12 +85,10 @@ export async function POST(req: NextRequest) {
       username = authUser.username;
     } else if (validation.data.email) {
       // Not authenticated but email provided - find user by email
+      // Note: MySQL with default collation is case-insensitive by default
       const user = await prisma.user.findFirst({
         where: {
-          email: {
-            equals: validation.data.email.toLowerCase().trim(),
-            mode: 'insensitive',
-          },
+          email: validation.data.email.toLowerCase().trim(),
         },
         select: {
           id: true,

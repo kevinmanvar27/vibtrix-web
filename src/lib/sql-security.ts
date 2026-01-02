@@ -131,9 +131,9 @@ export function buildSecureSearchQuery(
   }
 
   // Build safe search filter
+  // Note: MySQL with default collation is case-insensitive by default
   return {
     contains: sanitizedTerm,
-    mode: 'insensitive',
   };
 }
 

@@ -64,12 +64,10 @@ export async function POST(req: NextRequest) {
     };
 
     // Find user by email
+    // Note: MySQL with default collation is case-insensitive by default
     const user = await prisma.user.findFirst({
       where: {
-        email: {
-          equals: normalizedEmail,
-          mode: 'insensitive',
-        },
+        email: normalizedEmail,
       },
       select: {
         id: true,

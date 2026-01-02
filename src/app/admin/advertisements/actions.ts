@@ -300,8 +300,15 @@ export async function toggleFeedStickersDisplay(showFeedStickers: boolean) {
   try {
     debug.log(`Server Action: toggleFeedStickersDisplay - Setting value to: ${showFeedStickers}`);
 
-    // First, make sure the column exists
-    await prisma.$executeRaw`ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "showFeedStickers" BOOLEAN NOT NULL DEFAULT true;`;
+    // First, make sure the column exists (MySQL syntax)
+    try {
+      await prisma.$executeRawUnsafe(
+        "ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS `showFeedStickers` TINYINT(1) NOT NULL DEFAULT 1"
+      );
+    } catch (error) {
+      // Column might already exist, continue
+      debug.log("Column showFeedStickers might already exist:", error);
+    }
 
     // Update site settings using Prisma for better type safety
     const updatedSettings = await prisma.siteSettings.update({

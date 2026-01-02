@@ -1,7 +1,6 @@
-import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getLocationFromIp, parseUserAgent } from './user-agent-parser';
-import { secureRawQuery } from '@/lib/sql-security';
+import { createId } from '@paralleldrive/cuid2';
 
 import debug from "@/lib/debug";
 
@@ -47,63 +46,39 @@ export async function trackLoginActivity(
     const locationInfo = await getLocationFromIp(ipAddress);
     debug.log(`🗺️ Location Info:`, locationInfo);
 
-    // Record login activity in database using raw SQL query
-    debug.log(`💾 Creating login activity record in database using raw SQL...`);
+    // Record login activity in database using Prisma
+    debug.log(`💾 Creating login activity record in database...`);
 
     // Clean the IP address
     const cleanIpAddress = ipAddress.split(',')[0].trim();
 
-    // Use a secure raw SQL query to insert the login activity
-    const insertQuery = `
-      INSERT INTO user_login_activities (
-        id,
-        "userId",
-        "ipAddress",
-        "userAgent",
-        browser,
-        "operatingSystem",
-        "deviceType",
-        "deviceBrand",
-        "deviceModel",
-        location,
-        city,
-        region,
-        country,
-        "loginAt",
-        status
-      )
-      VALUES (
-        gen_random_uuid()::text,
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), $13
-      )
-    `;
+    // Use Prisma to create the login activity record
+    await prisma.userLoginActivity.create({
+      data: {
+        id: createId(),
+        userId,
+        ipAddress: cleanIpAddress,
+        userAgent: userAgent || null,
+        browser: deviceInfo.browser || null,
+        operatingSystem: deviceInfo.operatingSystem || null,
+        deviceType: deviceInfo.deviceType || null,
+        deviceBrand: deviceInfo.deviceBrand || null,
+        deviceModel: deviceInfo.deviceModel || null,
+        location: locationInfo.location || null,
+        city: locationInfo.city || null,
+        region: locationInfo.region || null,
+        country: locationInfo.country || null,
+        loginAt: new Date(),
+        status,
+      },
+    });
 
-    const params = [
-      userId,
-      cleanIpAddress,
-      userAgent || null,
-      deviceInfo.browser || null,
-      deviceInfo.operatingSystem || null,
-      deviceInfo.deviceType || null,
-      deviceInfo.deviceBrand || null,
-      deviceInfo.deviceModel || null,
-      locationInfo.location || null,
-      locationInfo.city || null,
-      locationInfo.region || null,
-      locationInfo.country || null,
-      status
-    ];
+    debug.log(`✅ Login activity recorded successfully`);
 
-    const secureQuery = secureRawQuery(insertQuery, params);
-    const result = await prisma.$executeRawUnsafe(secureQuery.query, ...secureQuery.params);
-
-    debug.log(`✅ Login activity recorded successfully, result:`, result);
-
-    // Verify the record was created using secure raw SQL
-    const countQuery = `SELECT COUNT(*) as count FROM user_login_activities WHERE "userId" = $1`;
-    const secureCountQuery = secureRawQuery(countQuery, [userId]);
-    const countResult = await prisma.$queryRawUnsafe(secureCountQuery.query, ...secureCountQuery.params);
-    const count = countResult[0]?.count || 0;
+    // Verify the record was created
+    const count = await prisma.userLoginActivity.count({
+      where: { userId },
+    });
     debug.log(`📊 Total login activities for user ${userId}: ${count}`);
 
   } catch (error) {

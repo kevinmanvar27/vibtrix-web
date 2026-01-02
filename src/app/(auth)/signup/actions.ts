@@ -41,12 +41,10 @@ export async function signUp(
 
     const userId = generateIdFromEntropySize(10);
 
+    // Note: MySQL with default collation (utf8mb4_unicode_ci) is case-insensitive by default
     const existingUsername = await prisma.user.findFirst({
       where: {
-        username: {
-          equals: username,
-          mode: "insensitive",
-        },
+        username: username,
       },
     });
 
@@ -58,10 +56,7 @@ export async function signUp(
 
     const existingEmail = await prisma.user.findFirst({
       where: {
-        email: {
-          equals: email,
-          mode: "insensitive",
-        },
+        email: email,
       },
     });
 

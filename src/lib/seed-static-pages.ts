@@ -363,23 +363,7 @@ export async function seedStaticPages() {
   debug.log("Checking for default static pages...");
 
   try {
-    // Check if the pages table exists
-    const tableExists = await prisma.$queryRaw`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables
-        WHERE table_schema = 'public'
-        AND table_name = 'pages'
-      ) as exists
-    `;
-
-    const pagesTableExists = (tableExists as any)[0]?.exists;
-
-    if (!pagesTableExists) {
-      debug.log("Pages table does not exist. Skipping static pages seeding.");
-      return;
-    }
-
-    // If the table exists, proceed with seeding
+    // Seed default static pages - Prisma will throw if table doesn't exist
     for (const page of DEFAULT_STATIC_PAGES) {
       try {
         const existingPage = await prisma.page.findUnique({

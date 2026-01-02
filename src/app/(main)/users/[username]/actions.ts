@@ -17,13 +17,11 @@ export async function updateUserProfile(values: UpdateUserProfileValues) {
   if (!user) throw new Error("Unauthorized");
 
   // Check if username is already taken (if it's different from current username)
+  // Note: MySQL with default collation is case-insensitive by default
   if (validatedValues.username !== user.username) {
     const existingUser = await prisma.user.findFirst({
       where: {
-        username: {
-          equals: validatedValues.username,
-          mode: "insensitive",
-        },
+        username: validatedValues.username,
         id: { not: user.id }, // Exclude current user
       },
     });

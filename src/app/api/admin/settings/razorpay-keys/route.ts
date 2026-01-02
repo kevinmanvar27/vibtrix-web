@@ -24,21 +24,27 @@ export async function POST(req: NextRequest) {
       razorpayKeySecret: razorpayKeySecret ? "PRESENT" : "MISSING",
     });
 
-    // Ensure the columns exist
+    // Ensure the columns exist (MySQL syntax with backticks)
+    // Note: ADD COLUMN IF NOT EXISTS requires MySQL 8.0.16+
+    // For older MySQL versions, we catch the error if column already exists
     try {
-      await prisma.$executeRaw`ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS "razorpayKeyId" TEXT`;
-      await prisma.$executeRaw`ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS "razorpayKeySecret" TEXT`;
+      await prisma.$executeRawUnsafe(
+        "ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS `razorpayKeyId` TEXT"
+      );
+      await prisma.$executeRawUnsafe(
+        "ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS `razorpayKeySecret` TEXT"
+      );
     } catch (error) {
       debug.error("Error ensuring Razorpay columns exist:", error);
       // Continue anyway, as the columns might already exist
     }
 
-    // Update the keys using raw SQL to bypass any Prisma schema issues
+    // Update the keys using raw SQL (MySQL syntax with backticks)
     await prisma.$executeRaw`
       UPDATE site_settings
-      SET "razorpayKeyId" = ${razorpayKeyId},
-          "razorpayKeySecret" = ${razorpayKeySecret},
-          "razorpayEnabled" = true
+      SET razorpayKeyId = ${razorpayKeyId},
+          razorpayKeySecret = ${razorpayKeySecret},
+          razorpayEnabled = true
       WHERE id = 'settings'
     `;
 

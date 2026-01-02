@@ -39,27 +39,14 @@ export default async function MenuBar({ className }: MenuBarProps) {
 
     // Get unread messages count from database
     try {
-      // First check if the ChatParticipant table exists
-      const tableExists = await prisma.$queryRaw`
-        SELECT EXISTS (
-          SELECT FROM information_schema.tables
-          WHERE table_schema = 'public'
-          AND table_name = 'chat_participants'
-        );
-      `;
-
-      const exists = Array.isArray(tableExists) && tableExists.length > 0 && tableExists[0].exists;
-
-      if (exists) {
-        // Use a simple count query if the table exists
-        const count = await prisma.chatParticipant.count({
-          where: {
-            userId: user.id,
-            hasUnread: true,
-          },
-        });
-        unreadMessagesCount = count;
-      }
+      // Try to count directly - Prisma will throw if table doesn't exist
+      const count = await prisma.chatParticipant.count({
+        where: {
+          userId: user.id,
+          hasUnread: true,
+        },
+      });
+      unreadMessagesCount = count;
     } catch (error) {
       debug.error('Error getting unread messages count:', error);
       // Default to 0 if there's an error or the model doesn't exist yet

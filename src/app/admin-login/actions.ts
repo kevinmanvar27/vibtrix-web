@@ -48,20 +48,16 @@ export async function adminLogin(formData: FormData): Promise<AdminLoginResponse
     }
 
     // Find user by username or email
+    // Note: MySQL with default collation (utf8mb4_unicode_ci) is case-insensitive by default
+    // so we don't need the mode: "insensitive" option that was PostgreSQL-specific
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
           {
-            username: {
-              equals: usernameOrEmail,
-              mode: "insensitive",
-            },
+            username: usernameOrEmail,
           },
           {
-            email: {
-              equals: usernameOrEmail,
-              mode: "insensitive",
-            },
+            email: usernameOrEmail,
           },
         ],
       },

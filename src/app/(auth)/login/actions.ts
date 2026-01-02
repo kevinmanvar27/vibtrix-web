@@ -40,12 +40,10 @@ export async function login(
     const { username, password } = loginSchema.parse(credentials);
     const request = createNextRequest();
 
+    // Note: MySQL with default collation (utf8mb4_unicode_ci) is case-insensitive by default
     const existingUser = await prisma.user.findFirst({
       where: {
-        username: {
-          equals: username,
-          mode: "insensitive",
-        },
+        username: username,
       },
     });
 

@@ -17,12 +17,10 @@ interface PageProps {
 
 const getUser = cache(async (username: string, loggedInUserId: string) => {
   // Get the user
+  // Note: MySQL with default collation is case-insensitive by default
   const user = await prisma.user.findFirst({
     where: {
-      username: {
-        equals: username,
-        mode: "insensitive",
-      },
+      username: username,
     },
     select: {
       ...getUserDataSelect(loggedInUserId),

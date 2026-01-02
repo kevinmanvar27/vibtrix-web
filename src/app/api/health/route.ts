@@ -24,8 +24,8 @@ export async function GET(request: NextRequest) {
       debug.log("Health check: Testing database connection");
       const dbStartTime = Date.now();
 
-      // Simple query to check database connection
-      const result = await prisma.$queryRaw`SELECT 1 as health_check, current_database() as db_name, version() as db_version`;
+      // Simple query to check database connection (MySQL compatible)
+      const result = await prisma.$queryRaw`SELECT 1 as health_check, DATABASE() as db_name, VERSION() as db_version`;
 
       const dbEndTime = Date.now();
       dbConnectionTime = dbEndTime - dbStartTime;
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
         const dbInfo = result[0] as any;
         dbDetails = {
           name: dbInfo.db_name,
-          version: dbInfo.db_version?.split(' ')[1] || 'unknown',
+          version: dbInfo.db_version || 'unknown',
           connectionTime: dbConnectionTime + 'ms'
         };
       }
@@ -65,11 +65,11 @@ export async function GET(request: NextRequest) {
         connectionTime: dbConnectionTime + 'ms',
         ...dbDetails,
         config: {
-          url: process.env.POSTGRES_PRISMA_URL ?
-            process.env.POSTGRES_PRISMA_URL.replace(/:[^:@]+@/, ':****@') :
+          url: process.env.DATABASE_URL ?
+            process.env.DATABASE_URL.replace(/:[^:@]+@/, ':****@') :
             'not set',
-          host: process.env.POSTGRES_PRISMA_URL?.split('@')[1]?.split(':')[0] || 'unknown',
-          port: process.env.POSTGRES_PRISMA_URL?.split('@')[1]?.split(':')[1]?.split('/')[0] || 'unknown',
+          host: process.env.DATABASE_URL?.split('@')[1]?.split(':')[0] || 'unknown',
+          port: process.env.DATABASE_URL?.split('@')[1]?.split(':')[1]?.split('/')[0] || 'unknown',
         }
       },
       system: {

@@ -179,11 +179,11 @@ export async function POST(
       if (error instanceof Error && error.message.includes('hasAppealedDisqualification')) {
         debug.log(`POST /api/competitions/${competitionId}/submit-post - Using fallback query due to schema issue`);
 
-        // Use a raw query to get just the ID
+        // Use a raw query to get just the ID (MySQL syntax with backticks)
         const participants = await prisma.$queryRaw`
-          SELECT id, "userId", "competitionId", "isDisqualified"
+          SELECT id, userId, competitionId, isDisqualified
           FROM competition_participants
-          WHERE "userId" = ${user.id} AND "competitionId" = ${competitionId}
+          WHERE userId = ${user.id} AND competitionId = ${competitionId}
         `;
 
         if (participants && Array.isArray(participants) && participants.length > 0) {
