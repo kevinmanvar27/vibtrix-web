@@ -26,7 +26,7 @@ export function useSubmitPostMutation() {
         predicate(query) {
           return (
             query.queryKey.includes("for-you") ||
-            (query.queryKey.includes("user-posts") &&
+            !!(user && query.queryKey.includes("user-posts") &&
               query.queryKey.includes(user.id))
           );
         },

@@ -62,7 +62,18 @@ export const getFeatureSettings = cache(async (): Promise<FeatureSettings> => {
       },
     });
 
-    return settings || {
+    if (settings) {
+      // Convert null values to undefined for optional string fields
+      return {
+        ...settings,
+        modelingPhotoshootLabel: settings.modelingPhotoshootLabel ?? undefined,
+        modelingVideoAdsLabel: settings.modelingVideoAdsLabel ?? undefined,
+        brandAmbassadorshipPricingLabel: settings.brandAmbassadorshipPricingLabel ?? undefined,
+        brandAmbassadorshipPreferencesLabel: settings.brandAmbassadorshipPreferencesLabel ?? undefined,
+      };
+    }
+
+    return {
       likesEnabled: true,
       commentsEnabled: true,
       sharingEnabled: true,

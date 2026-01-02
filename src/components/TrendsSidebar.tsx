@@ -1,6 +1,7 @@
 import { validateRequest } from "@/auth";
 import prisma from "@/lib/prisma";
 import { getUserDataSelect } from "@/lib/types";
+import { OnlineStatus } from "@/lib/types/onlineStatus";
 import { formatNumber } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { unstable_cache } from "next/cache";
@@ -63,7 +64,7 @@ async function WhoToFollow() {
                     avatarUrl={user.avatarUrl}
                     className="flex-none"
                     showStatus={true}
-                    status={user.onlineStatus}
+                    status={(user.onlineStatus as OnlineStatus) || OnlineStatus.OFFLINE}
                     statusSize="sm"
                   />
                   <div>

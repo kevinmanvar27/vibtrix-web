@@ -4,6 +4,7 @@ import { useSession } from "@/app/(main)/SessionProvider";
 import { useClientOnlyUserOnlineStatus } from "@/hooks/useClientOnlyUserOnlineStatus";
 import { formatTextWithLinks } from "@/lib/text-formatter";
 import { FollowerInfo, UserData } from "@/lib/types";
+import { OnlineStatus } from "@/lib/types/onlineStatus";
 import Link from "next/link";
 import { PropsWithChildren } from "react";
 import FollowButton from "./FollowButton";
@@ -43,7 +44,7 @@ export default function UserTooltip({ children, user }: UserTooltipProps) {
                   size={70}
                   avatarUrl={user.avatarUrl}
                   showStatus={loggedInUser?.id === user.id || user.showOnlineStatus}
-                  status={onlineStatusData?.status || user.onlineStatus}
+                  status={(onlineStatusData?.status || user.onlineStatus) as OnlineStatus || OnlineStatus.OFFLINE}
                   statusSize="md"
                 />
               </Link>

@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma';
 import { getLocationFromIp, parseUserAgent } from './user-agent-parser';
 import { createId } from '@paralleldrive/cuid2';
+import { NextRequest } from 'next/server';
 
 import debug from "@/lib/debug";
 

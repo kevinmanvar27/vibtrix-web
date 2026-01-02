@@ -8,6 +8,13 @@ import { Loader2, Wrench } from "lucide-react";
 import { useState } from "react";
 import debug from "@/lib/debug";
 
+// Response type for the fix-all-entries API endpoint
+interface FixEntriesResponse {
+  entriesFixed?: number;
+  message?: string;
+  error?: string;
+}
+
 interface FixAllEntriesButtonProps extends ButtonProps {
   competitionId: string;
   onSuccess?: () => void;
@@ -21,7 +28,7 @@ export default function FixAllEntriesButton({
 }: FixAllEntriesButtonProps) {
   const { toast } = useToast();
   const [isFixing, setIsFixing] = useState(false);
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<FixEntriesResponse | null>(null);
   const queryClient = useQueryClient();
 
   const handleFix = async () => {
@@ -31,7 +38,7 @@ export default function FixAllEntriesButton({
     setResults(null);
 
     try {
-      const response = await apiClient.post(`/api/competitions/${competitionId}/manage-entries`, { action: "fix-all-entries" });
+      const response = await apiClient.post<FixEntriesResponse>(`/api/competitions/${competitionId}/manage-entries`, { action: "fix-all-entries" });
 
       // Invalidate all competition-related queries
       queryClient.invalidateQueries({ queryKey: ["competition-feed"] });

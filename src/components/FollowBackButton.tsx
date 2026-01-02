@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import apiClient from "@/lib/api-client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import debug from "@/lib/debug";
@@ -31,17 +31,21 @@ export default function FollowBackButton({
     queryKey: ["follower-info", userId],
     queryFn: async () => {
       try {
-        const response = await apiClient.get(`/api/users/${userId}/followers`);
+        const response = await apiClient.get<{ isFollowedByUser: boolean }>(`/api/users/${userId}/followers`);
         return response.data;
       } catch (error) {
         debug.error("Error checking follow status:", error);
         return { isFollowedByUser: false };
       }
     },
-    onSuccess: (data) => {
-      setIsFollowing(data.isFollowedByUser);
-    },
   });
+
+  // React to follow data changes (replaces onSuccess in React Query v5)
+  useEffect(() => {
+    if (followData) {
+      setIsFollowing(followData.isFollowedByUser);
+    }
+  }, [followData]);
 
   // Handle follow back
   const { mutate: followUser } = useMutation({

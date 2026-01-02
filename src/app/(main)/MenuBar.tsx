@@ -2,14 +2,43 @@ import { validateRequest } from "@/auth";
 import { Button } from "@/components/ui/button";
 import prisma from "@/lib/prisma";
 import { getFeatureSettings } from "@/lib/get-feature-settings";
-
 import { Bookmark, Home, Trophy } from "lucide-react";
 import Link from "next/link";
 import MessagesButtonWrapper from "./MessagesButtonWrapper";
 import NotificationsButtonWrapper from "./NotificationsButtonWrapper";
 import RequireAuth from "@/components/RequireAuth";
+import { cache } from "react";
 
-import debug from "@/lib/debug";
+// Cache the unread counts to prevent multiple database calls
+const getUnreadCounts = cache(async (userId: string) => {
+  let unreadNotificationsCount = 0;
+  let unreadMessagesCount = 0;
+
+  try {
+    // Run both queries in parallel
+    const [notifCount, msgCount] = await Promise.all([
+      prisma.notification.count({
+        where: {
+          recipientId: userId,
+          read: false,
+        },
+      }),
+      prisma.chatParticipant.count({
+        where: {
+          userId: userId,
+          hasUnread: true,
+        },
+      }).catch(() => 0), // Return 0 if table doesn't exist
+    ]);
+
+    unreadNotificationsCount = notifCount;
+    unreadMessagesCount = msgCount;
+  } catch (error) {
+    // Default to 0 if there's an error
+  }
+
+  return { unreadNotificationsCount, unreadMessagesCount };
+});
 
 interface MenuBarProps {
   className?: string;
@@ -20,38 +49,9 @@ export default async function MenuBar({ className }: MenuBarProps) {
   const { bookmarksEnabled } = await getFeatureSettings();
 
   // Get unread counts only if user is logged in
-  let unreadNotificationsCount = 0;
-  let unreadMessagesCount = 0;
-
-  if (user) {
-    // Get unread notifications count from database
-    try {
-      unreadNotificationsCount = await prisma.notification.count({
-        where: {
-          recipientId: user.id,
-          read: false,
-        },
-      });
-    } catch (error) {
-      debug.error('Error getting unread notifications count:', error);
-      // Default to 0 if there's an error
-    }
-
-    // Get unread messages count from database
-    try {
-      // Try to count directly - Prisma will throw if table doesn't exist
-      const count = await prisma.chatParticipant.count({
-        where: {
-          userId: user.id,
-          hasUnread: true,
-        },
-      });
-      unreadMessagesCount = count;
-    } catch (error) {
-      debug.error('Error getting unread messages count:', error);
-      // Default to 0 if there's an error or the model doesn't exist yet
-    }
-  }
+  const { unreadNotificationsCount, unreadMessagesCount } = user 
+    ? await getUnreadCounts(user.id)
+    : { unreadNotificationsCount: 0, unreadMessagesCount: 0 };
 
   return (
     <div className={className}>
@@ -61,7 +61,7 @@ export default async function MenuBar({ className }: MenuBarProps) {
         title="Home"
         asChild
       >
-        <Link href="/">
+        <Link href="/" prefetch={true}>
           <Home />
           <span className="hidden lg:inline">Home</span>
         </Link>
@@ -84,7 +84,7 @@ export default async function MenuBar({ className }: MenuBarProps) {
         title="Competitions"
         asChild
       >
-        <Link href="/competitions">
+        <Link href="/competitions" prefetch={true}>
           <Trophy />
           <span className="hidden lg:inline">Competitions</span>
         </Link>
@@ -98,7 +98,7 @@ export default async function MenuBar({ className }: MenuBarProps) {
             title="Bookmarks"
             asChild
           >
-            <Link href="/bookmarks">
+            <Link href="/bookmarks" prefetch={true}>
               <Bookmark />
               <span className="hidden lg:inline">Bookmarks</span>
             </Link>

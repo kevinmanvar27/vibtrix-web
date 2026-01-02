@@ -20,8 +20,8 @@ export default function PrizeDistributionCard({ prizes }: PrizeDistributionCardP
 
   // Sort prizes by position
   const sortedPrizes = [...prizes].sort((a, b) => {
-    const order = { "FIRST": 1, "SECOND": 2, "THIRD": 3, "FOURTH": 4, "FIFTH": 5, "PARTICIPATION": 6 };
-    return order[a.position] - order[b.position];
+    const order: Record<string, number> = { "FIRST": 1, "SECOND": 2, "THIRD": 3, "FOURTH": 4, "FIFTH": 5, "PARTICIPATION": 6 };
+    return (order[a.position] ?? 99) - (order[b.position] ?? 99);
   });
 
   const getPositionLabel = (position: string) => {

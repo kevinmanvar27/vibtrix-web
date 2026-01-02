@@ -68,13 +68,13 @@ const config = {
           to: { height: "0" },
         },
         "pulse-slow": {
-          '0%, 100%': { opacity: 1, transform: 'scale(1)' },
-          '50%': { opacity: 0.9, transform: 'scale(1.05)' },
+          '0%, 100%': { opacity: '1', transform: 'scale(1)' },
+          '50%': { opacity: '0.9', transform: 'scale(1.05)' },
         },
         "fade-out": {
-          '0%': { opacity: 1 },
-          '90%': { opacity: 1 },
-          '100%': { opacity: 0 },
+          '0%': { opacity: '1' },
+          '90%': { opacity: '1' },
+          '100%': { opacity: '0' },
         },
       },
       animation: {

@@ -127,6 +127,10 @@ export async function verifyToken(
       jti: payload.jti as string,
       type: payload.type as TokenType,
       role: payload.role as string,
+      iat: payload.iat as number,
+      exp: payload.exp as number,
+      aud: payload.aud as string,
+      iss: payload.iss as string,
     };
   } catch (error) {
     debug.error("Error verifying JWT token:", error);

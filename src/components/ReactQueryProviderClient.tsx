@@ -16,34 +16,15 @@ export default function ReactQueryProviderClient({
       defaultOptions: {
         queries: {
           staleTime: 2 * 60 * 1000, // 2 minutes
-          gcTime: 5 * 60 * 1000, // 5 minutes
+          gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime in v5)
           refetchOnWindowFocus: false,
           retry: 1,
           refetchOnMount: true,
           refetchOnReconnect: true,
           structuralSharing: true,
-          cacheTime: 10 * 60 * 1000, // 10 minutes
-          suspense: false,
-          select: (data: any) => data,
-          onError: (error: any) => {
-            if (error?.status === 401) {
-              return;
-            }
-            if (process.env.NODE_ENV === 'development') {
-              debug.error('Query error:', error);
-            }
-          },
         },
         mutations: {
           retry: 1,
-          onError: (error: any) => {
-            if (error?.status === 401) {
-              return;
-            }
-            if (process.env.NODE_ENV === 'development') {
-              debug.error('Mutation error:', error);
-            }
-          },
         },
       },
     });
@@ -62,14 +43,20 @@ export default function ReactQueryProviderClient({
   // Monitor query performance
   useEffect(() => {
     const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
-      if (event.type === 'queryUpdated') {
+      // In React Query v5, event types are: 'updated', 'added', 'removed', etc.
+      if (event.type === 'updated') {
         performanceMetricsRef.current.queryCount++;
 
-        // Track if this was a cache hit or miss
-        if (event.action.type === 'success' && event.action.dataUpdatedAt === event.action.data) {
-          performanceMetricsRef.current.cacheHits++;
-        } else if (event.action.type === 'success') {
-          performanceMetricsRef.current.cacheMisses++;
+        // Track cache performance based on query state
+        const query = event.query;
+        if (query.state.status === 'success') {
+          // Check if data came from cache (dataUpdatedAt hasn't changed recently)
+          const isCacheHit = query.state.dataUpdatedAt < Date.now() - 100;
+          if (isCacheHit) {
+            performanceMetricsRef.current.cacheHits++;
+          } else {
+            performanceMetricsRef.current.cacheMisses++;
+          }
         }
 
         // Log performance metrics periodically in development
@@ -90,7 +77,7 @@ export default function ReactQueryProviderClient({
     <QueryClientProvider client={queryClient}>
       {children}
       {process.env.NODE_ENV === "development" && (
-        <ReactQueryDevtools initialIsOpen={false} position="bottom-right" />
+        <ReactQueryDevtools initialIsOpen={false} position="bottom" />
       )}
     </QueryClientProvider>
   );

@@ -10,6 +10,7 @@ import debug from "@/lib/debug";
 interface CustomVideoPlayerProps {
   src: string;
   className?: string;
+  style?: React.CSSProperties;
   onError?: () => void;
   onDoubleClick?: () => void;
   poster?: string;
@@ -26,6 +27,7 @@ interface CustomVideoPlayerProps {
 const CustomVideoPlayer = forwardRef(function CustomVideoPlayer({
   src,
   className = '',
+  style,
   onError,
   onDoubleClick,
   poster,
@@ -600,7 +602,7 @@ const CustomVideoPlayer = forwardRef(function CustomVideoPlayer({
         src={usingFallbackVideo ? fallbackVideoUrl : videoSrc}
         poster={usingFallbackVideo ? fallbackPosterUrl : poster}
         className={`w-full h-full object-contain bg-black ${usingFallbackVideo ? 'fallback-video' : ''}`}
-        style={{ maxHeight: '100%', maxWidth: '100%', width: 'auto', height: 'auto' }}
+        style={{ maxHeight: '100%', maxWidth: '100%', width: 'auto', height: 'auto', ...style }}
         onClick={togglePlay}
         onError={(e) => {
           // Log detailed error information

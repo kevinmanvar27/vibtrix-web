@@ -7,6 +7,7 @@ import InstagramIcon from "@/components/icons/Instagram";
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import { OnlineStatus } from "@/lib/types/onlineStatus";
 import apiClient from "@/lib/api-client";
 import { Input } from "@/components/ui/input";
 import UserAvatar from "@/components/UserAvatar";
@@ -286,8 +287,8 @@ export default function ShareDialog({ postId, open, onOpenChange }: ShareDialogP
                         avatarUrl={user.avatarUrl}
                         size={20}
                         showStatus={true}
-                        status={user.onlineStatus}
-                        statusSize="xs"
+                        status={(user.onlineStatus as OnlineStatus) || OnlineStatus.OFFLINE}
+                        statusSize="sm"
                       />
                       <span className="text-xs font-normal">{user.displayName}</span>
                       <button
@@ -321,7 +322,7 @@ export default function ShareDialog({ postId, open, onOpenChange }: ShareDialogP
                             <UserAvatar
                               avatarUrl={user.avatarUrl}
                               showStatus={true}
-                              status={user.onlineStatus}
+                              status={(user.onlineStatus as OnlineStatus) || OnlineStatus.OFFLINE}
                               statusSize="sm"
                             />
                             <div className="text-left">

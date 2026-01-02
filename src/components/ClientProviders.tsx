@@ -1,13 +1,12 @@
 "use client";
 
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useState, useEffect, useCallback } from "react";
 import { ThemeProvider } from "next-themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import dynamic from "next/dynamic";
 import { StickeredMediaProvider } from "@/hooks/use-stickered-media-setting";
 
-// Dynamically import components with no SSR
+// Dynamically import components with no SSR - these load after main content
 const FirebaseInit = dynamic(() => import("@/app/firebase-init-fixed"), {
   ssr: false,
   loading: () => null
@@ -33,32 +32,46 @@ const DebugConfigInitializer = dynamic(() => import("@/components/DebugConfigIni
   loading: () => null
 });
 
-export default function ClientProviders({ children }: { children: ReactNode }) {
-  // Create QueryClient in a client component
-  const [queryClient] = useState(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 2 * 60 * 1000,
-        gcTime: 5 * 60 * 1000,
-        refetchOnWindowFocus: false,
-        retry: 1,
-        refetchOnMount: true,
-        refetchOnReconnect: true,
-        structuralSharing: true,
-      },
+// Create QueryClient outside component to prevent recreation on re-renders
+const createQueryClient = () => new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Increase stale time for faster navigation
+      staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh longer
+      gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
+      refetchOnWindowFocus: false,
+      retry: 1,
+      refetchOnMount: false, // Don't refetch on mount if data is fresh
+      refetchOnReconnect: false, // Don't refetch on reconnect
+      structuralSharing: true,
     },
-  }));
+  },
+});
 
-  // Hydration safety
+export default function ClientProviders({ children }: { children: ReactNode }) {
+  // Create QueryClient only once
+  const [queryClient] = useState(createQueryClient);
+
+  // Hydration safety - use requestIdleCallback for non-critical components
   const [mounted, setMounted] = useState(false);
+  const [deferredMounted, setDeferredMounted] = useState(false);
 
   useEffect(() => {
-    // Set mounted state after a short delay to ensure hydration is complete
-    const timer = setTimeout(() => {
-      setMounted(true);
-    }, 10);
+    // Mount immediately for main functionality
+    setMounted(true);
 
-    return () => clearTimeout(timer);
+    // Defer non-critical components until browser is idle
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(() => {
+        setDeferredMounted(true);
+      }, { timeout: 2000 });
+    } else {
+      // Fallback for browsers without requestIdleCallback
+      const timer = setTimeout(() => {
+        setDeferredMounted(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   return (
@@ -70,8 +83,9 @@ export default function ClientProviders({ children }: { children: ReactNode }) {
         disableTransitionOnChange
       >
         <StickeredMediaProvider>
-          {/* Only render dynamic components after mounting to prevent hydration issues */}
-          {mounted && (
+          {children}
+          {/* Only render non-critical components after browser is idle */}
+          {mounted && deferredMounted && (
             <>
               <DebugConfigInitializer />
               <FirebaseInit />
@@ -80,9 +94,7 @@ export default function ClientProviders({ children }: { children: ReactNode }) {
               <PWAInstallPrompt />
             </>
           )}
-          {children}
         </StickeredMediaProvider>
-        {/* React Query DevTools disabled to reduce console output */}
       </ThemeProvider>
     </QueryClientProvider>
   );

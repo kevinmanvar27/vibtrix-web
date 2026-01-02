@@ -1,5 +1,3 @@
-import { validateRequest } from "@/auth";
-import { verifyJwtAuth } from "@/lib/jwt-auth";
 import prisma from "@/lib/prisma";
 import { storeFile, getFileType } from "@/lib/fileStorage";
 import { processImageWithSticker, processVideoWithSticker, isMediaEligibleForSticker, autoApplyStickerToMedia, isMediaBufferEligibleForSticker } from "@/lib/imageProcessing";
@@ -9,26 +7,10 @@ import { StickerPosition } from "@prisma/client";
 import sharp from "sharp";
 import fs from "fs";
 import path from "path";
-
-
+import { getAuthenticatedUser } from "@/lib/api-auth";
 import debug from "@/lib/debug";
 
 const MAX_FILES = 5;
-
-/**
- * Helper function to get authenticated user from either JWT or session
- * Supports both mobile (JWT) and web (session) authentication
- */
-async function getAuthenticatedUser(req: NextRequest) {
-  // Try JWT authentication first (for mobile apps)
-  const jwtUser = await verifyJwtAuth(req);
-  if (jwtUser) {
-    return jwtUser;
-  }
-  // Fall back to session authentication (for web)
-  const { user } = await validateRequest();
-  return user;
-}
 
 export async function POST(req: NextRequest) {
   try {

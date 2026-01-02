@@ -14,6 +14,7 @@ import UserAvatar from "@/components/UserAvatar";
 import { useSession } from "@/app/(main)/SessionProvider";
 import Linkify from "@/components/Linkify";
 import AddStickerButton from "./AddStickerButton";
+import { OnlineStatus } from "@/lib/types/onlineStatus";
 
 import debug from "@/lib/debug";
 
@@ -228,7 +229,7 @@ export default function RoundPostPreview({
                   <UserAvatar
                     avatarUrl={post.user?.avatarUrl || null}
                     showStatus={true}
-                    status={post.user?.onlineStatus || 'OFFLINE'}
+                    status={(post.user?.onlineStatus as OnlineStatus) || OnlineStatus.OFFLINE}
                     statusSize="sm"
                     size={32}
                   />

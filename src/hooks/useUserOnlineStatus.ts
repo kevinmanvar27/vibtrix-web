@@ -26,8 +26,9 @@ export function useUserOnlineStatus(userId: string) {
         lastActiveAt: data.lastActiveAt ? new Date(data.lastActiveAt) : null,
       };
     },
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
       // Adaptive refetch interval based on user's status
+      const data = query.state.data;
       if (data?.status === OnlineStatus.ONLINE) {
         return 60000; // 1 minute for online users
       } else if (data?.status === OnlineStatus.IDLE) {

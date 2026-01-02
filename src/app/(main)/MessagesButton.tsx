@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import apiClient from "@/lib/api-client";
-import debug from "@/lib/debug";
 import { MessageCountInfo } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import { Mail } from "lucide-react";
@@ -24,33 +23,28 @@ export default function MessagesButton({ initialState }: MessagesButtonProps) {
       }
 
       try {
-        debug.log('Fetching unread messages count');
         // Use apiClient instead of fetch for better error handling
         const response = await apiClient.get<MessageCountInfo>('/api/messages/unread-count')
           .catch(error => {
-            debug.error("API client error:", error);
             // Return a default response object with unreadCount: 0
             return { data: { unreadCount: 0 } };
           });
 
-        debug.log('Unread messages count:', response.data);
         return response.data;
       } catch (error) {
-        debug.error("Error fetching unread count:", error);
         // Return a default value if the API fails
         return { unreadCount: 0 };
       }
     },
     initialData: initialState,
-    refetchInterval: 3000, // Poll every 3 seconds
-    staleTime: 0, // Consider data stale immediately
-    refetchOnWindowFocus: true, // Refetch when window gets focus
-    refetchOnMount: true, // Refetch when component mounts
+    refetchInterval: 30000, // Poll every 30 seconds (reduced from 3s for performance)
+    staleTime: 15000, // Data stays fresh for 15 seconds
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnMount: false, // Don't refetch on mount - use initial data
     // Disable this query during server-side rendering
     enabled: typeof window !== 'undefined',
-    // Add retry configuration
-    retry: 1,
-    retryDelay: 1000,
+    // Don't retry on auth errors
+    retry: false,
   });
 
   if (!messagingEnabled) {

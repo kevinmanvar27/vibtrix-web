@@ -4,6 +4,8 @@
 import nodemailer from "nodemailer";
 import debug from "./debug";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 // Create reusable transporter object using Gmail SMTP
 const createTransporter = () => {
   return nodemailer.createTransport({
@@ -29,15 +31,17 @@ interface SendEmailOptions {
  */
 export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
   try {
-    // Log SMTP configuration (without password)
-    console.log("=== Email Configuration ===");
-    console.log("SMTP_HOST:", process.env.SMTP_HOST || "smtp.gmail.com (default)");
-    console.log("SMTP_PORT:", process.env.SMTP_PORT || "587 (default)");
-    console.log("SMTP_USER:", process.env.SMTP_USER ? `${process.env.SMTP_USER.substring(0, 5)}...` : "NOT SET");
-    console.log("SMTP_PASS:", process.env.SMTP_PASS ? "SET (hidden)" : "NOT SET");
-    console.log("EMAIL_FROM:", process.env.EMAIL_FROM || "Vibtrix <noreply@vibtrix.com> (default)");
-    console.log("Sending to:", options.to);
-    console.log("Subject:", options.subject);
+    // Log SMTP configuration only in development (without password)
+    if (!isProduction) {
+      console.log("=== Email Configuration ===");
+      console.log("SMTP_HOST:", process.env.SMTP_HOST || "smtp.gmail.com (default)");
+      console.log("SMTP_PORT:", process.env.SMTP_PORT || "587 (default)");
+      console.log("SMTP_USER:", process.env.SMTP_USER ? `${process.env.SMTP_USER.substring(0, 5)}...` : "NOT SET");
+      console.log("SMTP_PASS:", process.env.SMTP_PASS ? "SET (hidden)" : "NOT SET");
+      console.log("EMAIL_FROM:", process.env.EMAIL_FROM || "Vibtrix <noreply@vibtrix.com> (default)");
+      console.log("Sending to:", options.to);
+      console.log("Subject:", options.subject);
+    }
     
     const transporter = createTransporter();
 
@@ -50,11 +54,9 @@ export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log(`Email sent successfully: ${info.messageId}`);
     debug.log(`Email sent successfully: ${info.messageId}`);
     return true;
   } catch (error) {
-    console.error("Failed to send email:", error);
     debug.error("Failed to send email:", error);
     return false;
   }

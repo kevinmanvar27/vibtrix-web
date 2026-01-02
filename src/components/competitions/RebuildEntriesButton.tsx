@@ -9,6 +9,13 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import debug from "@/lib/debug";
 
+// Response type for the rebuild-entries API endpoint
+interface RebuildEntriesResponse {
+  results?: Array<{ postId: string; status: string }>;
+  message?: string;
+  error?: string;
+}
+
 interface RebuildEntriesButtonProps {
   competitionId: string;
   variant?: "default" | "outline" | "ghost" | "destructive";
@@ -37,7 +44,7 @@ export default function RebuildEntriesButton({
 
     setIsRebuilding(true);
     try {
-      const response = await apiClient.post(`/api/competitions/${competitionId}/rebuild-entries`);
+      const response = await apiClient.post<RebuildEntriesResponse>(`/api/competitions/${competitionId}/rebuild-entries`);
       
       // Invalidate all competition-related queries
       queryClient.invalidateQueries({ queryKey: ["competition-feed"] });

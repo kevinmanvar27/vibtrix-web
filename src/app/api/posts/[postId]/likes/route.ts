@@ -6,26 +6,9 @@
  */
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
-import { verifyJwtAuth } from "@/lib/jwt-middleware";
-import { validateRequest } from "@/auth";
 import { LikeInfo } from "@/lib/types";
 import debug from "@/lib/debug";
-
-/**
- * Helper function to get authenticated user from JWT or session
- */
-async function getAuthenticatedUser(req: NextRequest) {
-  // Try JWT authentication first (for mobile apps)
-  let user = await verifyJwtAuth(req);
-  
-  // Fallback to session-based authentication (for web)
-  if (!user) {
-    const sessionResult = await validateRequest();
-    user = sessionResult.user;
-  }
-  
-  return user;
-}
+import { getAuthenticatedUser } from "@/lib/api-auth";
 
 /**
  * GET /api/posts/{postId}/likes

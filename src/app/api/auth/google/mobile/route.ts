@@ -49,29 +49,22 @@ interface GoogleUserInfo {
  * @returns Google user info
  */
 async function verifyGoogleToken(idToken: string): Promise<GoogleUserInfo> {
-  console.log("🔑 verifyGoogleToken called");
-  console.log("   GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID?.substring(0, 20) + "...");
-  console.log("   GOOGLE_ANDROID_CLIENT_ID:", process.env.GOOGLE_ANDROID_CLIENT_ID?.substring(0, 20) + "...");
-  console.log("   Valid audiences:", VALID_AUDIENCE_CLIENT_IDS.length);
+  debug.log("verifyGoogleToken called");
   
   try {
-    console.log("   Calling googleClient.verifyIdToken...");
     // Accept tokens from web, Android, and iOS clients
     const ticket = await googleClient.verifyIdToken({
       idToken,
       audience: VALID_AUDIENCE_CLIENT_IDS,
     });
-    console.log("   Ticket received, getting payload...");
     
     const payload = ticket.getPayload();
     if (!payload) {
-      console.log("   ❌ Payload is null/undefined!");
+      debug.error("Token payload is null/undefined");
       throw new Error("Invalid token payload");
     }
     
-    console.log("   ✅ Payload received:", payload.email, payload.sub);
-    console.log("   Token audience (aud):", payload.aud);
-    console.log("   Token authorized party (azp):", payload.azp);
+    debug.log("Token verified for:", payload.email);
 
     return {
       sub: payload.sub,
@@ -83,7 +76,6 @@ async function verifyGoogleToken(idToken: string): Promise<GoogleUserInfo> {
       picture: payload.picture,
     };
   } catch (error) {
-    console.log("   ❌ verifyGoogleToken ERROR:", error);
     debug.error("Google token verification failed:", error);
     throw new Error("Invalid Google ID token");
   }
@@ -137,10 +129,6 @@ async function generateUniqueUsername(
  * Authenticate user with Google Sign-In for mobile apps
  */
 export async function POST(req: NextRequest) {
-  console.log("\n========================================");
-  console.log("🔵 POST /api/auth/google/mobile - RECEIVED");
-  console.log("========================================");
-  
   try {
     debug.log("POST /api/auth/google/mobile - Starting Google Sign-In");
 
@@ -148,9 +136,9 @@ export async function POST(req: NextRequest) {
     let body;
     try {
       body = await req.json();
-      console.log("📦 Request body received, idToken length:", body?.idToken?.length || 0);
+      debug.log("Request body received, idToken length:", body?.idToken?.length || 0);
     } catch (e) {
-      console.log("❌ Failed to parse JSON body:", e);
+      debug.error("Failed to parse JSON body:", e);
       return Response.json(
         { error: "Invalid JSON in request body" },
         { status: 400 }
@@ -169,13 +157,12 @@ export async function POST(req: NextRequest) {
     const { idToken } = validation.data;
 
     // Verify the Google ID token
-    console.log("🔐 Verifying Google ID token...");
+    debug.log("Verifying Google ID token...");
     let googleUser: GoogleUserInfo;
     try {
       googleUser = await verifyGoogleToken(idToken);
-      console.log("✅ Token verified! Google user:", googleUser.email, "sub:", googleUser.sub);
+      debug.log("Token verified! Google user:", googleUser.email);
     } catch (error) {
-      console.log("❌ Token verification FAILED:", error);
       debug.error("POST /api/auth/google/mobile - Token verification failed:", error);
       return Response.json(
         { error: "Invalid or expired Google ID token" },
@@ -323,14 +310,9 @@ export async function POST(req: NextRequest) {
       refreshToken: tokens.refreshToken,
     };
     
-    console.log("✅ SUCCESS! Returning response for user:", user.id);
-    console.log("========================================\n");
-    
     return Response.json(response);
 
   } catch (error) {
-    console.log("❌ UNEXPECTED ERROR:", error);
-    console.log("========================================\n");
     debug.error("POST /api/auth/google/mobile - Unexpected error:", error);
     return Response.json(
       { error: "Internal server error" },

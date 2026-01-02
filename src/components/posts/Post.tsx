@@ -2,6 +2,7 @@
 
 import { useSession } from "@/app/(main)/SessionProvider";
 import { PostData } from "@/lib/types";
+import { OnlineStatus } from "@/lib/types/onlineStatus";
 import { formatRelativeDate } from "@/lib/utils";
 import Link from "next/link";
 import { useState } from "react";
@@ -42,7 +43,7 @@ export default function Post({ post, competitionId }: PostProps) {
               <UserAvatar
                 avatarUrl={post.user.avatarUrl}
                 showStatus={true}
-                status={post.user.onlineStatus}
+                status={(post.user.onlineStatus as OnlineStatus) || OnlineStatus.OFFLINE}
                 statusSize="sm"
               />
             </Link>

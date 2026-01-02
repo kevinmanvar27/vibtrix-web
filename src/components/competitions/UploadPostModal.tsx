@@ -114,7 +114,7 @@ export default function UploadPostModal({
   async function onSubmit() {
     if (isUploading) {
       toast({
-        variant: "warning",
+        variant: "default",
         title: "Upload in Progress",
         description: "Please wait for the file upload to complete before submitting."
       });
@@ -130,8 +130,8 @@ export default function UploadPostModal({
       return;
     }
 
-    // Check if any attachment has an error or is missing a mediaId
-    const hasInvalidAttachments = attachments.some(a => a.error || !a.mediaId);
+    // Check if any attachment is missing a mediaId (failed to upload)
+    const hasInvalidAttachments = attachments.some(a => !a.mediaId);
     if (hasInvalidAttachments) {
       toast({
         variant: "destructive",
@@ -255,7 +255,7 @@ export default function UploadPostModal({
 
               // Clear the file input
               e.target.value = "";
-              setAttachments([]);
+              resetMediaUploads();
               return;
             }
           };
@@ -343,7 +343,7 @@ export default function UploadPostModal({
               placeholder="Add a caption for your competition entry... (optional)"
               onChange={setCaption}
               className={`tiptap-editor-content max-h-[10rem] w-full overflow-y-auto rounded-lg border ${(roundStarted && existingPost) || roundEnded ? 'border-muted bg-muted/10' : 'border-border bg-background/80 backdrop-blur-sm'} px-3 py-2 text-sm`}
-              disabled={(roundStarted && existingPost) || roundEnded}
+              disabled={(roundStarted && !!existingPost) || roundEnded}
               onEditorReady={setEditorRef}
             />
           </div>

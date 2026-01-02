@@ -120,7 +120,7 @@ export async function requireAuth(
     }
 
     // Try JWT authentication first (for mobile apps)
-    let user = await verifyJwtAuth(req);
+    let user: any = await verifyJwtAuth(req);
     
     // Fallback to session-based authentication
     if (!user) {
@@ -196,7 +196,7 @@ export async function trackLoginAttempt(
   req: NextRequest,
   username: string,
   success: boolean,
-  userId?: string
+  userId: string
 ): Promise<void> {
   try {
     const clientIP = getClientIP(req);
@@ -204,12 +204,11 @@ export async function trackLoginAttempt(
     
     await prisma.userLoginActivity.create({
       data: {
-        userId: userId || null,
-        username,
+        userId,
         ipAddress: clientIP,
         userAgent,
-        success,
-        timestamp: new Date(),
+        status: success ? 'SUCCESS' : 'FAILED',
+        loginAt: new Date(),
       },
     });
 
@@ -227,7 +226,7 @@ export async function trackLoginAttempt(
  */
 async function checkSuspiciousActivity(
   ipAddress: string,
-  username: string
+  _username: string
 ): Promise<void> {
   try {
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
@@ -236,27 +235,14 @@ async function checkSuspiciousActivity(
     const failedAttemptsFromIP = await prisma.userLoginActivity.count({
       where: {
         ipAddress,
-        success: false,
-        timestamp: { gte: oneHourAgo },
-      },
-    });
-
-    // Check failed attempts for same username
-    const failedAttemptsForUser = await prisma.userLoginActivity.count({
-      where: {
-        username,
-        success: false,
-        timestamp: { gte: oneHourAgo },
+        status: 'FAILED',
+        loginAt: { gte: oneHourAgo },
       },
     });
 
     // Log suspicious activity
     if (failedAttemptsFromIP > 5) {
       debug.log(`Suspicious activity detected: ${failedAttemptsFromIP} failed attempts from IP ${ipAddress}`);
-    }
-
-    if (failedAttemptsForUser > 3) {
-      debug.log(`Suspicious activity detected: ${failedAttemptsForUser} failed attempts for user ${username}`);
     }
   } catch (error) {
     debug.error('Error checking suspicious activity:', error);
@@ -292,9 +278,9 @@ export async function validateSessionSecurity(
     const recentActivity = await prisma.userLoginActivity.findFirst({
       where: {
         userId: session.userId,
-        success: true,
+        status: 'SUCCESS',
       },
-      orderBy: { timestamp: 'desc' },
+      orderBy: { loginAt: 'desc' },
     });
 
     if (recentActivity && recentActivity.ipAddress !== clientIP) {

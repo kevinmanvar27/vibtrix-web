@@ -393,14 +393,14 @@ const isPublicEndpoint = (url: string): boolean => {
     url.includes(endpoint) || url.endsWith(endpoint) || url.includes(`${endpoint}?`)
   ) ||
   // Also check for dynamic routes like /api/posts/[postId]/likes
-  url.match(/\/api\/posts\/[\w-]+\/likes/) ||
-  url.match(/\/api\/posts\/[\w-]+\/view/) ||
-  url.match(/\/api\/users\/[\w-]+\/followers/) ||
-  url.match(/\/api\/users\/[\w-]+\/posts/) ||
-  url.match(/\/api\/users\/[\w-]+\/follow-request/) ||
+  !!url.match(/\/api\/posts\/[\w-]+\/likes/) ||
+  !!url.match(/\/api\/posts\/[\w-]+\/view/) ||
+  !!url.match(/\/api\/users\/[\w-]+\/followers/) ||
+  !!url.match(/\/api\/users\/[\w-]+\/posts/) ||
+  !!url.match(/\/api\/users\/[\w-]+\/follow-request/) ||
   // Add chat-related dynamic routes
-  url.match(/\/api\/chats\/[\w-]+/) ||
-  url.match(/\/api\/chats\/[\w-]+\/messages/);
+  !!url.match(/\/api\/chats\/[\w-]+/) ||
+  !!url.match(/\/api\/chats\/[\w-]+\/messages/);
 };
 
 // Helper function to create a mock response for unauthorized requests

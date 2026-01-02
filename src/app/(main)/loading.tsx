@@ -1,5 +1,5 @@
-import { Loader2 } from "lucide-react";
-
 export default function Loading() {
-  return <Loader2 className="mx-auto my-3 animate-spin" />;
+  // Minimal loading - just a subtle indicator
+  // The actual content skeleton is handled by Suspense boundaries
+  return null;
 }

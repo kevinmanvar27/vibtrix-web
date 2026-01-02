@@ -4,27 +4,10 @@
  */
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
-import { verifyJwtAuth } from "@/lib/jwt-middleware";
-import { validateRequest } from "@/auth";
+import { getAuthenticatedUser } from "@/lib/api-auth";
 import debug from "@/lib/debug";
 
 const PAGE_SIZE = 20;
-
-/**
- * Helper function to get authenticated user from JWT or session
- */
-async function getAuthenticatedUser(req: NextRequest) {
-  // Try JWT authentication first (for mobile apps)
-  let user = await verifyJwtAuth(req);
-  
-  // Fallback to session-based authentication (for web)
-  if (!user) {
-    const sessionResult = await validateRequest();
-    user = sessionResult.user;
-  }
-  
-  return user;
-}
 
 /**
  * GET /api/users/{userId}/following/list
@@ -38,7 +21,8 @@ export async function GET(
     debug.log(`GET /api/users/${userId}/following/list - Starting request`);
 
     const loggedInUser = await getAuthenticatedUser(request);
-    const cursor = request.nextUrl.searchParams.get("cursor") || undefined;
+    const page = parseInt(request.nextUrl.searchParams.get("page") || "1", 10);
+    const skip = (page - 1) * PAGE_SIZE;
 
     // Check if the user exists
     const targetUser = await prisma.user.findUnique({
@@ -76,11 +60,11 @@ export async function GET(
       }
     }
 
-    // Fetch following with pagination
+    // Fetch following with pagination (offset-based since Follow uses compound key)
     const following = await prisma.follow.findMany({
       where: { followerId: userId },
       take: PAGE_SIZE + 1, // Fetch one extra to check if there are more
-      cursor: cursor ? { id: cursor } : undefined,
+      skip,
       orderBy: { createdAt: "desc" },
       include: {
         following: {
@@ -121,7 +105,7 @@ export async function GET(
     // Determine if there are more results
     const hasMore = following.length > PAGE_SIZE;
     const results = hasMore ? following.slice(0, PAGE_SIZE) : following;
-    const nextCursor = hasMore ? results[results.length - 1].id : null;
+    const nextPage = hasMore ? page + 1 : null;
 
     // Transform the results
     const transformedFollowing = results.map((follow) => ({
@@ -142,7 +126,8 @@ export async function GET(
 
     return Response.json({
       following: transformedFollowing,
-      nextCursor,
+      nextPage,
+      hasMore,
       totalCount: await prisma.follow.count({ where: { followerId: userId } }),
     });
 

@@ -18,6 +18,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
 import debug from "@/lib/debug";
 
+// Response type for the manage-entries API endpoint
+interface ManageEntriesResponse {
+  results?: Array<{ postId: string; status: string }>;
+  message?: string;
+  error?: string;
+}
+
 interface FixCompetitionEntriesButtonProps {
   competitionId: string;
   variant?: "default" | "outline" | "ghost" | "destructive";
@@ -37,7 +44,7 @@ function FixCompetitionEntriesButtonInner({
   const [isOpen, setIsOpen] = useState(false);
   const [isRebuilding, setIsRebuilding] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<ManageEntriesResponse | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -48,7 +55,7 @@ function FixCompetitionEntriesButtonInner({
     setResults(null);
 
     try {
-      const response = await apiClient.post(`/api/competitions/${competitionId}/manage-entries`, { action: "rebuild-entries" });
+      const response = await apiClient.post<ManageEntriesResponse>(`/api/competitions/${competitionId}/manage-entries`, { action: "rebuild-entries" });
 
       // Invalidate all competition-related queries
       queryClient.invalidateQueries({ queryKey: ["competition-feed"] });
@@ -82,7 +89,7 @@ function FixCompetitionEntriesButtonInner({
     setResults(null);
 
     try {
-      const response = await apiClient.post(`/api/competitions/${competitionId}/manage-entries`, { action: "sync-entries" });
+      const response = await apiClient.post<ManageEntriesResponse>(`/api/competitions/${competitionId}/manage-entries`, { action: "sync-entries" });
 
       // Invalidate all competition-related queries
       queryClient.invalidateQueries({ queryKey: ["competition-feed"] });

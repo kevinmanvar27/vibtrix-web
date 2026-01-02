@@ -10,18 +10,19 @@ import ClientProviders from "@/components/ClientProviders";
 import dynamic from "next/dynamic";
 import { ensureAdminUser } from "@/lib/ensure-admin-user";
 
+// Optimize fonts - preload for faster initial render
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
-  display: "swap", // Prevent font from blocking rendering
-  preload: false, // Disable preloading to prevent unused preload warning
+  display: "swap",
+  preload: true, // Enable preloading for faster font load
   fallback: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'sans-serif'],
 });
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
-  display: "swap", // Prevent font from blocking rendering
-  preload: false, // Disable preloading to prevent unused preload warning
+  display: "swap",
+  preload: false, // Mono font is less critical
   fallback: ['Menlo', 'Monaco', 'Courier New', 'monospace'],
 });
 
@@ -69,7 +70,6 @@ export async function generateMetadata(): Promise<Metadata> {
         'max-snippet': -1,
       },
     },
-    // Don't set icons in metadata, we'll add them directly in the head
   };
 }
 
@@ -81,10 +81,11 @@ export default async function RootLayout({
   // Configure debug utility to reduce console logs
   configureDebugUtility();
 
-  // Ensure admin user exists
-  await ensureAdminUser();
-
-  const settings = await getSiteSettings();
+  // Run these in parallel for faster initial load
+  const [_, settings] = await Promise.all([
+    ensureAdminUser(),
+    getSiteSettings()
+  ]);
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -92,14 +93,18 @@ export default async function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="referrer" content="strict-origin-when-cross-origin" />
         <meta name="description" content="Vibtrix is a social media platform where users can participate in video competitions, share content, and connect with others." />
+        
+        {/* DNS Prefetch and Preconnect for faster resource loading */}
         <link rel="preconnect" href={process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'} />
         <link rel="preconnect" href="https://api.dicebear.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://api.dicebear.com" />
+        <link rel="preconnect" href="https://utfs.io" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://utfs.io" />
 
         {/* Preload Razorpay script for faster payment processing */}
         <link rel="preconnect" href="https://checkout.razorpay.com" />
         <link rel="dns-prefetch" href="https://checkout.razorpay.com" />
-        <link rel="preload" href="https://checkout.razorpay.com/v1/checkout.js" as="script" />
+        
         <meta name="theme-color" content="#000000" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

@@ -24,6 +24,14 @@ interface Winner {
   mediaType: string | null;
 }
 
+// Response type for the winners API endpoint
+interface WinnersResponse {
+  winners?: Winner[];
+  completionReason?: string;
+  noParticipants?: boolean;
+  error?: string;
+}
+
 interface CompetitionWinnersProps {
   competitionId: string;
   isCompleted: boolean;
@@ -47,7 +55,7 @@ export function CompetitionWinners({ competitionId, isCompleted }: CompetitionWi
         setError(null); // Reset error state
 
         debug.log(`Fetching winners for competition: ${competitionId}`);
-        const response = await apiClient.get(`/api/competitions/${competitionId}/winners`);
+        const response = await apiClient.get<WinnersResponse>(`/api/competitions/${competitionId}/winners`);
 
         debug.log("Winners API response:", response.data);
 
@@ -247,7 +255,7 @@ export function CompetitionWinners({ competitionId, isCompleted }: CompetitionWi
                     </TooltipTrigger>
                     <TooltipContent side="top">
                       <p className="text-xs">{winner.likes} likes during competition</p>
-                      {winner.totalLikes > winner.likes && (
+                      {winner.totalLikes !== undefined && winner.totalLikes > winner.likes && (
                         <p className="text-xs text-muted-foreground">{winner.totalLikes} total likes</p>
                       )}
                     </TooltipContent>

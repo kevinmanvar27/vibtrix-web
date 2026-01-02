@@ -10,6 +10,16 @@ export interface Attachment {
   url?: string;
 }
 
+interface UploadedFile {
+  name: string;
+  mediaId: string;
+  url: string;
+}
+
+interface UploadResult {
+  files: UploadedFile[];
+}
+
 // Memoize options to prevent unnecessary re-renders
 const useStableOptions = (options?: { isCompetitionEntry?: boolean; competitionId?: string }) => {
   const stableOptions = useRef(options);
@@ -231,7 +241,7 @@ export default function useMediaUpload(options?: { isCompetitionEntry?: boolean;
         return;
       }
 
-      let result;
+      let result: UploadResult;
       try {
         // First check if the response has content
         const responseText = await response.text();
@@ -244,7 +254,7 @@ export default function useMediaUpload(options?: { isCompetitionEntry?: boolean;
 
         try {
           // Now parse the text as JSON
-          result = JSON.parse(responseText);
+          result = JSON.parse(responseText) as UploadResult;
           debug.log('MediaUpload: Successfully parsed response:', result);
         } catch (parseError) {
           debug.error('MediaUpload: Failed to parse JSON:', parseError, 'Response was:', responseText);

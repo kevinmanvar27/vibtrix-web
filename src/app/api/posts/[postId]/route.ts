@@ -1,25 +1,7 @@
-import { validateRequest } from "@/auth";
 import prisma from "@/lib/prisma";
 import { NextRequest } from "next/server";
-import { verifyJwtAuth } from "@/lib/jwt-middleware";
-import { validateRequest } from "@/auth";
+import { getAuthenticatedUser } from "@/lib/api-auth";
 import debug from "@/lib/debug";
-
-/**
- * Helper function to get authenticated user from JWT or session
- */
-async function getAuthenticatedUser(req: NextRequest) {
-  // Try JWT authentication first (for mobile apps)
-  let user = await verifyJwtAuth(req);
-  
-  // Fallback to session-based authentication (for web)
-  if (!user) {
-    const sessionResult = await validateRequest();
-    user = sessionResult.user;
-  }
-  
-  return user;
-}
 
 export async function GET(
   request: NextRequest,
@@ -124,12 +106,19 @@ export async function DELETE(
       select: {
         id: true,
         userId: true,
-        competitionId: true,
-        competition: {
+        competitionEntries: {
           select: {
-            id: true,
-            status: true,
-            endDate: true,
+            round: {
+              select: {
+                endDate: true,
+                competition: {
+                  select: {
+                    id: true,
+                    isActive: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -149,20 +138,20 @@ export async function DELETE(
       );
     }
 
-    // Check if post is part of an active competition
-    if (post.competition) {
+    // Check if post is part of an active competition (competition is active and round hasn't ended)
+    const activeCompetitionEntry = post.competitionEntries.find(entry => {
+      const round = entry.round;
+      if (!round?.competition) return false;
       const now = new Date();
-      const isCompetitionActive = 
-        post.competition.status === "ACTIVE" || 
-        (post.competition.status === "UPCOMING" && post.competition.endDate > now);
-      
-      if (isCompetitionActive) {
-        debug.log(`DELETE /api/posts/${postId} - Post is part of active competition`);
-        return Response.json(
-          { error: "Cannot delete a post that is part of an active competition" },
-          { status: 403 }
-        );
-      }
+      return round.competition.isActive && round.endDate > now;
+    });
+    
+    if (activeCompetitionEntry) {
+      debug.log(`DELETE /api/posts/${postId} - Post is part of active competition`);
+      return Response.json(
+        { error: "Cannot delete a post that is part of an active competition" },
+        { status: 403 }
+      );
     }
 
     // Delete the post (cascade will handle related data like likes, comments, bookmarks)

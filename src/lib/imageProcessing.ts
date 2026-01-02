@@ -2,6 +2,7 @@ import { createCanvas, loadImage } from 'canvas';
 import { StickerPosition } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
+import sharp from 'sharp';
 import { storeFile, storeStickeredFile } from './fileStorage';
 import { spawn } from 'child_process';
 import { Readable } from 'stream';

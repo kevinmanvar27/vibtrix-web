@@ -41,7 +41,7 @@ export function useLike(postId: string, initialState: LikeInfo) {
     staleTime: Infinity,
   });
 
-  const { mutate, isLoading } = useMutation({
+  const { mutate, isPending: isLoading } = useMutation({
     mutationFn: () =>
       data.isLikedByUser
         ? apiClient.delete(`/api/posts/${postId}/likes`)

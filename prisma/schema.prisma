@@ -1,5 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
 datasource db {
@@ -96,11 +97,13 @@ model Session {
 model Follow {
   followerId  String
   followingId String
-  follower    User   @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
-  following   User   @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  follower    User     @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@id([followerId, followingId])
   @@index([followingId])
+  @@index([createdAt])
   @@map("follows")
 }
 
@@ -811,6 +814,9 @@ enum NotificationType {
   FOLLOW_REQUEST
   FOLLOW_REQUEST_ACCEPTED
   MUTUAL_FOLLOW
+  COMPETITION_UPDATE
+  NEW_MESSAGE
+  SYSTEM_NOTIFICATION
 }
 
 enum CompetitionMediaType {

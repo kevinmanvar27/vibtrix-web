@@ -85,10 +85,10 @@ export async function sendNotification({
         shouldSend = userPrefs.commentNotifications;
         break;
       case "COMPETITION_UPDATE":
-        shouldSend = userPrefs.competitionUpdates;
+        shouldSend = userPrefs.competitionUpdates ?? true;
         break;
       case "NEW_MESSAGE":
-        shouldSend = userPrefs.messageNotifications;
+        shouldSend = userPrefs.messageNotifications ?? true;
         break;
       default:
         shouldSend = true;
@@ -148,10 +148,10 @@ async function sendPushNotification(notification: any) {
     // Check if push notifications are enabled in site settings
     const settings = await prisma.siteSettings.findUnique({
       where: { id: "settings" },
-      select: { pushNotificationsEnabled: true, firebaseEnabled: true },
+      select: { push_notifications_enabled: true, firebase_enabled: true },
     });
 
-    if (!settings?.pushNotificationsEnabled || !settings?.firebaseEnabled) {
+    if (!settings?.push_notifications_enabled || !settings?.firebase_enabled) {
       debug.log("Push notifications are disabled in site settings");
       return;
     }

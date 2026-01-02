@@ -29,8 +29,6 @@ const OTP_EXPIRY_MS = 10 * 60 * 1000;
  */
 export async function POST(req: NextRequest) {
   try {
-    console.log("========================================");
-    console.log("POST /api/auth/send-verification-otp - Starting request");
     debug.log("POST /api/auth/send-verification-otp - Starting request");
 
     // Apply rate limiting
@@ -42,23 +40,23 @@ export async function POST(req: NextRequest) {
 
     // Parse request body
     const body = await req.json().catch(() => ({}));
-    console.log("Request body received:", JSON.stringify(body, null, 2));
+    debug.log("Request body received:", JSON.stringify(body, null, 2));
     
     const validation = sendOtpSchema.safeParse(body);
     
     if (!validation.success) {
-      console.log("Validation failed:", JSON.stringify(validation.error.errors, null, 2));
+      debug.log("Validation failed:", JSON.stringify(validation.error.errors, null, 2));
       return Response.json(
         { error: "Validation failed", details: validation.error.errors },
         { status: 400 }
       );
     }
     
-    console.log("Validation passed, email:", validation.data.email);
+    debug.log("Validation passed, email:", validation.data.email);
 
     // Try to get authenticated user first
     const { user: authUser } = await validateAuthRequest(req);
-    console.log("Auth user found:", authUser ? `${authUser.id} (${authUser.email})` : "null");
+    debug.log("Auth user found:", authUser ? `${authUser.id} (${authUser.email})` : "null");
     
     let userId: string;
     let email: string;
@@ -143,12 +141,11 @@ export async function POST(req: NextRequest) {
     });
 
     // Send OTP email
-    console.log(`Attempting to send OTP email to: ${email}, username: ${username}, otp: ${otp}`);
+    debug.log(`Attempting to send OTP email to: ${email}, username: ${username}`);
     const emailSent = await sendEmailVerificationOTP(email, username, otp);
-    console.log(`Email send result: ${emailSent}`);
+    debug.log(`Email send result: ${emailSent}`);
 
     if (!emailSent) {
-      console.error("POST /api/auth/send-verification-otp - Failed to send email");
       debug.error("POST /api/auth/send-verification-otp - Failed to send email");
       return Response.json(
         { error: "Failed to send verification email. Please try again." },
@@ -156,11 +153,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log("========================================");
-    console.log(`=== DEV ONLY: Email verification OTP for ${email} is ${otp} ===`);
-    console.log("========================================");
-    debug.log("POST /api/auth/send-verification-otp - OTP sent successfully");
+    // Log OTP only in development for debugging
     debug.log(`=== DEV ONLY: Email verification OTP for ${email} is ${otp} ===`);
+    debug.log("POST /api/auth/send-verification-otp - OTP sent successfully");
 
     return Response.json({
       success: true,
@@ -168,7 +163,6 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error) {
-    console.error("POST /api/auth/send-verification-otp - Error:", error);
     debug.error("POST /api/auth/send-verification-otp - Error:", error);
     return Response.json(
       { error: "Failed to send verification code", details: String(error) },

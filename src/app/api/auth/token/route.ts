@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     const validation = secureLoginSchema.safeParse({ username, password });
     if (!validation.success) {
       debug.log("POST /api/auth/token - Invalid input format");
-      await trackLoginAttempt(req, username || 'unknown', false);
+      // Note: Can't track login attempt without userId (schema requires it)
       return Response.json(
         { error: "Invalid input format" },
         { status: 400 }
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     const sqlValidation = validateSQLInput(username);
     if (!sqlValidation.isValid) {
       debug.log("POST /api/auth/token - SQL injection attempt detected");
-      await trackLoginAttempt(req, username, false);
+      // Note: Can't track login attempt without userId (schema requires it)
       return Response.json(
         { error: "Invalid username or password" },
         { status: 401 }

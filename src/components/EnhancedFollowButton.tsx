@@ -36,7 +36,7 @@ export default function EnhancedFollowButton({
     queryKey: ["follow-request", userId],
     queryFn: async () => {
       try {
-        const response = await apiClient.get(`/api/users/${userId}/follow-request`);
+        const response = await apiClient.get<{ status: string | null }>(`/api/users/${userId}/follow-request`);
         return response.data;
       } catch (error) {
         return { status: null };

@@ -8,7 +8,7 @@ export default function useFollowerInfo(
 ) {
   const query = useQuery({
     queryKey: ["follower-info", userId],
-    queryFn: async () => {
+    queryFn: async (): Promise<FollowerInfo> => {
       try {
         const response = await apiClient.get<FollowerInfo>(`/api/users/${userId}/followers`);
         return response.data;
@@ -17,8 +17,7 @@ export default function useFollowerInfo(
         if (error.status === 401) {
           return {
             isFollowedByUser: false,
-            followerCount: initialState.followerCount,
-            followingCount: initialState.followingCount
+            followers: initialState.followers
           };
         }
         throw error;

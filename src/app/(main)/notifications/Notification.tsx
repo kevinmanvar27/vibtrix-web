@@ -3,7 +3,7 @@ import FollowBackButton from "@/components/FollowBackButton";
 import { NotificationData } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { NotificationType } from "@prisma/client";
-import { Heart, MessageCircle, User2, UserPlus, Check, Users } from "lucide-react";
+import { Heart, MessageCircle, User2, UserPlus, Check, Users, Trophy, Mail, Bell } from "lucide-react";
 import Link from "next/link";
 import NotificationFollowRequest from "./NotificationFollowRequest";
 import NotificationFollowAccepted from "./NotificationFollowAccepted";
@@ -69,6 +69,21 @@ export default function Notification({ notification }: NotificationProps) {
       message: `${notification.issuer.displayName} followed you back. You are now connected!`,
       icon: <Users className="size-7 text-primary" />,
       href: `/users/${notification.issuer.username}`,
+    },
+    COMPETITION_UPDATE: {
+      message: `There's an update on a competition you're participating in`,
+      icon: <Trophy className="size-7 text-yellow-500" />,
+      href: `/competitions`,
+    },
+    NEW_MESSAGE: {
+      message: `${notification.issuer.displayName} sent you a message`,
+      icon: <Mail className="size-7 text-blue-500" />,
+      href: `/messages`,
+    },
+    SYSTEM_NOTIFICATION: {
+      message: `You have a new system notification`,
+      icon: <Bell className="size-7 text-gray-500" />,
+      href: `/notifications`,
     },
   };
 

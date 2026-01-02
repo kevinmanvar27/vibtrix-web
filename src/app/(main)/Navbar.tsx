@@ -3,13 +3,22 @@ import UserButtonWrapper from "@/components/UserButtonWrapper";
 import Image from "next/image";
 import Link from "next/link";
 import { getSiteSettings } from "./getSiteSettings";
+import { cache } from "react";
+
+// Cache site settings to prevent multiple fetches
+const getCachedSiteSettings = cache(getSiteSettings);
 
 export default async function Navbar() {
-  const settings = await getSiteSettings();
+  const settings = await getCachedSiteSettings();
+  
   return (
     <header className="sticky top-0 z-50 bg-card shadow-sm border-b border-border/30">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-5 sm:gap-5">
-        <Link href="/" className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-primary flex-shrink-0">
+        <Link 
+          href="/" 
+          prefetch={true}
+          className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-primary flex-shrink-0"
+        >
           {settings.logoUrl ? (
             <div className="relative overflow-hidden" style={{ height: `${settings.logoHeight}px`, width: `${settings.logoWidth}px` }}>
               <Image

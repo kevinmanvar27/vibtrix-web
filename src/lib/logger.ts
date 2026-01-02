@@ -1,6 +1,6 @@
 /**
- * Simple logger utility for consistent logging across the application
- * This is a simplified version of the debug utility to avoid circular dependencies
+ * Production-ready logger utility for consistent logging across the application
+ * All logging is disabled in production for performance and security
  */
 
 // Log levels
@@ -21,12 +21,14 @@ interface LoggerConfig {
   includeTimestamp: boolean;
 }
 
-// Default configuration - enabled in development, disabled in production
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Default configuration - completely disabled in production
 const defaultConfig: LoggerConfig = {
-  enabled: process.env.NODE_ENV !== 'production', // Enabled in development
-  level: process.env.NODE_ENV === 'production' ? LogLevel.NONE : LogLevel.DEBUG, // Debug logs in development
+  enabled: !isProduction,
+  level: isProduction ? LogLevel.NONE : LogLevel.ERROR, // Only errors in development
   prefix: 'Vibtrix',
-  includeTimestamp: true
+  includeTimestamp: !isProduction
 };
 
 // Current configuration
@@ -34,10 +36,8 @@ let config: LoggerConfig = { ...defaultConfig };
 
 // Format timestamp
 const getTimestamp = (): string => {
-  if (!config.includeTimestamp) return '';
-
-  const now = new Date();
-  return `[${now.toISOString()}] `;
+  if (!config.includeTimestamp || isProduction) return '';
+  return `[${new Date().toISOString()}] `;
 };
 
 // Format prefix
@@ -49,74 +49,54 @@ const getPrefix = (type: string): string => {
 export const logger = {
   // Configuration methods
   configure: (newConfig: Partial<LoggerConfig>) => {
-    config = { ...config, ...newConfig };
+    if (!isProduction) {
+      config = { ...config, ...newConfig };
+    }
   },
 
   resetConfig: () => {
     config = { ...defaultConfig };
   },
 
-  getConfig: (): LoggerConfig => {
-    return { ...config };
-  },
+  getConfig: (): LoggerConfig => ({ ...config }),
 
-  // Logging methods
+  // Logging methods - all disabled in production
   log: (...args: any[]) => {
-    if (config.enabled && config.level >= LogLevel.DEBUG) {
-      // Only log in development
-      if (process.env.NODE_ENV !== 'production') {
-        console.log(getPrefix('DEBUG'), ...args);
-      }
+    if (!isProduction && config.enabled && config.level >= LogLevel.DEBUG) {
+      console.log(getPrefix('DEBUG'), ...args);
     }
   },
 
   info: (...args: any[]) => {
-    if (config.enabled && config.level >= LogLevel.INFO) {
-      // Only log in development
-      if (process.env.NODE_ENV !== 'production') {
-        console.info(getPrefix('INFO'), ...args);
-      }
+    if (!isProduction && config.enabled && config.level >= LogLevel.INFO) {
+      console.info(getPrefix('INFO'), ...args);
     }
   },
 
   warn: (...args: any[]) => {
-    if (config.enabled && config.level >= LogLevel.WARN) {
-      // Only log in development
-      if (process.env.NODE_ENV !== 'production') {
-        console.warn(getPrefix('WARN'), ...args);
-      }
+    if (!isProduction && config.enabled && config.level >= LogLevel.WARN) {
+      console.warn(getPrefix('WARN'), ...args);
     }
   },
 
   error: (...args: any[]) => {
-    // Only log errors if enabled and level is appropriate
-    if (config.enabled && config.level >= LogLevel.ERROR) {
-      // In production, we don't log anything
-      if (process.env.NODE_ENV !== 'production') {
-        console.error(getPrefix('ERROR'), ...args);
-      }
+    if (!isProduction && config.enabled && config.level >= LogLevel.ERROR) {
+      console.error(getPrefix('ERROR'), ...args);
     }
   },
 
   // Performance measurement methods
   time: (label: string) => {
-    if (config.enabled && config.level >= LogLevel.DEBUG) {
-      // Only log in development
-      if (process.env.NODE_ENV !== 'production') {
-        console.time(`${getPrefix('TIME')} ${label}`);
-      }
+    if (!isProduction && config.enabled && config.level >= LogLevel.DEBUG) {
+      console.time(`${getPrefix('TIME')} ${label}`);
     }
   },
 
   timeEnd: (label: string) => {
-    if (config.enabled && config.level >= LogLevel.DEBUG) {
-      // Only log in development
-      if (process.env.NODE_ENV !== 'production') {
-        console.timeEnd(`${getPrefix('TIME')} ${label}`);
-      }
+    if (!isProduction && config.enabled && config.level >= LogLevel.DEBUG) {
+      console.timeEnd(`${getPrefix('TIME')} ${label}`);
     }
   }
 };
 
-// Export for convenience
 export default logger;

@@ -28,7 +28,7 @@ export default function GuestPostEditor() {
             placeholder="Sign in to share your thoughts..."
             onChange={() => {}}
             className="max-h-[20rem] w-full overflow-y-auto rounded-2xl bg-background px-5 py-3 cursor-pointer"
-            editable={false}
+            disabled={true}
           />
         </div>
       </div>

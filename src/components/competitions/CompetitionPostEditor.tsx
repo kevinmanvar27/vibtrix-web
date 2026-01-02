@@ -191,7 +191,7 @@ export default function CompetitionPostEditor({
               editor={editor}
               className={`max-h-[10rem] w-full overflow-y-auto rounded-lg border ${roundStarted && existingPost ? 'border-muted bg-muted/10' : 'border-border bg-background/80 backdrop-blur-sm focus-within:ring-1 focus-within:ring-primary/20'} px-3 py-2 text-sm`}
               onPaste={onPaste}
-              disabled={roundStarted && existingPost}
+              disabled={roundStarted && !!existingPost}
             />
           </div>
 

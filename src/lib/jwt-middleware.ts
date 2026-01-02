@@ -1,17 +1,19 @@
 /**
  * JWT authentication middleware for API routes
  */
-import { NextRequest } from "next/server";
 import { verifyToken } from "./jwt";
 import prisma from "./prisma";
 import debug from "./debug";
 
+// Type for requests with headers (works with both Request and NextRequest)
+type RequestWithHeaders = { headers: { get(name: string): string | null } };
+
 /**
  * Verify JWT token from Authorization header
- * @param req Next.js request object
+ * @param req Request object with headers (Request or NextRequest)
  * @returns User object if authenticated, null otherwise
  */
-export async function verifyJwtAuth(req: NextRequest) {
+export async function verifyJwtAuth(req: RequestWithHeaders) {
   try {
     // Get the Authorization header
     const authHeader = req.headers.get("Authorization");
@@ -66,10 +68,10 @@ export async function verifyJwtAuth(req: NextRequest) {
 
 /**
  * Middleware to handle both cookie-based and JWT token-based authentication
- * @param req Next.js request object
+ * @param req Request object with headers
  * @returns User object if authenticated through either method, null otherwise
  */
-export async function validateAuthRequest(req: NextRequest) {
+export async function validateAuthRequest(req: RequestWithHeaders) {
   // First try JWT authentication for API clients
   const jwtUser = await verifyJwtAuth(req);
   if (jwtUser) {

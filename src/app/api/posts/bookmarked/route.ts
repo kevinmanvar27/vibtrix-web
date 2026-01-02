@@ -1,25 +1,8 @@
-import { validateRequest } from "@/auth";
-import { verifyJwtAuth } from "@/lib/jwt-auth";
 import prisma from "@/lib/prisma";
 import { getPostDataInclude, PostsPage } from "@/lib/types";
 import { NextRequest } from "next/server";
-
 import debug from "@/lib/debug";
-
-/**
- * Helper function to get authenticated user from either JWT or session
- * Supports both mobile (JWT) and web (session) authentication
- */
-async function getAuthenticatedUser(req: NextRequest) {
-  // Try JWT authentication first (for mobile apps)
-  const jwtUser = await verifyJwtAuth(req);
-  if (jwtUser) {
-    return jwtUser;
-  }
-  // Fall back to session authentication (for web)
-  const { user } = await validateRequest();
-  return user;
-}
+import { getAuthenticatedUser } from "@/lib/api-auth";
 
 /**
  * GET /api/posts/bookmarked

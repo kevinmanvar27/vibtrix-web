@@ -110,6 +110,7 @@ export default function EditCompetitionPostButton({
         content,
         mediaIds: finalMediaIds,
         competitionId,
+        queryClient,
       });
 
       // Manually invalidate all competition feed queries to ensure fresh data

@@ -5,6 +5,7 @@ import LoadingButton from "@/components/LoadingButton";
 import { Button } from "@/components/ui/button";
 import UserAvatar from "@/components/UserAvatar";
 import { cn } from "@/lib/utils";
+import { OnlineStatus } from "@/lib/types/onlineStatus";
 import TipTapWrapper from "@/components/ui/tiptap-wrapper";
 import CustomVideoPlayer from "@/components/ui/CustomVideoPlayer";
 
@@ -75,7 +76,7 @@ export default function PostEditor() {
           avatarUrl={user.avatarUrl}
           className="hidden sm:inline"
           showStatus={true}
-          status={user.onlineStatus}
+          status={(user.onlineStatus as OnlineStatus) || OnlineStatus.OFFLINE}
           statusSize="sm"
         />
         <div className="w-full">

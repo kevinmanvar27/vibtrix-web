@@ -44,7 +44,7 @@ export default function RequireAuth({
   // Otherwise, clone the children and add the auth handler
   // This preserves the original component's styling and behavior
   return React.Children.map(children, child => {
-    if (React.isValidElement(child)) {
+    if (React.isValidElement<{ onClick?: React.MouseEventHandler; style?: React.CSSProperties }>(child)) {
       return React.cloneElement(child, {
         onClick: handleAuthRequired,
         style: { ...child.props.style, cursor: 'pointer' },

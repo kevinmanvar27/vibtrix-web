@@ -1,24 +1,7 @@
-import { validateRequest } from "@/auth";
 import prisma from "@/lib/prisma";
 import { FollowerInfo } from "@/lib/types";
 import debug from "@/lib/debug";
-import { verifyJwtAuth } from "@/lib/jwt-auth";
-
-/**
- * Helper function to get authenticated user from JWT or session
- * Supports both mobile (JWT) and web (session) authentication
- */
-async function getAuthenticatedUser(req: Request) {
-  // First try JWT authentication (for mobile apps)
-  const jwtUser = await verifyJwtAuth(req);
-  if (jwtUser) {
-    return jwtUser;
-  }
-  
-  // Fall back to session authentication (for web)
-  const { user } = await validateRequest();
-  return user;
-}
+import { getAuthenticatedUser } from "@/lib/api-auth";
 
 /**
  * GET /api/users/{userId}/followers

@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import apiClient from "@/lib/api-client";
 import { UserData } from "@/lib/types";
+import { OnlineStatus } from "@/lib/types/onlineStatus";
 import { Loader2, Users } from "lucide-react";
 import UserAvatar from "./UserAvatar";
 import Link from "next/link";
@@ -24,8 +25,8 @@ interface RecentlyJoinedResponse {
 export default function RecentlyJoinedSidebar() {
   const { data, isLoading, isError } = useQuery<RecentlyJoinedResponse>({
     queryKey: ["recently-joined-users-sidebar"],
-    queryFn: async () => {
-      const response = await apiClient.get("/api/users/recently-joined", {
+    queryFn: async (): Promise<RecentlyJoinedResponse> => {
+      const response = await apiClient.get<RecentlyJoinedResponse>("/api/users/recently-joined", {
         params: { limit: 6 }
       });
       return response.data;
@@ -89,7 +90,7 @@ export default function RecentlyJoinedSidebar() {
                 avatarUrl={user.avatarUrl}
                 className="flex-none"
                 showStatus={true}
-                status={user.onlineStatus}
+                status={(user.onlineStatus as OnlineStatus) || OnlineStatus.OFFLINE}
                 statusSize="sm"
               />
               <div className="min-w-0">

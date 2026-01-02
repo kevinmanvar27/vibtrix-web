@@ -6,8 +6,7 @@ import { NextRequest } from "next/server";
 import { verify, hash } from "@node-rs/argon2";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { verifyJwtAuth } from "@/lib/jwt-middleware";
-import { validateRequest } from "@/auth";
+import { getAuthenticatedUser } from "@/lib/api-auth";
 import { applyRateLimit } from "@/lib/rate-limit";
 import debug from "@/lib/debug";
 
@@ -23,22 +22,6 @@ const changePasswordSchema = z.object({
   message: "New password must be different from current password",
   path: ["newPassword"],
 });
-
-/**
- * Helper function to get authenticated user from JWT or session
- */
-async function getAuthenticatedUser(req: NextRequest) {
-  // Try JWT authentication first (for mobile apps)
-  let user = await verifyJwtAuth(req);
-  
-  // Fallback to session-based authentication (for web)
-  if (!user) {
-    const sessionResult = await validateRequest();
-    user = sessionResult.user;
-  }
-  
-  return user;
-}
 
 /**
  * POST /api/users/change-password
