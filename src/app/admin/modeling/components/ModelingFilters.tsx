@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import ModelingUserTable from "./ModelingUserTable";
-import { Search, Filter, X } from "lucide-react";
+import { Search, Filter, X, ChevronLeft, ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 type ModelingUser = {
   id: string;
@@ -38,11 +39,20 @@ type ModelingUser = {
 
 interface ModelingFiltersProps {
   users: ModelingUser[];
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  currentGender: string;
 }
 
-export default function ModelingFilters({ users }: ModelingFiltersProps) {
+export default function ModelingFilters({ 
+  users, 
+  currentPage, 
+  totalPages, 
+  totalCount,
+  currentGender 
+}: ModelingFiltersProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [gender, setGender] = useState<string>("all");
   const [modelingType, setModelingType] = useState<string>("all");
   // Calculate actual age range from users data
   const usersWithAge = users.filter(user => user.age !== null);
@@ -91,13 +101,6 @@ export default function ModelingFilters({ users }: ModelingFiltersProps) {
       );
     }
 
-    // Apply gender filter
-    if (gender !== "all") {
-      result = result.filter(user =>
-        user.gender?.toLowerCase() === gender.toLowerCase()
-      );
-    }
-
     // Apply modeling type filter
     if (modelingType !== "all") {
       if (modelingType === "photoshoot") {
@@ -128,17 +131,26 @@ export default function ModelingFilters({ users }: ModelingFiltersProps) {
     });
 
     setFilteredUsers(result);
-  }, [users, searchQuery, gender, modelingType, minAge, maxAge, minPrice, maxPrice]);
+  }, [users, searchQuery, modelingType, minAge, maxAge, minPrice, maxPrice]);
 
   // Reset all filters
   const resetFilters = () => {
     setSearchQuery("");
-    setGender("all");
     setModelingType("all");
     setMinAge(youngestAge);
     setMaxAge(oldestAge);
     setMinPrice(lowestPrice);
     setMaxPrice(highestPrice);
+  };
+
+  // Build URL with query params for pagination
+  const buildPageUrl = (page: number, gender?: string) => {
+    const params = new URLSearchParams();
+    params.set('page', page.toString());
+    if (gender && gender !== 'all') {
+      params.set('gender', gender);
+    }
+    return `/admin/modeling?${params.toString()}`;
   };
 
   return (
@@ -164,10 +176,15 @@ export default function ModelingFilters({ users }: ModelingFiltersProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Gender filter */}
+          {/* Gender filter - uses URL params for server-side filtering */}
           <div className="space-y-2">
             <Label htmlFor="gender">Gender</Label>
-            <Select value={gender} onValueChange={setGender}>
+            <Select 
+              value={currentGender} 
+              onValueChange={(value) => {
+                window.location.href = buildPageUrl(1, value);
+              }}
+            >
               <SelectTrigger id="gender">
                 <SelectValue placeholder="Select gender" />
               </SelectTrigger>
@@ -245,6 +262,56 @@ export default function ModelingFilters({ users }: ModelingFiltersProps) {
       </div>
 
       <ModelingUserTable users={filteredUsers} />
+
+      {/* Pagination controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between border-t pt-4">
+          <p className="text-sm text-muted-foreground">
+            Showing {(currentPage - 1) * 25 + 1} to {Math.min(currentPage * 25, totalCount)} of {totalCount} users
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage <= 1}
+              asChild={currentPage > 1}
+            >
+              {currentPage > 1 ? (
+                <Link href={buildPageUrl(currentPage - 1, currentGender)}>
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </Link>
+              ) : (
+                <>
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </>
+              )}
+            </Button>
+            <span className="text-sm">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage >= totalPages}
+              asChild={currentPage < totalPages}
+            >
+              {currentPage < totalPages ? (
+                <Link href={buildPageUrl(currentPage + 1, currentGender)}>
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Link>
+              ) : (
+                <>
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

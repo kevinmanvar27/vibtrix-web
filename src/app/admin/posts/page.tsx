@@ -1,48 +1,133 @@
 import prisma from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import Link from "next/link";
 import PostTable from "./components/PostTable";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const metadata = {
   title: "Post Management",
 };
 
-async function getPosts() {
-  return await prisma.post.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      user: {
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-          avatarUrl: true,
-        },
-      },
-      attachments: true,
-      _count: {
-        select: {
-          likes: true,
-          comments: true,
-        },
-      },
-    },
-  });
+// Enable ISR with 60 second revalidation
+export const revalidate = 60;
+
+interface PostsPageProps {
+  searchParams: {
+    page?: string;
+    limit?: string;
+    type?: string;
+  };
 }
 
-export default async function PostsPage() {
-  const posts = await getPosts();
+async function getPosts(page: number = 1, limit: number = 50, type?: string) {
+  const skip = (page - 1) * limit;
 
-  const imagePosts = posts.filter(post =>
-    post.attachments.some(attachment => attachment.type === "IMAGE")
-  );
+  // Build where clause based on media type filter
+  let where: any = {};
+  
+  if (type === 'images') {
+    where = {
+      attachments: {
+        some: { type: "IMAGE" }
+      }
+    };
+  } else if (type === 'videos') {
+    where = {
+      attachments: {
+        some: { type: "VIDEO" }
+      }
+    };
+  }
 
-  const videoPosts = posts.filter(post =>
-    post.attachments.some(attachment => attachment.type === "VIDEO")
+  const [posts, totalCount] = await Promise.all([
+    prisma.post.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            displayName: true,
+            avatarUrl: true,
+          },
+        },
+        attachments: {
+          select: {
+            id: true,
+            type: true,
+            url: true,
+          },
+          take: 1, // Only need first attachment for preview
+        },
+        _count: {
+          select: {
+            likes: true,
+            comments: true,
+          },
+        },
+      },
+    }),
+    prisma.post.count({ where }),
+  ]);
+
+  return {
+    posts,
+    totalCount,
+    totalPages: Math.ceil(totalCount / limit),
+    currentPage: page,
+  };
+}
+
+// OPTIMIZED: Get counts using groupBy on media table instead of nested queries
+async function getPostCounts() {
+  // Get total post count and media counts in parallel
+  const [allCount, mediaCounts] = await Promise.all([
+    prisma.post.count(),
+    prisma.media.groupBy({
+      by: ['type'],
+      _count: { postId: true },
+      where: {
+        postId: { not: null }
+      }
+    }),
+  ]);
+
+  const mediaCountMap = new Map(mediaCounts.map(m => [m.type, m._count.postId]));
+
+  return { 
+    allCount, 
+    imageCount: mediaCountMap.get('IMAGE') || 0, 
+    videoCount: mediaCountMap.get('VIDEO') || 0 
+  };
+}
+
+// Loading skeleton for the table
+function TableSkeleton() {
+  return (
+    <div className="space-y-3">
+      {[...Array(10)].map((_, i) => (
+        <Skeleton key={i} className="h-16 w-full" />
+      ))}
+    </div>
   );
+}
+
+export default async function PostsPage({ searchParams }: PostsPageProps) {
+  const page = parseInt(searchParams.page || '1', 10);
+  const limit = parseInt(searchParams.limit || '50', 10);
+  const type = searchParams.type;
+
+  const [{ posts, totalCount, totalPages, currentPage }, counts] = await Promise.all([
+    getPosts(page, limit, type),
+    getPostCounts(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -51,6 +136,7 @@ export default async function PostsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Post Management</h1>
           <p className="text-muted-foreground">
             Manage posts, review content, and moderate uploads.
+            <span className="ml-2 text-sm">({totalCount} posts)</span>
           </p>
         </div>
         <Button variant="destructive" asChild>
@@ -61,53 +147,47 @@ export default async function PostsPage() {
         </Button>
       </div>
 
-      <Tabs defaultValue="all" className="space-y-4">
+      <Tabs defaultValue={type || "all"} className="space-y-4">
         <TabsList>
-          <TabsTrigger value="all">All Posts</TabsTrigger>
-          <TabsTrigger value="images">Images</TabsTrigger>
-          <TabsTrigger value="videos">Videos</TabsTrigger>
-          <TabsTrigger value="reported">Reported</TabsTrigger>
+          <TabsTrigger value="all" asChild>
+            <a href="/admin/posts">All Posts ({counts.allCount})</a>
+          </TabsTrigger>
+          <TabsTrigger value="images" asChild>
+            <a href="/admin/posts?type=images">Images ({counts.imageCount})</a>
+          </TabsTrigger>
+          <TabsTrigger value="videos" asChild>
+            <a href="/admin/posts?type=videos">Videos ({counts.videoCount})</a>
+          </TabsTrigger>
+          <TabsTrigger value="reported" asChild>
+            <a href="/admin/posts?type=reported">Reported (0)</a>
+          </TabsTrigger>
         </TabsList>
-        <TabsContent value="all" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>All Posts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <PostTable posts={posts} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="images" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Image Posts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <PostTable posts={imagePosts} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="videos" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Video Posts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <PostTable posts={videoPosts} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="reported" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Reported Posts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p>Reported posts will be displayed here once reporting functionality is implemented.</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {type === 'images' ? 'Image' : 
+               type === 'videos' ? 'Video' : 
+               type === 'reported' ? 'Reported' : 'All'} Posts
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {type === 'reported' ? (
+              <p className="text-muted-foreground">Reported posts will be displayed here once reporting functionality is implemented.</p>
+            ) : (
+              <Suspense fallback={<TableSkeleton />}>
+                <PostTable 
+                  posts={posts}
+                  pagination={{
+                    currentPage,
+                    totalPages,
+                    totalCount,
+                  }}
+                />
+              </Suspense>
+            )}
+          </CardContent>
+        </Card>
       </Tabs>
     </div>
   );

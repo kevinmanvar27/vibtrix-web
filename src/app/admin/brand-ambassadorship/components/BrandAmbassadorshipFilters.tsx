@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import BrandAmbassadorshipUserTable from "./BrandAmbassadorshipUserTable";
-import { Search, Filter, X } from "lucide-react";
+import { Search, Filter, X, ChevronLeft, ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 type BrandAmbassadorshipUser = {
   id: string;
@@ -38,11 +39,20 @@ type BrandAmbassadorshipUser = {
 
 interface BrandAmbassadorshipFiltersProps {
   users: BrandAmbassadorshipUser[];
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  currentGender: string;
 }
 
-export default function BrandAmbassadorshipFilters({ users }: BrandAmbassadorshipFiltersProps) {
+export default function BrandAmbassadorshipFilters({ 
+  users,
+  currentPage,
+  totalPages,
+  totalCount,
+  currentGender
+}: BrandAmbassadorshipFiltersProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [gender, setGender] = useState<string>("all");
   const [brandPreferenceFilter, setBrandPreferenceFilter] = useState<string>("");
   
   // Calculate actual age range from users data
@@ -101,13 +111,6 @@ export default function BrandAmbassadorshipFilters({ users }: BrandAmbassadorshi
       );
     }
 
-    // Apply gender filter
-    if (gender !== "all") {
-      result = result.filter(user => 
-        user.gender?.toLowerCase() === gender.toLowerCase()
-      );
-    }
-
     // Apply brand preference filter
     if (brandPreferenceFilter) {
       const filterQuery = brandPreferenceFilter.toLowerCase();
@@ -133,17 +136,26 @@ export default function BrandAmbassadorshipFilters({ users }: BrandAmbassadorshi
     });
 
     setFilteredUsers(result);
-  }, [users, searchQuery, gender, brandPreferenceFilter, minAge, maxAge, minPrice, maxPrice]);
+  }, [users, searchQuery, brandPreferenceFilter, minAge, maxAge, minPrice, maxPrice]);
 
   // Reset all filters
   const resetFilters = () => {
     setSearchQuery("");
-    setGender("all");
     setBrandPreferenceFilter("");
     setMinAge(youngestAge);
     setMaxAge(oldestAge);
     setMinPrice(lowestPrice);
     setMaxPrice(highestPrice);
+  };
+
+  // Build URL with query params for pagination
+  const buildPageUrl = (page: number, gender?: string) => {
+    const params = new URLSearchParams();
+    params.set('page', page.toString());
+    if (gender && gender !== 'all') {
+      params.set('gender', gender);
+    }
+    return `/admin/brand-ambassadorship?${params.toString()}`;
   };
 
   return (
@@ -169,10 +181,15 @@ export default function BrandAmbassadorshipFilters({ users }: BrandAmbassadorshi
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Gender filter */}
+          {/* Gender filter - uses URL params for server-side filtering */}
           <div className="space-y-2">
             <Label htmlFor="gender">Gender</Label>
-            <Select value={gender} onValueChange={setGender}>
+            <Select 
+              value={currentGender} 
+              onValueChange={(value) => {
+                window.location.href = buildPageUrl(1, value);
+              }}
+            >
               <SelectTrigger id="gender">
                 <SelectValue placeholder="Select gender" />
               </SelectTrigger>
@@ -245,6 +262,56 @@ export default function BrandAmbassadorshipFilters({ users }: BrandAmbassadorshi
       </div>
 
       <BrandAmbassadorshipUserTable users={filteredUsers} />
+
+      {/* Pagination controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between border-t pt-4">
+          <p className="text-sm text-muted-foreground">
+            Showing {(currentPage - 1) * 25 + 1} to {Math.min(currentPage * 25, totalCount)} of {totalCount} users
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage <= 1}
+              asChild={currentPage > 1}
+            >
+              {currentPage > 1 ? (
+                <Link href={buildPageUrl(currentPage - 1, currentGender)}>
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </Link>
+              ) : (
+                <>
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </>
+              )}
+            </Button>
+            <span className="text-sm">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage >= totalPages}
+              asChild={currentPage < totalPages}
+            >
+              {currentPage < totalPages ? (
+                <Link href={buildPageUrl(currentPage + 1, currentGender)}>
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Link>
+              ) : (
+                <>
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -31,8 +31,12 @@ export default function GoogleSignInButton() {
         disabled={isLoading}
       >
         <div className="flex w-full items-center justify-center gap-2">
-          {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
-          {isLoading ? "Connecting to Google..." : "Sign in with Google"}
+          {isLoading ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <GoogleIcon />
+          )}
+          <span>{isLoading ? "Connecting to Google..." : "Sign in with Google"}</span>
         </div>
       </Button>
     </div>
@@ -43,16 +47,17 @@ function GoogleIcon() {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="1.2em"
-      height="1.2em"
+      width="20"
+      height="20"
       viewBox="0 0 256 262"
+      className="flex-shrink-0"
     >
       <path
         fill="#4285f4"
         d="M255.878 133.451c0-10.734-.871-18.567-2.756-26.69H130.55v48.448h71.947c-1.45 12.04-9.283 30.172-26.69 42.356l-.244 1.622l38.755 30.023l2.685.268c24.659-22.774 38.875-56.282 38.875-96.027"
       />
       <path
-        fill="#ff9800"
+        fill="#34a853"
         d="M130.55 261.1c35.248 0 64.839-11.605 86.453-31.622l-41.196-31.913c-11.024 7.688-25.82 13.055-45.257 13.055c-34.523 0-63.824-22.773-74.269-54.25l-1.531.13l-40.298 31.187l-.527 1.465C35.393 231.798 79.49 261.1 130.55 261.1"
       />
       <path

@@ -17,6 +17,8 @@ import { useRouter } from "next/navigation";
 import { FeedStickersProvider } from "@/hooks/use-feed-stickers";
 import { FeedStickersSettingProvider } from "@/hooks/use-feed-stickers-setting";
 import FeedPost from "@/components/feed/FeedPost";
+// Import useSession to check if user is logged in
+import { useSession } from "@/app/(main)/SessionProvider";
 
 import debug from "@/lib/debug";
 
@@ -24,6 +26,8 @@ export default function FollowingFeed() {
   const { advertisementsEnabled } = useFeatureSettings();
   const { advertisements } = useAdvertisements();
   const { showStickeredMedia } = useStickeredMediaSetting();
+  // Get session to check if user is logged in
+  const { isLoggedIn } = useSession();
 
   // State to track if we're showing random posts
   const [showRandom, setShowRandom] = useState(true);
@@ -205,7 +209,8 @@ export default function FollowingFeed() {
         <p className="text-muted-foreground">
           {message || "No posts found. Start following people to see their posts here."}
         </p>
-        {message && (
+        {/* Only show Sign In button if user is NOT logged in AND there's a message */}
+        {message && !isLoggedIn && (
           <button
             onClick={() => {
               // Use client-side navigation

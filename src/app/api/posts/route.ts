@@ -4,6 +4,8 @@ import { createPostSchema } from "@/lib/validation";
 import { NextRequest } from "next/server";
 import debug from "@/lib/debug";
 import { getAuthenticatedUser } from "@/lib/api-auth";
+import { autoTagPost } from "@/lib/algorithm/interest-profiler";
+import { initializeCreatorTrustScore } from "@/lib/algorithm/trust-score";
 
 /**
  * POST /api/posts
@@ -79,6 +81,35 @@ export async function POST(req: NextRequest) {
     });
 
     debug.log(`POST /api/posts - Created post ${newPost.id} for user ${user.id}`);
+
+    // Auto-tag the post for the recommendation algorithm (async, non-blocking)
+    autoTagPost(newPost.id, content).catch(err => {
+      debug.error(`Failed to auto-tag post ${newPost.id}:`, err);
+    });
+
+    // Initialize creator trust score if this is their first post (async, non-blocking)
+    initializeCreatorTrustScore(user.id).catch(err => {
+      debug.error(`Failed to initialize trust score for user ${user.id}:`, err);
+    });
+
+    // Create initial post metrics for distribution tracking (async, non-blocking)
+    prisma.postMetrics.create({
+      data: {
+        postId: newPost.id,
+        viralScore: 0,
+        distributionPhase: 'TEST',
+        totalViews: 0,
+        uniqueViews: 0,
+        avgWatchTime: 0,
+        completionRate: 0,
+        replayRate: 0,
+        saveRate: 0,
+        shareRate: 0,
+        skipRate: 0,
+      },
+    }).catch(err => {
+      debug.error(`Failed to create post metrics for ${newPost.id}:`, err);
+    });
 
     return Response.json(newPost, { status: 201 });
   } catch (error) {

@@ -137,6 +137,11 @@ model Post {
   views               PostView[]
   shares              Share[]
   user                User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Algorithm relations
+  watchEvents         PostWatchEvent[]
+  contentVector       PostContentVector?
+  metrics             PostMetrics?
 
   @@index([userId])
   @@index([createdAt])
@@ -667,6 +672,9 @@ model Advertisement {
   updatedAt        DateTime            @updatedAt
   competition      Competition?        @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   media            Media               @relation(fields: [mediaId], references: [id])
+  
+  // Algorithm relation
+  targetingVector  AdTargetingVector?
 
   @@index([competitionId])
   @@index([mediaId])
@@ -786,6 +794,182 @@ model DeviceToken {
 
   @@index([userId])
   @@map("device_tokens")
+}
+
+// Share model for tracking post shares
+model Share {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  platform  String?  // Optional: track which platform (whatsapp, twitter, etc.)
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId])
+  @@map("shares")
+}
+
+// Track detailed watch events for Reels/Videos - THE MOST IMPORTANT TABLE
+model PostWatchEvent {
+  id              String   @id @default(cuid())
+  postId          String
+  userId          String?  // Nullable for anonymous users
+  watchDuration   Float    // Seconds watched
+  totalDuration   Float    // Total video duration
+  completionRate  Float    // Percentage watched (0-1)
+  replayCount     Int      @default(0)
+  skippedInFirst2s Boolean @default(false)
+  pauseCount      Int      @default(0)
+  deviceType      String?  // mobile, desktop, tablet
+  source          String?  // feed, explore, profile, share
+  createdAt       DateTime @default(now())
+  
+  post            Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("post_watch_events")
+}
+
+// User interest profile - Updated based on watch behavior
+model UserInterestProfile {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  interests  Json     // { "dance": 0.8, "comedy": 0.5, "tech": 0.3 }
+  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now())
+
+  @@map("user_interest_profiles")
+}
+
+// Content categorization for posts
+model PostContentVector {
+  id           String   @id @default(cuid())
+  postId       String   @unique
+  tags         Json     // { "dance": 1, "music": 1, "trending": 0.5 }
+  language     String?
+  hasMusic     Boolean  @default(false)
+  audioTrackId String?  // For grouping by same audio
+  hashtags     Json?    // Extracted hashtags
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
+
+  post         Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("post_content_vectors")
+}
+
+// Aggregated metrics for viral scoring
+model PostMetrics {
+  id               String    @id @default(cuid())
+  postId           String    @unique
+  totalViews       Int       @default(0)
+  uniqueViews      Int       @default(0)
+  avgWatchTime     Float     @default(0)
+  completionRate   Float     @default(0)
+  replayRate       Float     @default(0)
+  likeRate         Float     @default(0)
+  commentRate      Float     @default(0)
+  shareRate        Float     @default(0)
+  saveRate         Float     @default(0)
+  skipRate         Float     @default(0)  // Skipped in first 2 seconds
+  viralScore       Float     @default(0)
+  distributionPhase DistributionPhase @default(TEST)
+  testBatchSize    Int       @default(0)
+  testBatchEngagement Float  @default(0)
+  lastCalculatedAt DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  post             Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([viralScore])
+  @@index([distributionPhase])
+  @@map("post_metrics")
+}
+
+// Creator trust score for shadow-ban logic
+model CreatorTrustScore {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  originalityScore    Float    @default(1.0)  // 0-1, penalized for reposts
+  engagementQuality   Float    @default(1.0)  // 0-1, based on real vs bot engagement
+  spamSignals         Float    @default(0.0)  // 0-1, higher = more spam
+  reportWeight        Float    @default(0.0)  // Accumulated report impact
+  contentQuality      Float    @default(1.0)  // Based on completion rates
+  trustScore          Float    @default(1.0)  // Final calculated score
+  isShadowBanned      Boolean  @default(false)
+  shadowBanReason     String?  @db.Text
+  shadowBanExpiresAt  DateTime?
+  updatedAt           DateTime @updatedAt
+  createdAt           DateTime @default(now())
+
+  @@index([trustScore])
+  @@index([isShadowBanned])
+  @@map("creator_trust_scores")
+}
+
+// Cached personalized feed for each user
+model UserFeedCache {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  feed        Json     // [{ postId: "x", score: 0.92 }, ...]
+  feedType    String   @default("for_you") // for_you, following, explore
+  generatedAt DateTime @default(now())
+  expiresAt   DateTime
+  
+  @@index([expiresAt])
+  @@map("user_feed_cache")
+}
+
+// Track "Not Interested" signals
+model UserContentPreference {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String?
+  creatorId String?  // Not interested in this creator
+  category  String?  // Not interested in this category
+  type      ContentPreferenceType
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([creatorId])
+  @@map("user_content_preferences")
+}
+
+// Ad targeting vectors for relevance scoring
+model AdTargetingVector {
+  id        String   @id @default(cuid())
+  adId      String   @unique
+  targeting Json     // { "interests": ["dance", "music"], "ageRange": [18, 35] }
+  bid       Float    @default(0)
+  relevanceScore Float @default(0)
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  ad        Advertisement @relation(fields: [adId], references: [id], onDelete: Cascade)
+
+  @@map("ad_targeting_vectors")
+}
+
+// Distribution phases for content
+enum DistributionPhase {
+  TEST      // Initial 100-300 users
+  SCALE     // 5k-20k users
+  BLAST     // Explore/Global
+  KILLED    // Failed test phase
+}
+
+// Content preference types
+enum ContentPreferenceType {
+  NOT_INTERESTED
+  HIDE_CREATOR
+  HIDE_CATEGORY
+  REPORT_SPAM
 }
 
 enum UserRole {
@@ -923,19 +1107,4 @@ model RefreshToken {
 
   @@index([userId])
   @@map("refresh_tokens")
-}
-
-// Share model for tracking post shares
-model Share {
-  id        String   @id @default(cuid())
-  postId    String
-  userId    String
-  platform  String?  // Optional: track which platform (whatsapp, twitter, etc.)
-  createdAt DateTime @default(now())
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([postId, userId])
-  @@index([userId])
-  @@map("shares")
 }

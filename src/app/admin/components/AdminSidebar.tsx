@@ -25,7 +25,7 @@ import {
   Briefcase,
 } from "lucide-react";
 import { User } from "lucia";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import debug from "@/lib/debug";
 
 
@@ -147,6 +147,9 @@ interface AdminSidebarProps {
 
 export default function AdminSidebar({ user }: AdminSidebarProps) {
   const pathname = usePathname();
+  
+  // Track if component has mounted to prevent hydration mismatch
+  const [hasMounted, setHasMounted] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
 
   // Debug the component rendering
@@ -159,15 +162,47 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
   }
 
   // Filter menu items based on user role
-  const filteredNavItems = navItems.filter(item => {
+  const filteredNavItems = useMemo(() => navItems.filter(item => {
     // Check if user has the required role
     return item.roles.includes(user.role as string);
-  });
+  }), [user.role]);
+
+  // Find which submenu should be open based on current pathname
+  const activeSubmenuName = useMemo(() => {
+    for (const item of filteredNavItems) {
+      if (item.submenu && item.submenu.length > 0) {
+        const isSubmenuActive = item.submenu.some(subItem =>
+          pathname === subItem.href || pathname.startsWith(`${subItem.href}/`)
+        );
+        if (isSubmenuActive) {
+          return item.name;
+        }
+      }
+    }
+    return null;
+  }, [pathname, filteredNavItems]);
+
+  // Set mounted state and auto-open submenu on client
+  useEffect(() => {
+    setHasMounted(true);
+    if (activeSubmenuName) {
+      setOpenSubmenu(activeSubmenuName);
+    }
+  }, [activeSubmenuName]);
 
   // Toggle submenu
   const toggleSubmenu = (name: string) => {
     debug.log("Toggling submenu:", name);
     setOpenSubmenu(openSubmenu === name ? null : name);
+  };
+
+  // Determine if submenu should be shown - only after mount to prevent hydration mismatch
+  const isSubmenuOpen = (itemName: string) => {
+    if (!hasMounted) {
+      // On server/initial render, don't show any submenu expanded
+      return false;
+    }
+    return openSubmenu === itemName;
   };
 
   return (
@@ -199,10 +234,8 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
                 (item.href.includes('?slug=') && pathname.startsWith('/admin/pages/') &&
                  item.href.includes(new URLSearchParams(pathname.split('?')[1] || '').get('slug') || ''));
 
-            // Auto-open submenu if any of its items are active
-            if (isSubmenuActive && openSubmenu !== item.name) {
-              setOpenSubmenu(item.name);
-            }
+            // Use the helper function to check if submenu is open
+            const submenuOpen = isSubmenuOpen(item.name);
 
             return (
               <li key={item.href + item.name}>
@@ -224,14 +257,14 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
                         <item.icon className="h-5 w-5" />
                         <span>{item.name}</span>
                       </div>
-                      {openSubmenu === item.name ? (
+                      {submenuOpen ? (
                         <ChevronDown className="h-4 w-4" />
                       ) : (
                         <ChevronRight className="h-4 w-4" />
                       )}
                     </button>
 
-                    {openSubmenu === item.name && (
+                    {submenuOpen && (
                       <ul className="mt-1 ml-4 space-y-1 border-l border-primary/20 pl-3">
                         {item.submenu.map((subItem) => {
                           // Simple exact path matching for submenu items

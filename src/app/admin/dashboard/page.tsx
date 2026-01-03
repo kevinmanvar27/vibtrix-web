@@ -8,26 +8,50 @@ export const metadata = {
   title: "Admin Dashboard",
 };
 
+// Enable ISR with 60 second revalidation for admin dashboard
+export const revalidate = 60;
+
+// OPTIMIZED: Combine all stats into parallel queries with groupBy where possible
 async function getStats() {
   const [
-    totalUsers,
-    activeUsers,
+    userCounts,
     totalPosts,
-    totalImagePosts,
-    totalVideoPosts,
-    totalCompetitions,
-    activeCompetitions,
-    reportedContent,
+    mediaCounts,
+    competitionCounts,
   ] = await Promise.all([
-    prisma.user.count(),
-    prisma.user.count({ where: { isActive: true } }),
+    // User counts using groupBy
+    prisma.user.groupBy({
+      by: ['isActive'],
+      _count: { id: true },
+    }),
+    // Total posts - simple count
     prisma.post.count(),
-    prisma.media.count({ where: { type: "IMAGE" } }),
-    prisma.media.count({ where: { type: "VIDEO" } }),
-    prisma.competition.count(),
-    prisma.competition.count({ where: { isActive: true } }),
-    0, // Placeholder for reported content count (to be implemented)
+    // Media counts using groupBy
+    prisma.media.groupBy({
+      by: ['type'],
+      _count: { id: true },
+    }),
+    // Competition counts using groupBy
+    prisma.competition.groupBy({
+      by: ['isActive'],
+      _count: { id: true },
+    }),
   ]);
+
+  // Process user counts
+  const userCountMap = new Map(userCounts.map(c => [c.isActive, c._count.id]));
+  const totalUsers = userCounts.reduce((sum, c) => sum + c._count.id, 0);
+  const activeUsers = userCountMap.get(true) || 0;
+
+  // Process media counts
+  const mediaCountMap = new Map(mediaCounts.map(c => [c.type, c._count.id]));
+  const totalImagePosts = mediaCountMap.get('IMAGE') || 0;
+  const totalVideoPosts = mediaCountMap.get('VIDEO') || 0;
+
+  // Process competition counts
+  const competitionCountMap = new Map(competitionCounts.map(c => [c.isActive, c._count.id]));
+  const totalCompetitions = competitionCounts.reduce((sum, c) => sum + c._count.id, 0);
+  const activeCompetitions = competitionCountMap.get(true) || 0;
 
   return {
     totalUsers,
@@ -37,7 +61,7 @@ async function getStats() {
     totalVideoPosts,
     totalCompetitions,
     activeCompetitions,
-    reportedContent,
+    reportedContent: 0, // Placeholder for reported content count
   };
 }
 

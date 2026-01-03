@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: "Brand Ambassadorship Management",
 };
 
+// Enable ISR with 60 second revalidation
+export const revalidate = 60;
+
 // Function to calculate age from date of birth (DD-MM-YYYY format)
 function calculateAge(dateOfBirth: string): number | null {
   try {
@@ -33,42 +36,75 @@ function calculateAge(dateOfBirth: string): number | null {
   }
 }
 
-async function getBrandAmbassadorshipUsers() {
-  return await prisma.user.findMany({
-    where: {
-      // Only show regular users who are interested in brand ambassadorship
-      // and have provided required information (DOB and contact details)
-      role: "USER",
-      interestedInBrandAmbassadorship: true,
-      dateOfBirth: { not: null },
-      whatsappNumber: { not: null },
-    },
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      username: true,
-      displayName: true,
-      email: true,
-      avatarUrl: true,
-      gender: true,
-      dateOfBirth: true,
-      whatsappNumber: true,
-      isActive: true,
-      createdAt: true,
-      interestedInBrandAmbassadorship: true,
-      brandAmbassadorshipPricing: true,
-      brandPreferences: true,
-      _count: {
-        select: {
-          followers: true,
-        },
-      },
-    },
-  });
+interface BrandAmbassadorshipPageProps {
+  searchParams: {
+    page?: string;
+    limit?: string;
+    gender?: string;
+  };
 }
 
-export default async function BrandAmbassadorshipPage() {
-  const users = await getBrandAmbassadorshipUsers();
+async function getBrandAmbassadorshipUsers(page: number = 1, limit: number = 25, gender?: string) {
+  const skip = (page - 1) * limit;
+
+  // Build where clause
+  const where: any = {
+    role: "USER",
+    interestedInBrandAmbassadorship: true,
+    dateOfBirth: { not: null },
+    whatsappNumber: { not: null },
+  };
+
+  // Add gender filter if specified
+  if (gender && gender !== 'all') {
+    where.gender = gender.toUpperCase();
+  }
+
+  // Run both queries in parallel
+  const [users, totalCount] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+      select: {
+        id: true,
+        username: true,
+        displayName: true,
+        email: true,
+        avatarUrl: true,
+        gender: true,
+        dateOfBirth: true,
+        whatsappNumber: true,
+        isActive: true,
+        createdAt: true,
+        interestedInBrandAmbassadorship: true,
+        brandAmbassadorshipPricing: true,
+        brandPreferences: true,
+        _count: {
+          select: {
+            followers: true,
+          },
+        },
+      },
+    }),
+    prisma.user.count({ where }),
+  ]);
+
+  return {
+    users,
+    totalCount,
+    totalPages: Math.ceil(totalCount / limit),
+    currentPage: page,
+  };
+}
+
+export default async function BrandAmbassadorshipPage({ searchParams }: BrandAmbassadorshipPageProps) {
+  const page = parseInt(searchParams.page || '1', 10);
+  const limit = parseInt(searchParams.limit || '25', 10);
+  const gender = searchParams.gender;
+
+  const { users, totalCount, totalPages, currentPage } = await getBrandAmbassadorshipUsers(page, limit, gender);
   
   // Add age to each user based on dateOfBirth
   const usersWithAge = users.map(user => ({
@@ -89,11 +125,18 @@ export default async function BrandAmbassadorshipPage() {
         <CardHeader>
           <CardTitle>Brand Ambassadorship Users</CardTitle>
           <p className="text-sm text-muted-foreground">
-            {usersWithAge.length} users interested in brand ambassadorship opportunities
+            {totalCount} users interested in brand ambassadorship opportunities
+            {totalPages > 1 && ` (Page ${currentPage} of ${totalPages})`}
           </p>
         </CardHeader>
         <CardContent>
-          <BrandAmbassadorshipFilters users={usersWithAge} />
+          <BrandAmbassadorshipFilters 
+            users={usersWithAge}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            currentGender={gender || 'all'}
+          />
         </CardContent>
       </Card>
     </div>

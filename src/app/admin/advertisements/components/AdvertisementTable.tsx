@@ -18,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDistanceToNow, format } from "date-fns";
-import { Edit, Eye, Megaphone, MoreHorizontal, Pause, Play, Plus, Trash } from "lucide-react";
+import { Edit, Eye, Megaphone, MoreHorizontal, Pause, Play, Plus, Trash, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useState, useRef } from "react";
 import Image from "next/image";
@@ -56,10 +56,18 @@ type Advertisement = {
 
 interface AdvertisementTableProps {
   advertisements: Advertisement[];
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  status: string;
 }
 
 export default function AdvertisementTable({
   advertisements,
+  currentPage,
+  totalPages,
+  totalCount,
+  status,
 }: AdvertisementTableProps) {
   const { toast } = useToast();
   const router = useRouter();
@@ -272,6 +280,53 @@ export default function AdvertisementTable({
           )}
         </TableBody>
       </Table>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between p-4 border-t">
+          <p className="text-sm text-muted-foreground">
+            Page {currentPage} of {totalPages} ({totalCount} total)
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage <= 1}
+              asChild={currentPage > 1}
+            >
+              {currentPage > 1 ? (
+                <Link href={`/admin/advertisements/list?page=${currentPage - 1}&status=${status}`}>
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </Link>
+              ) : (
+                <>
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage >= totalPages}
+              asChild={currentPage < totalPages}
+            >
+              {currentPage < totalPages ? (
+                <Link href={`/admin/advertisements/list?page=${currentPage + 1}&status=${status}`}>
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Link>
+              ) : (
+                <>
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Media Preview Dialog */}
       <Dialog open={!!videoPreview} onOpenChange={(open) => !open && setVideoPreview(null)}>

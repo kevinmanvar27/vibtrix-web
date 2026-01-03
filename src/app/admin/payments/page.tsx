@@ -1,18 +1,32 @@
-import { validateRequest } from "@/auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import prisma from "@/lib/prisma";
-import { format } from "date-fns";
 import { IndianRupee, Users } from "lucide-react";
 import { redirect } from "next/navigation";
 import PaymentsTable from "./components/PaymentsTable";
 import { RazorpayStatusAlert } from "@/components/admin/RazorpayStatusAlert";
+import { validateRequest } from "@/auth";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { PaymentStatus } from "@prisma/client";
 
 export const metadata = {
   title: "Payments - Admin Dashboard",
   description: "Manage payments for competitions",
 };
 
+// Enable ISR with 60 second revalidation
+export const revalidate = 60;
+
+interface PaymentsPageProps {
+  searchParams: {
+    page?: string;
+    limit?: string;
+    status?: string;
+  };
+}
+
+// OPTIMIZED: Combined stats query - removed N+1 for competition titles
 async function getPaymentStats() {
   const [
     totalPayments,
@@ -30,36 +44,27 @@ async function getPaymentStats() {
       where: { status: "COMPLETED" },
       _sum: { amount: true },
     }),
-    prisma.payment.groupBy({
-      by: ["competitionId"],
-      where: { status: "COMPLETED" },
-      _sum: { amount: true },
-      _count: true,
-      orderBy: {
-        _sum: {
-          amount: "desc",
-        },
-      },
-      take: 5,
-    }),
+    // OPTIMIZED: Get top 5 competitions with revenue in a single query
+    // Using actual table names from @@map() in schema.prisma
+    prisma.$queryRaw<Array<{
+      competitionId: string;
+      title: string;
+      totalAmount: number;
+      paymentCount: bigint;
+    }>>`
+      SELECT 
+        p.competitionId,
+        c.title,
+        SUM(p.amount) as totalAmount,
+        COUNT(p.id) as paymentCount
+      FROM payments p
+      LEFT JOIN competitions c ON p.competitionId = c.id
+      WHERE p.status = 'COMPLETED' AND p.competitionId IS NOT NULL
+      GROUP BY p.competitionId, c.title
+      ORDER BY totalAmount DESC
+      LIMIT 5
+    `,
   ]);
-
-  // Get competition details for the top competitions
-  const competitionsWithDetails = await Promise.all(
-    competitionRevenue.map(async (item) => {
-      if (!item.competitionId) return { ...item, title: "Unknown" };
-
-      const competition = await prisma.competition.findUnique({
-        where: { id: item.competitionId },
-        select: { title: true },
-      });
-
-      return {
-        ...item,
-        title: competition?.title || "Unknown",
-      };
-    })
-  );
 
   return {
     totalPayments,
@@ -67,56 +72,104 @@ async function getPaymentStats() {
     pendingPayments,
     failedPayments,
     totalRevenue: totalRevenue._sum.amount || 0,
-    competitionRevenue: competitionsWithDetails,
+    competitionRevenue: competitionRevenue.map(item => ({
+      competitionId: item.competitionId,
+      title: item.title || "Unknown",
+      _sum: { amount: Number(item.totalAmount) },
+      _count: Number(item.paymentCount),
+    })),
   };
 }
 
-async function getPayments() {
-  const payments = await prisma.payment.findMany({
-    include: {
-      user: {
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-          email: true,
-        },
-      },
-      competition: {
-        select: {
-          id: true,
-          title: true,
-        },
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+async function getPayments(page: number = 1, limit: number = 50, status?: string) {
+  const skip = (page - 1) * limit;
 
-  return payments;
+  // Build where clause
+  const where: any = {};
+  if (status && status !== 'all') {
+    where.status = status.toUpperCase() as PaymentStatus;
+  }
+
+  const [payments, totalCount] = await Promise.all([
+    prisma.payment.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            displayName: true,
+            email: true,
+          },
+        },
+        competition: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      skip,
+      take: limit,
+    }),
+    prisma.payment.count({ where }),
+  ]);
+
+  return {
+    payments,
+    totalCount,
+    totalPages: Math.ceil(totalCount / limit),
+    currentPage: page,
+  };
 }
 
-export default async function PaymentsPage() {
+// OPTIMIZED: Single query for all counts
+async function getPaymentCounts() {
+  const counts = await prisma.payment.groupBy({
+    by: ['status'],
+    _count: { id: true },
+  });
+
+  const countMap = new Map(counts.map(c => [c.status, c._count.id]));
+  
+  return {
+    allCount: counts.reduce((sum, c) => sum + c._count.id, 0),
+    completedCount: countMap.get(PaymentStatus.COMPLETED) || 0,
+    pendingCount: countMap.get(PaymentStatus.PENDING) || 0,
+    failedCount: countMap.get(PaymentStatus.FAILED) || 0,
+  };
+}
+
+// Loading skeleton for the table
+function TableSkeleton() {
+  return (
+    <div className="space-y-3">
+      {[...Array(10)].map((_, i) => (
+        <Skeleton key={i} className="h-14 w-full" />
+      ))}
+    </div>
+  );
+}
+
+export default async function PaymentsPage({ searchParams }: PaymentsPageProps) {
   const { user } = await validateRequest();
 
   if (!user || !user.isAdmin) {
     redirect("/admin/login");
   }
 
-  const stats = await getPaymentStats();
-  const payments = await getPayments();
+  const page = parseInt(searchParams.page || '1', 10);
+  const limit = parseInt(searchParams.limit || '50', 10);
+  const status = searchParams.status;
 
-  // Filter payments by status
-  const completedPayments = payments.filter(
-    (payment) => payment.status === "COMPLETED"
-  );
-  const pendingPayments = payments.filter(
-    (payment) => payment.status === "PENDING"
-  );
-  const failedPayments = payments.filter(
-    (payment) => payment.status === "FAILED"
-  );
+  const [stats, { payments, totalCount, totalPages, currentPage }, counts] = await Promise.all([
+    getPaymentStats(),
+    getPayments(page, limit, status),
+    getPaymentCounts(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -126,6 +179,7 @@ export default async function PaymentsPage() {
         <h1 className="text-3xl font-bold tracking-tight">Payments</h1>
         <p className="text-muted-foreground">
           Manage and track payments for competitions
+          <span className="ml-2 text-sm">({totalCount} payments)</span>
         </p>
       </div>
 
@@ -185,65 +239,48 @@ export default async function PaymentsPage() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="all" className="space-y-4">
+      <Tabs defaultValue={status || "all"} className="space-y-4">
         <TabsList>
-          <TabsTrigger value="all">All Payments</TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="failed">Failed</TabsTrigger>
+          <TabsTrigger value="all" asChild>
+            <a href="/admin/payments">All ({counts.allCount})</a>
+          </TabsTrigger>
+          <TabsTrigger value="completed" asChild>
+            <a href="/admin/payments?status=completed">Completed ({counts.completedCount})</a>
+          </TabsTrigger>
+          <TabsTrigger value="pending" asChild>
+            <a href="/admin/payments?status=pending">Pending ({counts.pendingCount})</a>
+          </TabsTrigger>
+          <TabsTrigger value="failed" asChild>
+            <a href="/admin/payments?status=failed">Failed ({counts.failedCount})</a>
+          </TabsTrigger>
         </TabsList>
-        <TabsContent value="all" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>All Payments</CardTitle>
-              <CardDescription>
-                View all payment transactions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PaymentsTable payments={payments} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="completed" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Completed Payments</CardTitle>
-              <CardDescription>
-                Successfully completed payment transactions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PaymentsTable payments={completedPayments} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="pending" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Pending Payments</CardTitle>
-              <CardDescription>
-                Payment transactions that are still pending
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PaymentsTable payments={pendingPayments} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="failed" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Failed Payments</CardTitle>
-              <CardDescription>
-                Payment transactions that have failed
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PaymentsTable payments={failedPayments} />
-            </CardContent>
-          </Card>
-        </TabsContent>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {status === 'completed' ? 'Completed' : 
+               status === 'pending' ? 'Pending' : 
+               status === 'failed' ? 'Failed' : 'All'} Payments
+            </CardTitle>
+            <CardDescription>
+              {status === 'completed' ? 'Successfully completed payment transactions' :
+               status === 'pending' ? 'Payment transactions that are still pending' :
+               status === 'failed' ? 'Payment transactions that have failed' :
+               'View all payment transactions'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Suspense fallback={<TableSkeleton />}>
+              <PaymentsTable 
+                payments={payments}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalCount={totalCount}
+                status={status || 'all'}
+              />
+            </Suspense>
+          </CardContent>
+        </Card>
       </Tabs>
     </div>
   );
