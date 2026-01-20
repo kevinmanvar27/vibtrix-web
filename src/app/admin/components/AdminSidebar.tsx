@@ -155,17 +155,14 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
   // Debug the component rendering
   debug.log("AdminSidebar rendering with user:", user?.id);
 
-  // If no user or user doesn't have a role, don't render the sidebar
-  if (!user || !user.role) {
-    debug.warn("AdminSidebar: No user or role found");
-    return null;
-  }
-
-  // Filter menu items based on user role
-  const filteredNavItems = useMemo(() => navItems.filter(item => {
-    // Check if user has the required role
-    return item.roles.includes(user.role as string);
-  }), [user.role]);
+  // Filter menu items based on user role - moved BEFORE the early return
+  const filteredNavItems = useMemo(() => {
+    if (!user || !user.role) return [];
+    return navItems.filter(item => {
+      // Check if user has the required role
+      return item.roles.includes(user.role as string);
+    });
+  }, [user]);
 
   // Find which submenu should be open based on current pathname
   const activeSubmenuName = useMemo(() => {
@@ -189,6 +186,13 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
       setOpenSubmenu(activeSubmenuName);
     }
   }, [activeSubmenuName]);
+
+  // If no user or user doesn't have a role, don't render the sidebar
+  // This check is now AFTER all hooks
+  if (!user || !user.role) {
+    debug.warn("AdminSidebar: No user or role found");
+    return null;
+  }
 
   // Toggle submenu
   const toggleSubmenu = (name: string) => {
