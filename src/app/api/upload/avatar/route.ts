@@ -4,6 +4,9 @@ import { NextRequest } from "next/server";
 import debug from "@/lib/debug";
 import { getAuthenticatedUser } from "@/lib/api-auth";
 
+// Force Node.js runtime for file system operations
+export const runtime = 'nodejs';
+
 /**
  * POST /api/upload/avatar
  * Upload a new avatar image for the authenticated user

@@ -14,6 +14,9 @@ import { processImageWithSticker } from "@/lib/imageProcessing";
 
 import debug from "@/lib/debug";
 
+// Force Node.js runtime for file system operations
+export const runtime = 'nodejs';
+
 // Maximum number of files per request
 const MAX_FILES = 5;
 

@@ -10,6 +10,9 @@ import path from "path";
 import { getAuthenticatedUser } from "@/lib/api-auth";
 import debug from "@/lib/debug";
 
+// Force Node.js runtime for file system operations
+export const runtime = 'nodejs';
+
 const MAX_FILES = 5;
 
 export async function POST(req: NextRequest) {

@@ -4,6 +4,9 @@ import { NextRequest } from "next/server";
 
 import debug from "@/lib/debug";
 
+// Force Node.js runtime for file system operations
+export const runtime = 'nodejs';
+
 export async function POST(req: NextRequest) {
   try {
     // Validate user authentication

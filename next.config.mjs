@@ -43,7 +43,7 @@ const nextConfig = {
   },
   // Optimize fonts
   optimizeFonts: true,
-  serverExternalPackages: ["@node-rs/argon2", "sharp"],
+  serverExternalPackages: ["@node-rs/argon2", "sharp", "canvas"],
   images: {
     remotePatterns: [
       {

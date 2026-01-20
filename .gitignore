@@ -1,3 +1,5 @@
+# Build
+.next/
 # Dependencies
 node_modules/
 .pnp
