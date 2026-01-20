@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Sticker, Image } from "lucide-react";
+import { Settings, Sticker, Image as ImageIcon } from "lucide-react";
 import { useFeedStickersSetting } from "@/hooks/use-feed-stickers-setting";
 import { useStickeredMediaSetting } from "@/hooks/use-stickered-media-setting";
 import { CompetitionFeedSettingsForm } from "../../components/CompetitionFeedSettingsForm";
@@ -65,7 +65,7 @@ export default function CompetitionDynamicTabs({
         {showFeedStickers && (
           <>
             <TabsTrigger value="default" className="flex items-center gap-2">
-              <Image className="h-4 w-4" />
+              <ImageIcon className="h-4 w-4" />
               <span>Default Sticker</span>
             </TabsTrigger>
             <TabsTrigger value="stickers" className="flex items-center gap-2">

@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 import { toggleFeedMediaDisplay, toggleFeedStickersDisplay } from "../actions";
-import { MonitorPlay, Image, CheckCircle2, XCircle } from "lucide-react";
+import { MonitorPlay, Image as ImageIcon, CheckCircle2, XCircle } from "lucide-react";
 import { useStickeredMediaSetting } from "@/hooks/use-stickered-media-setting";
 import { useFeedStickersSetting } from "@/hooks/use-feed-stickers-setting";
 import debug from "@/lib/debug";
@@ -80,7 +80,7 @@ export function FeedSettingsForm({ showStickeredMedia }: FeedSettingsFormProps) 
           <div className="flex flex-row items-start justify-between rounded-lg bg-muted/50 p-4">
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
-                <Image className="h-4 w-4 text-pink-500" />
+                <ImageIcon className="h-4 w-4 text-pink-500" />
                 <h3 className="text-base font-medium">Stickered Media</h3>
               </div>
               <p className="text-sm text-muted-foreground">

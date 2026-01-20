@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { StickerPosition } from "@prisma/client";
-import { Image, Loader2 } from "lucide-react";
+import { Image as ImageIcon, Loader2 } from "lucide-react";
 import DirectStickerUploader from "@/components/admin/DirectStickerUploader";
 import NextImage from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -319,7 +319,7 @@ export function DefaultFeedStickerForm({}: DefaultFeedStickerFormProps) {
       <CardHeader className="flex flex-row items-center justify-between bg-muted/20 pb-4">
         <div>
           <CardTitle className="flex items-center gap-2">
-            <Image className="h-5 w-5 text-primary" />
+            <ImageIcon className="h-5 w-5 text-primary" />
             Default Feed Sticker
           </CardTitle>
           <CardDescription>
@@ -414,7 +414,7 @@ export function DefaultFeedStickerForm({}: DefaultFeedStickerFormProps) {
         ) : (
           <div className="flex flex-col items-center justify-center py-12 space-y-4 bg-muted/10 rounded-lg border border-dashed border-muted">
             <div className="p-3 rounded-full bg-muted/30">
-              <Image className="h-8 w-8 text-muted-foreground" />
+              <ImageIcon className="h-8 w-8 text-muted-foreground" />
             </div>
             <div className="text-center space-y-2">
               <p className="text-muted-foreground">No default feed sticker configured.</p>

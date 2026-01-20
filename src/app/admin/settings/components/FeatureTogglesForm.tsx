@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { MessageSquare, Heart, Share2, MessageCircle, Ban, Activity, Eye, Bookmark, MonitorPlay, Image, Camera, ShoppingBag, Users, Briefcase } from "lucide-react";
+import { MessageSquare, Heart, Share2, MessageCircle, Ban, Activity, Eye, Bookmark, MonitorPlay, Image as ImageIcon, Camera, ShoppingBag, Users, Briefcase } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -351,7 +351,7 @@ export function FeatureTogglesForm({ settings }: FeatureTogglesFormProps) {
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 h-full">
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
-                  <Image className="h-4 w-4 text-purple-500" />
+                  <ImageIcon className="h-4 w-4 text-purple-500" />
                   <FormLabel className="text-base">Stickered Media in Feed</FormLabel>
                 </div>
                 <FormDescription>Show stickered media in feed (For You and Following)</FormDescription>

@@ -5,6 +5,8 @@
   ],
   "rules": {
     "react/no-unescaped-entities": "off",
-    "react-hooks/exhaustive-deps": "off"
+    "react-hooks/exhaustive-deps": "off",
+    "@next/next/no-img-element": "warn",
+    "jsx-a11y/alt-text": "warn"
   }
 }
