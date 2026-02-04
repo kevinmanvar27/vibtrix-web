@@ -1,0 +1,496 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:video_player/video_player.dart';
+import 'package:timeago/timeago.dart' as timeago;
+
+import '../../../../core/router/route_names.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/url_utils.dart';
+import '../../../../core/widgets/network_avatar.dart';
+import '../../../posts/data/models/post_model.dart';
+import '../providers/feed_provider.dart';
+
+/// Post card widget for displaying a single post in the feed
+class PostCard extends ConsumerStatefulWidget {
+  final PostModel post;
+  final VoidCallback? onTap;
+  final VoidCallback? onUserTap;
+  final VoidCallback? onCommentTap;
+  final VoidCallback? onShareTap;
+
+  const PostCard({
+    super.key,
+    required this.post,
+    this.onTap,
+    this.onUserTap,
+    this.onCommentTap,
+    this.onShareTap,
+  });
+
+  @override
+  ConsumerState<PostCard> createState() => _PostCardState();
+}
+
+class _PostCardState extends ConsumerState<PostCard> {
+  VideoPlayerController? _videoController;
+  bool _isVideoInitialized = false;
+  bool _isVideoPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeVideo();
+  }
+
+  @override
+  void dispose() {
+    _videoController?.dispose();
+    super.dispose();
+  }
+
+  void _initializeVideo() {
+    final media = widget.post.media;
+    if (media != null && media.isVideo) {
+      final videoUrl = UrlUtils.getFullMediaUrl(media.url);
+      _videoController = VideoPlayerController.networkUrl(Uri.parse(videoUrl))
+        ..initialize().then((_) {
+          if (mounted) {
+            setState(() {
+              _isVideoInitialized = true;
+            });
+          }
+        }).catchError((error) {
+          debugPrint('Error initializing video: $error');
+        });
+    }
+  }
+
+  String _getFullUrl(String url) {
+    return UrlUtils.getFullMediaUrl(url);
+  }
+
+  void _toggleVideoPlayback() {
+    if (_videoController == null || !_isVideoInitialized) return;
+
+    setState(() {
+      if (_videoController!.value.isPlaying) {
+        _videoController!.pause();
+        _isVideoPlaying = false;
+      } else {
+        _videoController!.play();
+        _isVideoPlaying = true;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+      elevation: 0,
+      color: isDark ? AppColors.darkCard : AppColors.lightCard,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // User header
+          _buildUserHeader(theme),
+          
+          // Media content
+          _buildMediaContent(theme),
+          
+          // Action buttons
+          _buildActionButtons(theme),
+          
+          // Likes count
+          _buildLikesCount(theme),
+          
+          // Caption
+          if (widget.post.caption != null && widget.post.caption!.isNotEmpty)
+            _buildCaption(theme),
+          
+          // Comments preview
+          if (widget.post.commentsCount > 0)
+            _buildCommentsPreview(theme),
+          
+          // Timestamp
+          _buildTimestamp(theme),
+          
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserHeader(ThemeData theme) {
+    final user = widget.post.user;
+    
+    return InkWell(
+      onTap: widget.onUserTap,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            // Avatar - handles both SVG and regular images
+            NetworkAvatar(
+              imageUrl: user?.profilePicture != null 
+                  ? _getFullUrl(user!.profilePicture!) 
+                  : null,
+              radius: 18,
+              fallbackText: user?.name ?? user?.username ?? 'U',
+              backgroundColor: AppColors.primary.withValues(alpha: 0.2),
+              foregroundColor: AppColors.primary,
+            ),
+            const SizedBox(width: 12),
+            
+            // Username and display name
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user?.name ?? user?.username ?? 'Unknown',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (user?.username != null)
+                    Text(
+                      '@${user!.username}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            
+            // More options
+            IconButton(
+              icon: const Icon(Icons.more_vert),
+              onPressed: () => _showPostOptions(context),
+              iconSize: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMediaContent(ThemeData theme) {
+    final media = widget.post.media;
+    
+    if (media == null) {
+      return const SizedBox.shrink();
+    }
+
+    return GestureDetector(
+      onTap: widget.onTap ?? (media.isVideo ? _toggleVideoPlayback : null),
+      onDoubleTap: () => _handleDoubleTap(),
+      child: AspectRatio(
+        aspectRatio: media.width != null && media.height != null
+            ? media.width! / media.height!
+            : 1.0,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (media.isVideo)
+              _buildVideoPlayer(media)
+            else
+              _buildImage(media),
+            
+            // Play button overlay for videos
+            if (media.isVideo && !_isVideoPlaying)
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.play_arrow,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVideoPlayer(PostMediaModel media) {
+    if (!_isVideoInitialized || _videoController == null) {
+      // Show thumbnail while loading
+      if (media.thumbnailUrl != null) {
+        return CachedNetworkImage(
+          imageUrl: _getFullUrl(media.thumbnailUrl!),
+          fit: BoxFit.cover,
+          placeholder: (context, url) => Container(
+            color: AppColors.darkMuted,
+            child: const Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+          errorWidget: (context, url, error) => Container(
+            color: AppColors.darkMuted,
+            child: const Icon(Icons.error, color: AppColors.error),
+          ),
+        );
+      }
+      return Container(
+        color: AppColors.darkMuted,
+        child: const Center(
+          child: CircularProgressIndicator(
+            color: AppColors.primary,
+          ),
+        ),
+      );
+    }
+
+    return VideoPlayer(_videoController!);
+  }
+
+  Widget _buildImage(PostMediaModel media) {
+    return CachedNetworkImage(
+      imageUrl: _getFullUrl(media.url),
+      fit: BoxFit.cover,
+      placeholder: (context, url) => Container(
+        color: AppColors.darkMuted,
+        child: const Center(
+          child: CircularProgressIndicator(
+            color: AppColors.primary,
+          ),
+        ),
+      ),
+      errorWidget: (context, url, error) => Container(
+        color: AppColors.darkMuted,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error, color: AppColors.error, size: 32),
+            const SizedBox(height: 8),
+            Text(
+              'Failed to load image',
+              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Row(
+        children: [
+          // Like button
+          _ActionButton(
+            icon: widget.post.isLiked ? Icons.favorite : Icons.favorite_border,
+            color: widget.post.isLiked ? AppColors.like : null,
+            onPressed: () => _handleLike(),
+          ),
+          
+          // Comment button
+          _ActionButton(
+            icon: Icons.chat_bubble_outline,
+            onPressed: widget.onCommentTap,
+          ),
+          
+          // Share button
+          _ActionButton(
+            icon: Icons.send_outlined,
+            onPressed: widget.onShareTap,
+          ),
+          
+          const Spacer(),
+          
+          // Bookmark button
+          _ActionButton(
+            icon: widget.post.isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+            color: widget.post.isBookmarked ? AppColors.bookmark : null,
+            onPressed: () => _handleBookmark(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLikesCount(ThemeData theme) {
+    if (widget.post.likesCount == 0) return const SizedBox.shrink();
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Text(
+        '${_formatCount(widget.post.likesCount)} likes',
+        style: theme.textTheme.titleSmall?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCaption(ThemeData theme) {
+    final user = widget.post.user;
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: RichText(
+        text: TextSpan(
+          style: theme.textTheme.bodyMedium,
+          children: [
+            TextSpan(
+              text: '${user?.username ?? 'user'} ',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            TextSpan(text: widget.post.caption),
+          ],
+        ),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+
+  Widget _buildCommentsPreview(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      child: GestureDetector(
+        onTap: widget.onCommentTap,
+        child: Text(
+          'View all ${_formatCount(widget.post.commentsCount)} comments',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimestamp(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      child: Text(
+        timeago.format(widget.post.createdAt),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+          fontSize: 11,
+        ),
+      ),
+    );
+  }
+
+  void _handleLike() {
+    final notifier = ref.read(feedProvider.notifier);
+    if (widget.post.isLiked) {
+      notifier.unlikePost(widget.post.id);
+    } else {
+      notifier.likePost(widget.post.id);
+    }
+  }
+
+  void _handleBookmark() {
+    final notifier = ref.read(feedProvider.notifier);
+    if (widget.post.isBookmarked) {
+      notifier.unsavePost(widget.post.id);
+    } else {
+      notifier.savePost(widget.post.id);
+    }
+  }
+
+  void _handleDoubleTap() {
+    if (!widget.post.isLiked) {
+      _handleLike();
+      // TODO: Show heart animation
+    }
+  }
+
+  void _showPostOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.share),
+              title: const Text('Share'),
+              onTap: () {
+                Navigator.pop(context);
+                widget.onShareTap?.call();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.link),
+              title: const Text('Copy link'),
+              onTap: () {
+                Navigator.pop(context);
+                final link = 'https://vidibattle.com/post/${widget.post.id}';
+                Clipboard.setData(ClipboardData(text: link));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Link copied to clipboard')),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.report_outlined),
+              title: const Text('Report'),
+              onTap: () {
+                Navigator.pop(context);
+                context.push(RouteNames.reportPostPath(widget.post.id));
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatCount(int count) {
+    if (count >= 1000000) {
+      return '${(count / 1000000).toStringAsFixed(1)}M';
+    } else if (count >= 1000) {
+      return '${(count / 1000).toStringAsFixed(1)}K';
+    }
+    return count.toString();
+  }
+}
+
+/// Simple action button for post interactions
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final Color? color;
+  final VoidCallback? onPressed;
+
+  const _ActionButton({
+    required this.icon,
+    this.color,
+    this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(icon),
+      color: color,
+      onPressed: onPressed,
+      iconSize: 26,
+      padding: const EdgeInsets.all(8),
+      constraints: const BoxConstraints(),
+    );
+  }
+}

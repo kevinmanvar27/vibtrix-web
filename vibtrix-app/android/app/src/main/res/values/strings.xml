@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vibtrix</string>
+    <!-- Google Sign-In Web Client ID (for Android) -->
+    <string name="default_web_client_id">937435569832-71ikcpad08a12460mckr8unerjn1j4rs.apps.googleusercontent.com</string>
+</resources>

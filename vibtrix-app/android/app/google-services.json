@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "937435569832",
+    "project_id": "vibtrix",
+    "storage_bucket": "vibtrix.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:937435569832:android:a1b2c3d4e5f6g7h8",
+        "android_client_info": {
+          "package_name": "com.rektech.vibtrix"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "937435569832-26pc272h78pqkg0ekdcp2s8plg43kfd3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rektech.vibtrix",
+            "certificate_hash": "d9f4e96e721d443fd78852e37a2dc12c538ae551"
+          }
+        },
+        {
+          "client_id": "937435569832-71ikcpad08a12460mckr8unerjn1j4rs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDummyKeyForGoogleServices"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "937435569832-71ikcpad08a12460mckr8unerjn1j4rs.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

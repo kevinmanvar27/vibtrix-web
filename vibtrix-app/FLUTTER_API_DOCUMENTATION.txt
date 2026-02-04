@@ -1,0 +1,891 @@
+================================================================================
+                    VIBTRIX FLUTTER APP - API DOCUMENTATION
+================================================================================
+Base URL: http://10.0.2.2:3000/api (Android Emulator)
+          http://localhost:3000/api (iOS Simulator/Web)
+
+Last Updated: 2026-02-02
+================================================================================
+
+================================================================================
+                              AUTHENTICATION APIs
+================================================================================
+
+1. LOGIN
+   POST /auth/token
+   Body: {
+     "username": "string (email or username)",
+     "password": "string"
+   }
+   Response: {
+     "accessToken": "string",
+     "refreshToken": "string",
+     "user": UserModel
+   }
+
+2. SIGNUP
+   POST /auth/signup
+   Body: {
+     "username": "string",
+     "email": "string",
+     "password": "string",
+     "displayName": "string (optional)"
+   }
+   Response: {
+     "accessToken": "string",
+     "refreshToken": "string",
+     "user": UserModel
+   }
+
+3. REFRESH TOKEN
+   POST /auth/refresh
+   Body: {
+     "refreshToken": "string"
+   }
+   Response: {
+     "accessToken": "string",
+     "refreshToken": "string"
+   }
+
+4. LOGOUT
+   POST /auth/revoke
+   Headers: Authorization: Bearer {accessToken}
+   Response: 204 No Content
+
+5. SEND VERIFICATION OTP
+   POST /auth/send-verification-otp
+   Body: {
+     "email": "string"
+   }
+   Response: 200 OK
+
+6. VERIFY EMAIL OTP
+   POST /auth/verify-email-otp
+   Body: {
+     "email": "string",
+     "otp": "string"
+   }
+   Response: 200 OK
+
+7. FORGOT PASSWORD
+   POST /auth/forgot-password
+   Body: {
+     "email": "string"
+   }
+   Response: 200 OK
+
+8. VERIFY RESET OTP
+   POST /auth/verify-reset-otp
+   Body: {
+     "email": "string",
+     "otp": "string"
+   }
+   Response: {
+     "resetToken": "string"
+   }
+
+9. RESET PASSWORD
+   POST /auth/reset-password
+   Body: {
+     "resetToken": "string",
+     "newPassword": "string"
+   }
+   Response: 200 OK
+
+10. CHANGE PASSWORD
+    POST /users/change-password
+    Headers: Authorization: Bearer {accessToken}
+    Body: {
+      "currentPassword": "string",
+      "newPassword": "string"
+    }
+    Response: 200 OK
+
+11. GOOGLE MOBILE LOGIN
+    POST /auth/google/mobile
+    Body: {
+      "idToken": "string",
+      "accessToken": "string (optional)"
+    }
+    Response: {
+      "accessToken": "string",
+      "refreshToken": "string",
+      "user": UserModel,
+      "isNewUser": boolean
+    }
+
+12. APPLE LOGIN
+    POST /auth/apple
+    Body: {
+      "identityToken": "string",
+      "authorizationCode": "string (optional)",
+      "fullName": {
+        "givenName": "string (optional)",
+        "familyName": "string (optional)"
+      },
+      "email": "string (optional)"
+    }
+    Response: {
+      "accessToken": "string",
+      "refreshToken": "string",
+      "user": UserModel,
+      "isNewUser": boolean
+    }
+
+================================================================================
+                              USER PROFILE APIs
+================================================================================
+
+1. GET CURRENT USER
+   GET /users/me
+   Headers: Authorization: Bearer {accessToken}
+   Response: UserModel
+
+2. UPDATE PROFILE
+   PUT /users/me
+   Headers: Authorization: Bearer {accessToken}
+   Body: {
+     "displayName": "string (optional)",
+     "bio": "string (optional)",
+     "isProfilePublic": boolean (optional)
+   }
+   Response: UserModel
+
+3. DELETE ACCOUNT
+   DELETE /users/me
+   Headers: Authorization: Bearer {accessToken}
+   Response: 204 No Content
+
+4. GET USER PROFILE
+   GET /users/{userId}
+   Headers: Authorization: Bearer {accessToken}
+   Response: UserProfileModel
+
+5. GET USER BY USERNAME
+   GET /users/username/{username}
+   Headers: Authorization: Bearer {accessToken}
+   Response: UserProfileModel
+
+6. SEARCH USERS
+   GET /users/search?q={query}
+   Headers: Authorization: Bearer {accessToken} (optional)
+   Response: {
+     "users": [SimpleUserModel]
+   }
+
+7. GET USER POSTS
+   GET /users/{userId}/posts?cursor={cursor}&limit={limit}
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "posts": [PostModel],
+     "nextCursor": "string | null"
+   }
+
+================================================================================
+                              FOLLOW SYSTEM APIs
+================================================================================
+
+1. FOLLOW USER
+   POST /users/{userId}/followers
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "success": boolean,
+     "isFollowing": boolean
+   }
+
+2. UNFOLLOW USER
+   DELETE /users/{userId}/followers
+   Headers: Authorization: Bearer {accessToken}
+   Response: 204 No Content
+
+3. GET FOLLOWERS LIST
+   GET /users/{userId}/followers/list?cursor={cursor}&limit={limit}
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "users": [SimpleUserModel],
+     "nextCursor": "string | null"
+   }
+
+4. GET FOLLOWING LIST
+   GET /users/{userId}/following/list?cursor={cursor}&limit={limit}
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "users": [SimpleUserModel],
+     "nextCursor": "string | null"
+   }
+
+5. GET MUTUAL FOLLOWERS
+   GET /users/{userId}/mutual-followers?cursor={cursor}&limit={limit}
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "users": [SimpleUserModel],
+     "nextCursor": "string | null"
+   }
+
+6. CHECK FOLLOW STATUS
+   GET /users/{userId}/follow-status
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "isFollowing": boolean,
+     "isFollowedBy": boolean,
+     "isPending": boolean
+   }
+
+7. SEND FOLLOW REQUEST (Private Accounts)
+   POST /users/{userId}/follow-request
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "status": "PENDING" | "FOLLOWED"
+   }
+
+8. RESPOND TO FOLLOW REQUEST
+   PATCH /users/follow-requests/{requestId}
+   Headers: Authorization: Bearer {accessToken}
+   Body: {
+     "action": "accept" | "reject"
+   }
+   Response: {
+     "status": "ACCEPTED" | "REJECTED"
+   }
+
+9. CANCEL FOLLOW REQUEST
+   DELETE /users/{userId}/follow-request
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "status": "CANCELED"
+   }
+
+10. GET PENDING FOLLOW REQUESTS
+    GET /users/follow-requests?cursor={cursor}&limit={limit}
+    Headers: Authorization: Bearer {accessToken}
+    Response: {
+      "followRequests": [...],
+      "nextCursor": "string | null"
+    }
+
+================================================================================
+                              BLOCK SYSTEM APIs
+================================================================================
+
+1. BLOCK USER
+   POST /users/{userId}/block
+   Headers: Authorization: Bearer {accessToken}
+   Response: 200 OK
+
+2. UNBLOCK USER
+   DELETE /users/{userId}/block
+   Headers: Authorization: Bearer {accessToken}
+   Response: 200 OK
+
+3. GET BLOCKED USERS
+   GET /users/blocked?cursor={cursor}&limit={limit}
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "users": [SimpleUserModel],
+     "nextCursor": "string | null"
+   }
+
+================================================================================
+                              POSTS APIs
+================================================================================
+
+1. GET FOR YOU FEED
+   GET /posts/for-you?cursor={cursor}&limit={limit}
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "posts": [PostModel],
+     "nextCursor": "string | null"
+   }
+
+2. GET FOLLOWING FEED
+   GET /posts/following?cursor={cursor}&limit={limit}
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "posts": [PostModel],
+     "nextCursor": "string | null"
+   }
+
+3. CREATE POST
+   POST /posts
+   Headers: Authorization: Bearer {accessToken}
+   Body: {
+     "content": "string",
+     "mediaIds": ["string"]
+   }
+   Response: PostModel
+
+4. GET POST
+   GET /posts/{postId}
+   Headers: Authorization: Bearer {accessToken}
+   Response: PostModel
+
+5. UPDATE POST
+   PUT /posts/{postId}
+   Headers: Authorization: Bearer {accessToken}
+   Body: {
+     "content": "string"
+   }
+   Response: PostModel
+
+6. DELETE POST
+   DELETE /posts/{postId}
+   Headers: Authorization: Bearer {accessToken}
+   Response: 204 No Content
+
+================================================================================
+                              LIKES APIs
+================================================================================
+
+1. LIKE POST
+   POST /posts/{postId}/likes
+   Headers: Authorization: Bearer {accessToken}
+   Response: 204 No Content
+
+2. UNLIKE POST
+   DELETE /posts/{postId}/likes
+   Headers: Authorization: Bearer {accessToken}
+   Response: 204 No Content
+
+3. GET POST LIKES
+   GET /posts/{postId}/likes?cursor={cursor}&limit={limit}
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "users": [SimpleUserModel],
+     "nextCursor": "string | null"
+   }
+
+================================================================================
+                              BOOKMARKS APIs
+================================================================================
+
+1. BOOKMARK POST
+   POST /posts/{postId}/bookmark
+   Headers: Authorization: Bearer {accessToken}
+   Response: 204 No Content
+
+2. REMOVE BOOKMARK
+   DELETE /posts/{postId}/bookmark
+   Headers: Authorization: Bearer {accessToken}
+   Response: 204 No Content
+
+3. GET BOOKMARKED POSTS
+   GET /posts/bookmarked?cursor={cursor}&limit={limit}
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "posts": [PostModel],
+     "nextCursor": "string | null"
+   }
+
+================================================================================
+                              SHARE & VIEW APIs
+================================================================================
+
+1. SHARE POST
+   POST /posts/{postId}/shares
+   Headers: Authorization: Bearer {accessToken}
+   Response: 200 OK
+
+2. RECORD VIEW
+   POST /posts/{postId}/view
+   Headers: Authorization: Bearer {accessToken}
+   Response: 200 OK
+
+================================================================================
+                              COMMENTS APIs
+================================================================================
+
+1. GET COMMENTS
+   GET /posts/{postId}/comments?cursor={cursor}&limit={limit}
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "comments": [CommentModel],
+     "nextCursor": "string | null"
+   }
+
+2. ADD COMMENT
+   POST /posts/{postId}/comments
+   Headers: Authorization: Bearer {accessToken}
+   Body: {
+     "content": "string"
+   }
+   Response: CommentModel
+
+3. DELETE COMMENT
+   DELETE /posts/{postId}/comments/{commentId}
+   Headers: Authorization: Bearer {accessToken}
+   Response: 204 No Content
+
+4. GET COMMENT REPLIES
+   GET /posts/{postId}/comments/{commentId}/replies?cursor={cursor}&limit={limit}
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "comments": [CommentModel],
+     "nextCursor": "string | null"
+   }
+
+5. ADD REPLY
+   POST /posts/{postId}/comments/{commentId}/replies
+   Headers: Authorization: Bearer {accessToken}
+   Body: {
+     "content": "string"
+   }
+   Response: CommentModel
+
+================================================================================
+                              COMPETITIONS APIs
+================================================================================
+
+1. GET COMPETITIONS
+   GET /competitions?status={status}&limit={limit}
+   Headers: Authorization: Bearer {accessToken} (optional)
+   Query Params:
+     - status: "active" | "upcoming" | "past" | "all"
+   Response: [CompetitionModel]
+
+2. GET COMPETITION DETAILS
+   GET /competitions/{competitionId}
+   Headers: Authorization: Bearer {accessToken}
+   Response: CompetitionModel
+
+3. JOIN COMPETITION
+   POST /competitions/{competitionId}/participate
+   Headers: Authorization: Bearer {accessToken}
+   Response: ParticipantModel
+
+4. LEAVE COMPETITION
+   DELETE /competitions/{competitionId}/participate
+   Headers: Authorization: Bearer {accessToken}
+   Response: 204 No Content
+
+5. GET LEADERBOARD
+   GET /competitions/{competitionId}/leaderboard?roundId={roundId}&cursor={cursor}&limit={limit}
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "entries": [LeaderboardEntryModel],
+     "nextCursor": "string | null"
+   }
+
+6. GET WINNERS
+   GET /competitions/{competitionId}/winners
+   Headers: Authorization: Bearer {accessToken}
+   Response: [LeaderboardEntryModel]
+
+7. SUBMIT COMPETITION POST
+   POST /competitions/{competitionId}/submit-post
+   Headers: Authorization: Bearer {accessToken}
+   Body: {
+     "content": "string (optional)",
+     "mediaIds": ["string"],
+     "roundId": "string"
+   }
+   Response: PostModel
+
+================================================================================
+                              SEARCH APIs
+================================================================================
+
+1. SEARCH POSTS
+   GET /search?q={query}&cursor={cursor}
+   Headers: Authorization: Bearer {accessToken} (optional)
+   Response: {
+     "posts": [PostModel],
+     "nextCursor": "string | null"
+   }
+
+2. SEARCH USERS
+   GET /users/search?q={query}
+   Headers: Authorization: Bearer {accessToken} (optional)
+   Response: {
+     "users": [SimpleUserModel]
+   }
+
+3. TRENDING HASHTAGS
+   GET /hashtags/trending?limit={limit}&period={period}
+   Headers: Authorization: Bearer {accessToken} (optional)
+   Query Params:
+     - period: "24h" | "7d" | "30d" | "all"
+   Response: {
+     "hashtags": [{
+       "hashtag": "string",
+       "count": number,
+       "recentPosts": number
+     }],
+     "period": "string"
+   }
+
+================================================================================
+                              NOTIFICATIONS APIs
+================================================================================
+
+1. GET NOTIFICATIONS
+   GET /notifications?cursor={cursor}&limit={limit}
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "notifications": [NotificationModel],
+     "nextCursor": "string | null"
+   }
+
+2. MARK ALL AS READ
+   PATCH /notifications/mark-as-read
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "success": true,
+     "message": "All notifications marked as read"
+   }
+
+3. GET UNREAD COUNT
+   GET /notifications/unread-count
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "unreadCount": number
+   }
+
+4. REGISTER DEVICE (Push Notifications)
+   POST /notifications/devices
+   Headers: Authorization: Bearer {accessToken}
+   Body: {
+     "token": "string",
+     "deviceType": "IOS" | "ANDROID" | "WEB"
+   }
+   Response: DeviceTokenModel
+
+================================================================================
+                              UPLOAD APIs
+================================================================================
+
+1. UPLOAD MEDIA
+   POST /upload
+   Headers: Authorization: Bearer {accessToken}
+   Content-Type: multipart/form-data
+   Body: {
+     "files": File[],
+     "isCompetitionEntry": "true" | "false" (optional),
+     "competitionId": "string" (optional)
+   }
+   Response: [{
+     "id": "string",
+     "url": "string",
+     "thumbnailUrl": "string",
+     "type": "IMAGE" | "VIDEO",
+     "width": number,
+     "height": number
+   }]
+
+================================================================================
+                              CHAT/MESSAGES APIs
+================================================================================
+
+1. GET CHATS
+   GET /chats?cursor={cursor}&limit={limit}
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "chats": [ChatModel],
+     "nextCursor": "string | null"
+   }
+
+2. CREATE/GET CHAT
+   POST /chats
+   Headers: Authorization: Bearer {accessToken}
+   Body: {
+     "participantId": "string"
+   }
+   Response: ChatModel
+
+3. GET CHAT MESSAGES
+   GET /chats/{chatId}/messages?cursor={cursor}&limit={limit}
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "messages": [MessageModel],
+     "nextCursor": "string | null"
+   }
+
+4. SEND MESSAGE
+   POST /messages
+   Headers: Authorization: Bearer {accessToken}
+   Body: {
+     "chatId": "string",
+     "content": "string",
+     "mediaId": "string (optional)"
+   }
+   Response: MessageModel
+
+5. GET UNREAD MESSAGE COUNT
+   GET /messages/unread-count
+   Headers: Authorization: Bearer {accessToken}
+   Response: {
+     "count": number
+   }
+
+================================================================================
+                              REPORT APIs
+================================================================================
+
+1. REPORT POST
+   POST /posts/{postId}/report
+   Headers: Authorization: Bearer {accessToken}
+   Body: {
+     "reason": "string",
+     "description": "string (optional)"
+   }
+   Response: 200 OK
+
+2. REPORT USER
+   POST /users/{userId}/report
+   Headers: Authorization: Bearer {accessToken}
+   Body: {
+     "reason": "string",
+     "description": "string (optional)"
+   }
+   Response: 200 OK
+
+3. REPORT COMMENT
+   POST /comments/{commentId}/report
+   Headers: Authorization: Bearer {accessToken}
+   Body: {
+     "reason": "string",
+     "description": "string (optional)"
+   }
+   Response: 200 OK
+
+================================================================================
+                              APP CONFIG APIs
+================================================================================
+
+1. GET APP CONFIG
+   GET /app/config
+   (No authentication required)
+   Response: {
+     "maintenance": {
+       "enabled": boolean,
+       "message": "string"
+     },
+     "minVersion": {
+       "ios": "string",
+       "android": "string"
+     },
+     "appStoreUrls": {
+       "ios": "string",
+       "android": "string"
+     },
+     "features": {
+       "likes": boolean,
+       "comments": boolean,
+       "sharing": boolean,
+       "messaging": boolean,
+       "blocking": boolean,
+       "views": boolean,
+       "bookmarks": boolean,
+       "reporting": boolean,
+       "pushNotifications": boolean,
+       "googleLogin": boolean,
+       "manualSignup": boolean
+     }
+   }
+
+================================================================================
+                              FEEDBACK APIs
+================================================================================
+
+1. SUBMIT FEEDBACK
+   POST /feedback
+   Headers: Authorization: Bearer {accessToken}
+   Body: {
+     "type": "BUG" | "FEATURE" | "GENERAL",
+     "message": "string",
+     "email": "string (optional)"
+   }
+   Response: 200 OK
+
+================================================================================
+                              PAYMENTS APIs (Razorpay)
+================================================================================
+
+1. CREATE PAYMENT ORDER
+   POST /payments/create-order
+   Headers: Authorization: Bearer {accessToken}
+   Body: {
+     "competitionId": "string"
+   }
+   Response: {
+     "orderId": "string",
+     "amount": number,
+     "currency": "string",
+     "keyId": "string"
+   }
+
+2. VERIFY PAYMENT
+   POST /payments/verify
+   Headers: Authorization: Bearer {accessToken}
+   Body: {
+     "orderId": "string",
+     "paymentId": "string",
+     "signature": "string",
+     "competitionId": "string"
+   }
+   Response: {
+     "success": boolean,
+     "message": "string"
+   }
+
+================================================================================
+                              NOTES
+================================================================================
+
+1. All authenticated endpoints require:
+   Headers: Authorization: Bearer {accessToken}
+
+2. Pagination uses cursor-based pagination:
+   - cursor: string (optional) - ID of last item
+   - limit: number (default: 20)
+   - Response includes nextCursor (null if no more items)
+
+3. Error Responses:
+   - 400: Bad Request (validation error)
+   - 401: Unauthorized (missing/invalid token)
+   - 403: Forbidden (feature disabled or no permission)
+   - 404: Not Found
+   - 405: Method Not Allowed
+   - 500: Internal Server Error
+
+4. NOT IMPLEMENTED IN BACKEND (Flutter has these but they will fail):
+   - POST /posts/{postId}/comments/{commentId}/like (Comment likes)
+   - DELETE /posts/{postId}/comments/{commentId}/like (Comment unlikes)
+   - GET /posts/trending (Trending posts)
+   - GET /competitions/{competitionId}/participants (Participants list)
+   - GET /competitions/{competitionId}/rounds (Competition rounds)
+   - GET /competitions/featured (Featured competitions)
+   - GET /competitions/trending (Trending competitions)
+   - GET /competitions/search (Search competitions)
+   - GET /competitions/my (My competitions)
+   - GET /competitions/created (Created competitions)
+   - GET /competitions/categories (Competition categories)
+   - GET /users/suggested (Suggested users)
+   - GET /users/{userId}/block-status (Block status check)
+   - DELETE /users/{userId}/follower (Remove follower)
+   - GET /auth/check-username/{username} (Check username availability)
+   - GET /auth/check-email/{email} (Check email availability)
+   - POST /auth/verify-email (Verify email)
+   - POST /auth/resend-verification (Resend verification)
+   - POST /auth/social (Generic social login)
+   - Most /wallet/* endpoints (wallet feature not implemented)
+   - POST /notifications/{notificationId}/read (Individual notification read)
+   - DELETE /notifications/{notificationId} (Delete notification)
+   - DELETE /notifications (Clear all notifications)
+   - GET/PUT /notifications/settings (Notification settings)
+   - DELETE /notifications/devices/{deviceId} (Unregister device)
+   - PUT /notifications/devices/{deviceId} (Update device)
+   - GET /search/recent (Recent searches)
+   - POST /search/recent (Save recent search)
+   - DELETE /search/recent/{searchId} (Delete recent search)
+   - DELETE /search/recent (Clear recent searches)
+   - GET /search/suggestions (Search suggestions)
+
+5. ENDPOINT CORRECTIONS MADE:
+   - /auth/apple/mobile → /auth/apple
+   - /posts/{postId}/share → /posts/{postId}/shares
+   - /users/{userId}/follow-request/accept → PATCH /users/follow-requests/{requestId} with body {"action":"accept"}
+   - /users/{userId}/follow-request/reject → PATCH /users/follow-requests/{requestId} with body {"action":"reject"}
+
+================================================================================
+                              DATA MODELS
+================================================================================
+
+UserModel:
+{
+  "id": "string",
+  "username": "string",
+  "email": "string",
+  "displayName": "string",
+  "avatarUrl": "string | null",
+  "bio": "string | null",
+  "isVerified": boolean,
+  "isProfilePublic": boolean,
+  "followersCount": number,
+  "followingCount": number,
+  "postsCount": number,
+  "createdAt": "ISO date string"
+}
+
+UserProfileModel (extends UserModel):
+{
+  ...UserModel,
+  "isFollowing": boolean,
+  "isFollowedBy": boolean,
+  "isBlocked": boolean,
+  "hasRequestedFollow": boolean
+}
+
+SimpleUserModel:
+{
+  "id": "string",
+  "username": "string",
+  "displayName": "string",
+  "avatarUrl": "string | null",
+  "isVerified": boolean
+}
+
+PostModel:
+{
+  "id": "string",
+  "content": "string",
+  "user": SimpleUserModel,
+  "media": [MediaModel],
+  "likesCount": number,
+  "commentsCount": number,
+  "sharesCount": number,
+  "viewsCount": number,
+  "isLiked": boolean,
+  "isBookmarked": boolean,
+  "createdAt": "ISO date string",
+  "updatedAt": "ISO date string"
+}
+
+MediaModel:
+{
+  "id": "string",
+  "url": "string",
+  "thumbnailUrl": "string | null",
+  "type": "IMAGE" | "VIDEO",
+  "width": number,
+  "height": number
+}
+
+CommentModel:
+{
+  "id": "string",
+  "content": "string",
+  "user": SimpleUserModel,
+  "likesCount": number,
+  "repliesCount": number,
+  "isLiked": boolean,
+  "createdAt": "ISO date string"
+}
+
+NotificationModel:
+{
+  "id": "string",
+  "type": "LIKE" | "COMMENT" | "FOLLOW" | "FOLLOW_REQUEST" | "FOLLOW_REQUEST_ACCEPTED" | "MENTION",
+  "issuer": SimpleUserModel,
+  "post": PostModel | null,
+  "comment": CommentModel | null,
+  "read": boolean,
+  "createdAt": "ISO date string"
+}
+
+CompetitionModel:
+{
+  "id": "string",
+  "title": "string",
+  "description": "string",
+  "coverImageUrl": "string | null",
+  "isActive": boolean,
+  "isPaid": boolean,
+  "entryFee": number | null,
+  "prizePool": number | null,
+  "participantsCount": number,
+  "isParticipating": boolean,
+  "rounds": [CompetitionRoundModel],
+  "createdAt": "ISO date string"
+}
+
+================================================================================
