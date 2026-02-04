@@ -14,8 +14,9 @@ import debug from "@/lib/debug";
  */
 export async function POST(
   request: NextRequest,
-  { params: { userId } }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
+  const { userId } = await params;
   try {
     debug.log(`POST /api/users/${userId}/hide - Hiding creator`);
     

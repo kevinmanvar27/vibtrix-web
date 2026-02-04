@@ -7,17 +7,16 @@ import debug from "@/lib/debug";
 // GET /api/media/[id] - Get a specific media
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { user } = await validateRequest();
 
     // Check if user is authenticated
     if (!user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { id } = params;
 
     // Get the media
     const media = await prisma.media.findUnique({

@@ -7,20 +7,20 @@ import debug from "@/lib/debug";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
+  const { competitionId } = await params;
   try {
-    debug.log(`POST /api/competitions/${params.competitionId}/submit-post - Starting request`);
+    debug.log(`POST /api/competitions/${competitionId}/submit-post - Starting request`);
     const { user } = await validateRequest();
 
     if (!user) {
-      debug.log(`POST /api/competitions/${params.competitionId}/submit-post - Unauthorized request`);
+      debug.log(`POST /api/competitions/${competitionId}/submit-post - Unauthorized request`);
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    debug.log(`POST /api/competitions/${params.competitionId}/submit-post - User authenticated: ${user.id}`);
+    debug.log(`POST /api/competitions/${competitionId}/submit-post - User authenticated: ${user.id}`);
 
-    const { competitionId } = params;
     let content, mediaIds, roundId;
 
     try {
@@ -525,7 +525,7 @@ export async function POST(
       post: newPost,
     });
   } catch (error) {
-    debug.error(`POST /api/competitions/${params.competitionId}/submit-post - Unhandled error:`, error);
+    debug.error(`POST /api/competitions/${competitionId}/submit-post - Unhandled error:`, error);
     // Log detailed error information
     if (error instanceof Error) {
       debug.error(`Error name: ${error.name}`);

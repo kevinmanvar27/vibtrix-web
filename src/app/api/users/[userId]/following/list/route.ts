@@ -15,8 +15,9 @@ const PAGE_SIZE = 20;
  */
 export async function GET(
   request: NextRequest,
-  { params: { userId } }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
+  const { userId } = await params;
   try {
     debug.log(`GET /api/users/${userId}/following/list - Starting request`);
 

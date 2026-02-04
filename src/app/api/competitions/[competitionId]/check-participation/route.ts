@@ -6,16 +6,15 @@ import debug from "@/lib/debug";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
   try {
+    const { competitionId } = await params;
     const { user } = await validateRequest();
 
     if (!user) {
       return Response.json({ isParticipant: false }, { status: 200 });
     }
-
-    const { competitionId } = params;
 
     // Get competition details to check if it's paid
     const competition = await prisma.competition.findUnique({

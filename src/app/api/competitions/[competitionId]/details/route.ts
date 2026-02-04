@@ -8,16 +8,15 @@ import debug from "@/lib/debug";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
   try {
+    const { competitionId } = await params;
     const { user } = await validateRequest();
 
     if (!user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const competitionId = params.competitionId;
 
     if (!competitionId) {
       return Response.json({ error: "Competition ID is required" }, { status: 400 });

@@ -9,16 +9,15 @@ import debug from "@/lib/debug";
 // Get all feed stickers for a competition
 export async function GET(
   req: NextRequest,
-  { params }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
   try {
+    const { competitionId } = await params;
     const { user } = await validateRequest();
 
     if (!user || !user.isAdmin) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { competitionId } = params;
 
     // Check if competition exists
     const competition = await prisma.competition.findUnique({
@@ -53,16 +52,15 @@ export async function GET(
 // Create a new feed sticker for a competition
 export async function POST(
   req: NextRequest,
-  { params }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
   try {
+    const { competitionId } = await params;
     const { user } = await validateRequest();
 
     if (!user || !user.isAdmin) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { competitionId } = params;
     const { title, imageUrl, position, limit, isActive } = await req.json();
 
     // Validate required fields

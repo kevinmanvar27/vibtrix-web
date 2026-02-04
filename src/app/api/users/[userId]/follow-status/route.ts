@@ -1,15 +1,19 @@
-import { validateRequest } from "@/auth";
 import prisma from "@/lib/prisma";
-
 import debug from "@/lib/debug";
+import { getAuthenticatedUser } from "@/lib/api-auth";
 
-// GET endpoint to check if the current user is following another user
+/**
+ * GET /api/users/{userId}/follow-status
+ * Check if the current user is following another user
+ * Supports both JWT (mobile) and session (web) authentication
+ */
 export async function GET(
   req: Request,
-  { params: { userId } }: { params: { userId: string } },
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
-    const { user: loggedInUser } = await validateRequest();
+    const { userId } = await params;
+    const loggedInUser = await getAuthenticatedUser(req);
 
     if (!loggedInUser) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
@@ -25,8 +29,30 @@ export async function GET(
       },
     });
 
+    // Check if the specified user is following the current user
+    const followedBy = await prisma.follow.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: userId,
+          followingId: loggedInUser.id,
+        },
+      },
+    });
+
+    // Check if there's a pending follow request
+    const pendingRequest = await prisma.followRequest.findUnique({
+      where: {
+        requesterId_recipientId: {
+          requesterId: loggedInUser.id,
+          recipientId: userId,
+        },
+      },
+    });
+
     return Response.json({
       isFollowing: !!follow,
+      isFollowedBy: !!followedBy,
+      isPending: !!pendingRequest,
     });
   } catch (error) {
     debug.error(error);

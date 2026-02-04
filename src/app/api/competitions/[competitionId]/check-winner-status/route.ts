@@ -5,10 +5,10 @@ import debug from "@/lib/debug";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
   try {
-    const { competitionId } = params;
+    const { competitionId } = await params;
     const searchParams = req.nextUrl.searchParams;
     const username = searchParams.get("username");
 

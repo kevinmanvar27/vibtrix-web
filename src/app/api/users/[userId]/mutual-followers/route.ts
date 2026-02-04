@@ -27,9 +27,10 @@ interface MutualFollowersResponse {
  */
 export async function GET(
   req: NextRequest,
-  { params: { userId } }: { params: { userId: string } },
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
+    const { userId } = await params;
     const loggedInUser = await getAuthenticatedUser(req);
 
     if (!loggedInUser) {

@@ -42,8 +42,9 @@ const batchWatchEventsSchema = z.array(z.object({
  */
 export async function POST(
   request: NextRequest,
-  { params: { postId } }: { params: { postId: string } }
+  { params }: { params: Promise<{ postId: string }> }
 ) {
+  const { postId } = await params;
   try {
     debug.log(`POST /api/posts/${postId}/watch - Recording watch event`);
     
@@ -112,8 +113,9 @@ export async function POST(
  */
 export async function PUT(
   request: NextRequest,
-  { params: { postId } }: { params: { postId: string } }
+  { params }: { params: Promise<{ postId: string }> }
 ) {
+  const { postId } = await params;
   try {
     debug.log(`PUT /api/posts/${postId}/watch - Updating watch event`);
     

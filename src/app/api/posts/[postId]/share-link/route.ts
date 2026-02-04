@@ -22,10 +22,10 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL ||
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { postId: string } }
+  { params }: { params: Promise<{ postId: string }> }
 ) {
   try {
-    const { postId } = params;
+    const { postId } = await params;
     debug.log(`GET /api/posts/${postId}/share-link - Generating share links`);
 
     // Validate postId

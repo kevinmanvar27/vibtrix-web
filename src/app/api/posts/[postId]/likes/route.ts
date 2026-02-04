@@ -16,8 +16,9 @@ import { getAuthenticatedUser } from "@/lib/api-auth";
  */
 export async function GET(
   req: NextRequest,
-  { params: { postId } }: { params: { postId: string } },
+  { params }: { params: Promise<{ postId: string }> },
 ) {
+  const { postId } = await params;
   try {
     debug.log(`GET /api/posts/${postId}/likes - Starting request`);
     
@@ -72,8 +73,9 @@ export async function GET(
  */
 export async function POST(
   req: NextRequest,
-  { params: { postId } }: { params: { postId: string } },
+  { params }: { params: Promise<{ postId: string }> },
 ) {
+  const { postId } = await params;
   try {
     debug.log(`POST /api/posts/${postId}/likes - Starting request`);
     
@@ -161,8 +163,9 @@ export async function POST(
  */
 export async function DELETE(
   req: NextRequest,
-  { params: { postId } }: { params: { postId: string } },
+  { params }: { params: Promise<{ postId: string }> },
 ) {
+  const { postId } = await params;
   try {
     debug.log(`DELETE /api/posts/${postId}/likes - Starting request`);
     

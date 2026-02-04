@@ -13,16 +13,15 @@ const completePaymentSchema = z.object({
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { paymentId: string } }
+  { params }: { params: Promise<{ paymentId: string }> }
 ) {
   try {
+    const { paymentId } = await params;
     const { user } = await validateRequest();
 
     if (!user || !user.isAdmin) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { paymentId } = params;
     const data = await req.json();
     
     // Validate the request body

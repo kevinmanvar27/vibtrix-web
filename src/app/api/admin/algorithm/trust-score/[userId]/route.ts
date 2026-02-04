@@ -15,9 +15,10 @@ import debug from "@/lib/debug";
  */
 export async function GET(
   request: NextRequest,
-  { params: { userId } }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
+    const { userId } = await params;
     // Verify admin access
     const { user } = await validateRequest();
     if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
@@ -111,9 +112,10 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params: { userId } }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
+    const { userId } = await params;
     // Verify admin access
     const { user } = await validateRequest();
     if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
@@ -146,9 +148,10 @@ export async function POST(
  */
 export async function PATCH(
   request: NextRequest,
-  { params: { userId } }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
+    const { userId } = await params;
     // Verify admin access
     const { user } = await validateRequest();
     if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {

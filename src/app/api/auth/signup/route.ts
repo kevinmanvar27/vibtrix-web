@@ -135,9 +135,22 @@ export async function POST(req: NextRequest) {
     }, { status: 201 });
 
   } catch (error) {
+    // Log detailed error for debugging
+    console.error("POST /api/auth/signup - Error details:", {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined,
+      error: error
+    });
     debug.error("POST /api/auth/signup - Error:", error);
+    
+    // Return more specific error in development
+    const errorMessage = process.env.NODE_ENV === 'development' && error instanceof Error
+      ? error.message
+      : "An error occurred while processing your request";
+    
     return Response.json(
-      { error: "An error occurred while processing your request" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

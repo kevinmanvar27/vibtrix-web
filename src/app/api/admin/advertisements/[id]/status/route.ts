@@ -14,9 +14,10 @@ const statusUpdateSchema = z.object({
 // PATCH /api/admin/advertisements/[id]/status - Update advertisement status
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { user } = await validateRequest();
 
     // Check if user has admin access
@@ -33,8 +34,6 @@ export async function PATCH(
     if (!settings?.advertisementsEnabled) {
       return NextResponse.json({ error: "Advertisements feature is currently disabled" }, { status: 403 });
     }
-
-    const { id } = params;
 
     // Check if advertisement exists
     const existingAdvertisement = await prisma.advertisement.findUnique({

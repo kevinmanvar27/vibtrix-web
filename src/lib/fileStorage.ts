@@ -87,15 +87,8 @@ export function ensureUploadDirectories() {
   }
 }
 
-// Ensure directory exists on first use (lazy initialization)
-let directoriesInitialized = false;
-
-function ensureDirectoriesOnce() {
-  if (!directoriesInitialized) {
-    ensureUploadDirectories();
-    directoriesInitialized = true;
-  }
-}
+// Ensure directory exists on module load
+ensureUploadDirectories();
 
 /**
  * Generate a unique filename to prevent collisions
@@ -190,9 +183,6 @@ export async function storeFile(
   filename: string,
   folder?: 'original' | 'stickered' | 'avatars' | 'posts' | 'stickers' | 'thumbnails'
 ): Promise<string> {
-  // Ensure directories exist before writing
-  ensureDirectoriesOnce();
-  
   debug.log(`FileStorage: Storing file with name: ${filename}${folder ? ` in ${folder} folder` : ''}`);
 
   // Enhanced security validation
@@ -356,9 +346,6 @@ export async function storeStickeredFile(
   buffer: Buffer,
   originalUrl: string
 ): Promise<string> {
-  // Ensure directories exist before writing
-  ensureDirectoriesOnce();
-  
   debug.log(`FileStorage: Storing stickered file for original URL: ${originalUrl}`);
 
   // Validate inputs
@@ -559,9 +546,6 @@ export async function createThumbnail(
   buffer: Buffer,
   maxWidth: number = 300
 ): Promise<Buffer> {
-  // Ensure directories exist before writing
-  ensureDirectoriesOnce();
-  
   return optimizeImage(buffer, {
     width: maxWidth,
     format: 'webp',
@@ -576,9 +560,6 @@ export async function createThumbnail(
  * @returns The public URL path to the stored avatar
  */
 export async function storeAvatar(buffer: Buffer, filename: string): Promise<string> {
-  // Ensure directories exist before writing
-  ensureDirectoriesOnce();
-  
   debug.log(`FileStorage: Starting avatar optimization for file: ${filename}`);
   debug.log(`FileStorage: Original buffer size: ${buffer.length} bytes`);
 
@@ -612,9 +593,6 @@ export async function storePostMedia(
   filename: string,
   fileType: 'IMAGE' | 'VIDEO'
 ): Promise<string> {
-  // Ensure directories exist before writing
-  ensureDirectoriesOnce();
-  
   if (fileType === 'IMAGE') {
     // Optimize the image
     const optimized = await optimizeImage(buffer, {
@@ -638,9 +616,6 @@ export async function storePostMedia(
  * @returns The public URL path to the stored sticker
  */
 export async function storeSticker(buffer: Buffer, filename: string): Promise<string> {
-  // Ensure directories exist before writing
-  ensureDirectoriesOnce();
-  
   debug.log(`FileStorage: storeSticker called with filename: ${filename}, buffer size: ${buffer.length} bytes`);
 
   try {

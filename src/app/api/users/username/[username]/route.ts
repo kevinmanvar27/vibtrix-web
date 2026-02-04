@@ -10,9 +10,10 @@ import { getAuthenticatedUser } from "@/lib/api-auth";
  */
 export async function GET(
   req: Request,
-  { params: { username } }: { params: { username: string } },
+  { params }: { params: Promise<{ username: string }> },
 ) {
   try {
+    const { username } = await params;
     const loggedInUser = await getAuthenticatedUser(req);
     const isLoggedIn = !!loggedInUser;
 

@@ -10,16 +10,15 @@ import { getAuthenticatedUser } from "@/lib/api-auth";
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
   try {
+    const { competitionId } = await params;
     const user = await getAuthenticatedUser(req);
 
     if (!user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { competitionId } = params;
 
     // Check if the competition exists
     const competition = await prisma.competition.findUnique({
@@ -241,16 +240,15 @@ export async function POST(
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
   try {
+    const { competitionId } = await params;
     const user = await getAuthenticatedUser(req);
 
     if (!user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { competitionId } = params;
 
     // Check if user is a participant
     const participant = await prisma.competitionParticipant.findUnique({
@@ -282,16 +280,15 @@ export async function GET(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
   try {
+    const { competitionId } = await params;
     const user = await getAuthenticatedUser(req);
 
     if (!user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { competitionId } = params;
 
     // Check if competition exists
     const competition = await prisma.competition.findUnique({

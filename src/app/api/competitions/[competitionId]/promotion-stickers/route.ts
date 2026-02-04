@@ -9,16 +9,15 @@ import debug from "@/lib/debug";
 // Get all promotion stickers for a competition
 export async function GET(
   req: NextRequest,
-  { params }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
   try {
+    const { competitionId } = await params;
     const { user } = await validateRequest();
 
     if (!user || !user.isAdmin) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { competitionId } = params;
     const includeUsage = req.nextUrl.searchParams.get('includeUsage') === 'true';
 
     // Check if competition exists
@@ -61,16 +60,15 @@ export async function GET(
 // Create a new promotion sticker for a competition
 export async function POST(
   req: NextRequest,
-  { params }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
   try {
+    const { competitionId } = await params;
     const { user } = await validateRequest();
 
     if (!user || !user.isAdmin) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { competitionId } = params;
     const { title, imageUrl, position, limit, isActive } = await req.json();
 
     // Validate required fields

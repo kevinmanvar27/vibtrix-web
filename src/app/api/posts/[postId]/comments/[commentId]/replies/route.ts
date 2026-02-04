@@ -38,9 +38,10 @@ interface RepliesResponse {
  */
 export async function GET(
   req: NextRequest,
-  { params: { postId, commentId } }: { params: { postId: string; commentId: string } },
+  { params }: { params: Promise<{ postId: string; commentId: string }> },
 ) {
   try {
+    const { postId, commentId } = await params;
     // Auth is optional for viewing replies
     await getAuthenticatedUser(req);
 
@@ -140,9 +141,10 @@ export async function GET(
  */
 export async function POST(
   req: NextRequest,
-  { params: { postId, commentId } }: { params: { postId: string; commentId: string } },
+  { params }: { params: Promise<{ postId: string; commentId: string }> },
 ) {
   try {
+    const { postId, commentId } = await params;
     const user = await getAuthenticatedUser(req);
 
     if (!user) {

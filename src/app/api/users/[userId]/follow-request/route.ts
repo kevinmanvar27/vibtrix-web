@@ -7,9 +7,10 @@ import debug from "@/lib/debug";
 // GET endpoint to check follow request status
 export async function GET(
   req: Request,
-  { params: { userId } }: { params: { userId: string } },
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
+    const { userId } = await params;
     const { user: loggedInUser } = await validateRequest();
 
     if (!loggedInUser) {
@@ -38,9 +39,10 @@ export async function GET(
 // POST endpoint to send a follow request
 export async function POST(
   req: Request,
-  { params: { userId } }: { params: { userId: string } },
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
+    const { userId } = await params;
     const { user: loggedInUser } = await validateRequest();
 
     if (!loggedInUser) {
@@ -146,9 +148,10 @@ export async function POST(
 // DELETE endpoint to cancel a follow request
 export async function DELETE(
   req: Request,
-  { params: { userId } }: { params: { userId: string } },
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
+    const { userId } = await params;
     const { user: loggedInUser } = await validateRequest();
 
     if (!loggedInUser) {

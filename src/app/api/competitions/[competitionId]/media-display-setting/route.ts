@@ -6,10 +6,10 @@ import debug from "@/lib/debug";
 // Get the media display setting for a specific competition
 export async function GET(
   req: NextRequest,
-  { params }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
   try {
-    const { competitionId } = params;
+    const { competitionId } = await params;
     debug.log(`API: /api/competitions/${competitionId}/media-display-setting endpoint called`);
 
     // Get the competition

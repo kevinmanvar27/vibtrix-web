@@ -10,18 +10,17 @@ import debug from "@/lib/debug";
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
+  const { competitionId } = await params;
   try {
-    debug.log(`POST /api/competitions/${params.competitionId}/refresh - Starting request`);
+    debug.log(`POST /api/competitions/${competitionId}/refresh - Starting request`);
     const { user } = await validateRequest();
 
     if (!user) {
-      debug.log(`POST /api/competitions/${params.competitionId}/refresh - Unauthorized request`);
+      debug.log(`POST /api/competitions/${competitionId}/refresh - Unauthorized request`);
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { competitionId } = params;
 
     // Get the competition with its rounds
     const competition = await prisma.competition.findUnique({
@@ -80,7 +79,7 @@ export async function POST(
       message: `Refreshed competition data with ${entries.length} entries`,
     });
   } catch (error) {
-    debug.error(`POST /api/competitions/${params.competitionId}/refresh - Unhandled error:`, error);
+    debug.error(`POST /api/competitions/${competitionId}/refresh - Unhandled error:`, error);
     return Response.json(
       {
         error: "Failed to refresh competition data",

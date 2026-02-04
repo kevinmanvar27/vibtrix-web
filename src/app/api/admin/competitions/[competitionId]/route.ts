@@ -6,16 +6,15 @@ import debug from "@/lib/debug";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
   try {
+    const { competitionId } = await params;
     const { user } = await validateRequest();
 
     if (!user || !user.isAdmin) {
       return Response.json({ error: "Unauthorized - Admin access required" }, { status: 401 });
     }
-
-    const { competitionId } = params;
 
     // Get competition details with admin-specific data
     const competition = await prisma.competition.findUnique({

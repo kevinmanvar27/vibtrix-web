@@ -14,8 +14,9 @@ import debug from "@/lib/debug";
  */
 export async function POST(
   req: NextRequest,
-  { params: { postId } }: { params: { postId: string } },
+  { params }: { params: Promise<{ postId: string }> },
 ) {
+  const { postId } = await params;
   try {
     debug.log(`POST /api/posts/${postId}/shares - Starting request`);
 
@@ -139,8 +140,9 @@ export async function POST(
  */
 export async function GET(
   req: NextRequest,
-  { params: { postId } }: { params: { postId: string } },
+  { params }: { params: Promise<{ postId: string }> },
 ) {
+  const { postId } = await params;
   try {
     debug.log(`GET /api/posts/${postId}/shares - Starting request`);
 

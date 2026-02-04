@@ -6,9 +6,6 @@ import path from "path";
 import fs from "fs";
 import debug from "@/lib/debug";
 
-// Force Node.js runtime for file system operations
-export const runtime = 'nodejs';
-
 export async function POST(
   request: Request,
   { params }: { params: { competitionId: string; postId: string } }

@@ -17,9 +17,10 @@ const createCommentSchema = z.object({
  */
 export async function GET(
   req: NextRequest,
-  { params: { postId } }: { params: { postId: string } },
+  { params }: { params: Promise<{ postId: string }> },
 ) {
   try {
+    const { postId } = await params;
     const cursor = req.nextUrl.searchParams.get("cursor") || undefined;
     const pageSize = 5;
 
@@ -66,9 +67,10 @@ export async function GET(
  */
 export async function POST(
   req: NextRequest,
-  { params: { postId } }: { params: { postId: string } },
+  { params }: { params: Promise<{ postId: string }> },
 ) {
   try {
+    const { postId } = await params;
     const user = await getAuthenticatedUser(req);
 
     if (!user) {

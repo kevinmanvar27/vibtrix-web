@@ -21,8 +21,9 @@ const PAGE_SIZE = 20;
  */
 export async function GET(
   request: NextRequest,
-  { params: { competitionId } }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
+  const { competitionId } = await params;
   try {
     debug.log(`GET /api/competitions/${competitionId}/leaderboard - Starting request`);
 

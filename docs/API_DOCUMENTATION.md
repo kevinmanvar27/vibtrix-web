@@ -4,7 +4,7 @@
 
 This document provides comprehensive API documentation for the VidiBattle mobile application (Flutter).
 
-**Base URL:** `https://your-domain.com`
+**Base URL:** `http://localhost:3001/`
 
 **API Version:** v1
 

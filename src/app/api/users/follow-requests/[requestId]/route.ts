@@ -7,9 +7,10 @@ import debug from "@/lib/debug";
 // PATCH endpoint to accept or reject a follow request
 export async function PATCH(
   req: NextRequest,
-  { params: { requestId } }: { params: { requestId: string } },
+  { params }: { params: Promise<{ requestId: string }> },
 ) {
   try {
+    const { requestId } = await params;
     const { user: loggedInUser } = await validateRequest();
 
     if (!loggedInUser) {
@@ -90,9 +91,10 @@ export async function PATCH(
 // DELETE endpoint to delete a follow request (for cleanup)
 export async function DELETE(
   req: Request,
-  { params: { requestId } }: { params: { requestId: string } },
+  { params }: { params: Promise<{ requestId: string }> },
 ) {
   try {
+    const { requestId } = await params;
     const { user: loggedInUser } = await validateRequest();
 
     if (!loggedInUser) {

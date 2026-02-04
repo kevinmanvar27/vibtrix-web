@@ -7,9 +7,10 @@ import debug from "@/lib/debug";
 // GET /api/admin/roles/[roleId]/permissions - Get permissions for a role
 export async function GET(
   request: NextRequest,
-  { params }: { params: { roleId: string } }
+  { params }: { params: Promise<{ roleId: string }> }
 ) {
   try {
+    const { roleId } = await params;
     const { user } = await validateRequest();
 
     // Check if user has appropriate role for admin access
@@ -22,8 +23,6 @@ export async function GET(
     if (!hasAdminAccess) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { roleId } = params;
 
     // Check if the role exists
     const role = await prisma.role.findUnique({
@@ -63,9 +62,10 @@ export async function GET(
 // PUT /api/admin/roles/[roleId]/permissions - Update permissions for a role
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { roleId: string } }
+  { params }: { params: Promise<{ roleId: string }> }
 ) {
   try {
+    const { roleId } = await params;
     const { user } = await validateRequest();
 
     // Only SUPER_ADMIN can update role permissions
@@ -75,8 +75,6 @@ export async function PUT(
         { status: 401 }
       );
     }
-
-    const { roleId } = params;
     const data = await request.json();
 
     // Validate the request body

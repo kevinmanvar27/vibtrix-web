@@ -5,8 +5,9 @@ import debug from "@/lib/debug";
 
 export async function GET(
   request: NextRequest,
-  { params: { postId } }: { params: { postId: string } }
+  { params }: { params: Promise<{ postId: string }> }
 ) {
+  const { postId } = await params;
   try {
     debug.log(`GET /api/posts/${postId} - Starting request`);
     const user = await getAuthenticatedUser(request);
@@ -89,8 +90,9 @@ export async function GET(
  */
 export async function DELETE(
   request: NextRequest,
-  { params: { postId } }: { params: { postId: string } }
+  { params }: { params: Promise<{ postId: string }> }
 ) {
+  const { postId } = await params;
   try {
     debug.log(`DELETE /api/posts/${postId} - Starting request`);
     const user = await getAuthenticatedUser(request);

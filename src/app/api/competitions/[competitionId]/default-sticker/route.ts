@@ -9,16 +9,15 @@ import debug from "@/lib/debug";
 // Get the default feed sticker for a competition
 export async function GET(
   req: NextRequest,
-  { params }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
   try {
+    const { competitionId } = await params;
     const { user } = await validateRequest();
 
     if (!user || !user.isAdmin) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { competitionId } = params;
 
     // Check if competition exists
     const competition = await prisma.competition.findUnique({
@@ -52,16 +51,15 @@ export async function GET(
 // Create the default feed sticker for a competition
 export async function POST(
   req: NextRequest,
-  { params }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
   try {
+    const { competitionId } = await params;
     const { user } = await validateRequest();
 
     if (!user || !user.isAdmin) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { competitionId } = params;
     const { title, imageUrl, position, isActive } = await req.json();
 
     // Validate required fields
@@ -128,16 +126,15 @@ export async function POST(
 // Update the default feed sticker for a competition
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
   try {
+    const { competitionId } = await params;
     const { user } = await validateRequest();
 
     if (!user || !user.isAdmin) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { competitionId } = params;
     const { title, imageUrl, position, isActive } = await req.json();
 
     // Check if the default feed sticker exists

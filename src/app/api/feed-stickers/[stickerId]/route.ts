@@ -9,16 +9,15 @@ import debug from "@/lib/debug";
 // Update a feed sticker
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { stickerId: string } }
+  { params }: { params: Promise<{ stickerId: string }> }
 ) {
   try {
+    const { stickerId } = await params;
     const { user } = await validateRequest();
 
     if (!user || !user.isAdmin) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { stickerId } = params;
     const { title, imageUrl, position, limit, isActive } = await req.json();
 
     // Check if the feed sticker exists
@@ -64,16 +63,15 @@ export async function PATCH(
 // Delete a feed sticker
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { stickerId: string } }
+  { params }: { params: Promise<{ stickerId: string }> }
 ) {
   try {
+    const { stickerId } = await params;
     const { user } = await validateRequest();
 
     if (!user || !user.isAdmin) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { stickerId } = params;
 
     // Check if the feed sticker exists
     const existingSticker = await prisma.promotionSticker.findUnique({

@@ -39,10 +39,10 @@ const reportSchema = z.object({
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { commentId: string } }
+  { params }: { params: Promise<{ commentId: string }> }
 ) {
   try {
-    const { commentId } = params;
+    const { commentId } = await params;
     const currentUser = await getAuthenticatedUser(req);
 
     if (!currentUser) {
@@ -141,10 +141,10 @@ export async function POST(
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { commentId: string } }
+  { params }: { params: Promise<{ commentId: string }> }
 ) {
   try {
-    const { commentId } = params;
+    const { commentId } = await params;
     const currentUser = await getAuthenticatedUser(req);
 
     if (!currentUser) {

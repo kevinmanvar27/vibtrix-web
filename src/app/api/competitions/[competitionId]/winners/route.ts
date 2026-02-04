@@ -5,10 +5,10 @@ import debug from "@/lib/debug";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
   try {
-    const { competitionId } = params;
+    const { competitionId } = await params;
     debug.log(`🏆 Fetching winners for competition: ${competitionId}`);
 
     // Get competition details to check if it's completed

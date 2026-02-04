@@ -9,16 +9,15 @@ import debug from "@/lib/debug";
 // Update the default feed sticker
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { stickerId: string } }
+  { params }: { params: Promise<{ stickerId: string }> }
 ) {
   try {
+    const { stickerId } = await params;
     const { user } = await validateRequest();
 
     if (!user || !user.isAdmin) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { stickerId } = params;
     const { title, imageUrl, position, isActive } = await req.json();
 
     // Check if the default feed sticker exists
@@ -63,16 +62,15 @@ export async function PATCH(
 // Delete the default feed sticker
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { stickerId: string } }
+  { params }: { params: Promise<{ stickerId: string }> }
 ) {
   try {
+    const { stickerId } = await params;
     const { user } = await validateRequest();
 
     if (!user || !user.isAdmin) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { stickerId } = params;
 
     // Check if the default feed sticker exists
     const existingSticker = await prisma.promotionSticker.findUnique({

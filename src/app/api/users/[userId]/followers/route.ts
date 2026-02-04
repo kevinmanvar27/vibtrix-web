@@ -9,9 +9,10 @@ import { getAuthenticatedUser } from "@/lib/api-auth";
  */
 export async function GET(
   req: Request,
-  { params: { userId } }: { params: { userId: string } },
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
+    const { userId } = await params;
     const loggedInUser = await getAuthenticatedUser(req);
     const isLoggedIn = !!loggedInUser;
 
@@ -63,9 +64,10 @@ export async function GET(
  */
 export async function POST(
   req: Request,
-  { params: { userId } }: { params: { userId: string } },
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
+    const { userId } = await params;
     const loggedInUser = await getAuthenticatedUser(req);
 
     if (!loggedInUser) {
@@ -189,9 +191,10 @@ export async function POST(
  */
 export async function DELETE(
   req: Request,
-  { params: { userId } }: { params: { userId: string } },
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
+    const { userId } = await params;
     const loggedInUser = await getAuthenticatedUser(req);
 
     if (!loggedInUser) {

@@ -8,16 +8,15 @@ import debug from "@/lib/debug";
 // Get all usages of a specific sticker
 export async function GET(
   req: NextRequest,
-  { params }: { params: { stickerId: string } }
+  { params }: { params: Promise<{ stickerId: string }> }
 ) {
   try {
+    const { stickerId } = await params;
     const { user } = await validateRequest();
 
     if (!user || !user.isAdmin) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { stickerId } = params;
 
     // Get the sticker usages with related media and post information
     const stickerUsages = await prisma.stickerUsage.findMany({

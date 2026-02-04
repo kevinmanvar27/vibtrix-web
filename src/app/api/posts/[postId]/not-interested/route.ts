@@ -14,8 +14,9 @@ import debug from "@/lib/debug";
  */
 export async function POST(
   request: NextRequest,
-  { params: { postId } }: { params: { postId: string } }
+  { params }: { params: Promise<{ postId: string }> }
 ) {
+  const { postId } = await params;
   try {
     debug.log(`POST /api/posts/${postId}/not-interested - Marking post as not interested`);
     

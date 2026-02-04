@@ -7,9 +7,10 @@ import debug from "@/lib/debug";
 // GET /api/admin/roles/[roleId] - Get a specific role
 export async function GET(
   request: NextRequest,
-  { params }: { params: { roleId: string } }
+  { params }: { params: Promise<{ roleId: string }> }
 ) {
   try {
+    const { roleId } = await params;
     const { user } = await validateRequest();
 
     // Check if user has appropriate role for admin access
@@ -22,8 +23,6 @@ export async function GET(
     if (!hasAdminAccess) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { roleId } = params;
 
     // Fetch the role from the database
     const role = await prisma.role.findUnique({
@@ -69,9 +68,10 @@ export async function GET(
 // PUT /api/admin/roles/[roleId] - Update a role
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { roleId: string } }
+  { params }: { params: Promise<{ roleId: string }> }
 ) {
   try {
+    const { roleId } = await params;
     const { user } = await validateRequest();
 
     // Only SUPER_ADMIN can update roles
@@ -81,8 +81,6 @@ export async function PUT(
         { status: 401 }
       );
     }
-
-    const { roleId } = params;
     const data = await request.json();
 
     // Validate required fields
@@ -147,9 +145,10 @@ export async function PUT(
 // DELETE /api/admin/roles/[roleId] - Delete a role
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { roleId: string } }
+  { params }: { params: Promise<{ roleId: string }> }
 ) {
   try {
+    const { roleId } = await params;
     const { user } = await validateRequest();
 
     // Only SUPER_ADMIN can delete roles
@@ -159,8 +158,6 @@ export async function DELETE(
         { status: 401 }
       );
     }
-
-    const { roleId } = params;
 
     // Check if the role exists
     const existingRole = await prisma.role.findUnique({

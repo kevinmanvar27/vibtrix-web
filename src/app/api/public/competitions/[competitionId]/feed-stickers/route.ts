@@ -7,10 +7,10 @@ import debug from "@/lib/debug";
 // Get all feed stickers for a competition - public endpoint accessible to all users
 export async function GET(
   req: NextRequest,
-  { params }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
   try {
-    const { competitionId } = params;
+    const { competitionId } = await params;
     debug.log(`PUBLIC API: /api/public/competitions/${competitionId}/feed-stickers endpoint called`);
 
     // Check if competition exists

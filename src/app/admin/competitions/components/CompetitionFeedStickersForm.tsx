@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { StickerPosition } from "@prisma/client";
-import { Plus, Pencil, Trash2, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Image, Loader2 } from "lucide-react";
 import DirectStickerUploader from "@/components/admin/DirectStickerUploader";
 import NextImage from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -254,7 +254,7 @@ export function CompetitionFeedStickersForm({
       <CardHeader className="flex flex-row items-center justify-between pb-4">
         <div>
           <CardTitle className="flex items-center gap-2">
-            <ImageIcon className="h-5 w-5 text-primary" />
+            <Image className="h-5 w-5 text-primary" />
             Competition Feed Stickers
           </CardTitle>
           <CardDescription>
@@ -273,7 +273,7 @@ export function CompetitionFeedStickersForm({
           </div>
         ) : stickers.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <ImageIcon className="h-12 w-12 text-muted-foreground mb-4" />
+            <Image className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="font-medium mb-1">No Feed Stickers</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Add stickers to be applied to media in the competition feed

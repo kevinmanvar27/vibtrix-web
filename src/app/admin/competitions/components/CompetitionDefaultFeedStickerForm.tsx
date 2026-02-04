@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { StickerPosition } from "@prisma/client";
-import { Image as ImageIcon, Loader2 } from "lucide-react";
+import { Image, Loader2 } from "lucide-react";
 import DirectStickerUploader from "@/components/admin/DirectStickerUploader";
 import NextImage from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -207,7 +207,7 @@ export function CompetitionDefaultFeedStickerForm({
       <CardHeader className="flex flex-row items-center justify-between bg-muted/20 pb-4">
         <div>
           <CardTitle className="flex items-center gap-2">
-            <ImageIcon className="h-5 w-5 text-primary" />
+            <Image className="h-5 w-5 text-primary" />
             Default Competition Feed Sticker
           </CardTitle>
           <CardDescription>
@@ -346,7 +346,7 @@ export function CompetitionDefaultFeedStickerForm({
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <ImageIcon className="h-12 w-12 text-muted-foreground mb-4" />
+            <Image className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="font-medium mb-1">No Default Sticker</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Create a default sticker to be applied when no other stickers are available

@@ -17,10 +17,10 @@ import debug from "@/lib/debug";
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { competitionId: string } }
+  { params }: { params: Promise<{ competitionId: string }> }
 ) {
   try {
-    const { competitionId } = params;
+    const { competitionId } = await params;
     const { user } = await validateRequest();
     const { action } = await req.json();
 

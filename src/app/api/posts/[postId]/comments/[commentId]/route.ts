@@ -13,8 +13,9 @@ import { getAuthenticatedUser } from "@/lib/api-auth";
  */
 export async function DELETE(
   request: NextRequest,
-  { params: { postId, commentId } }: { params: { postId: string; commentId: string } }
+  { params }: { params: Promise<{ postId: string; commentId: string }> }
 ) {
+  const { postId, commentId } = await params;
   try {
     debug.log(`DELETE /api/posts/${postId}/comments/${commentId} - Starting request`);
     
@@ -103,8 +104,9 @@ export async function DELETE(
  */
 export async function GET(
   request: NextRequest,
-  { params: { postId, commentId } }: { params: { postId: string; commentId: string } }
+  { params }: { params: Promise<{ postId: string; commentId: string }> }
 ) {
+  const { postId, commentId } = await params;
   try {
     debug.log(`GET /api/posts/${postId}/comments/${commentId} - Starting request`);
 
