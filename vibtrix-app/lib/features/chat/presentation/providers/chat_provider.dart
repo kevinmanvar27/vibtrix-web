@@ -203,6 +203,20 @@ class ChatsListNotifier extends StateNotifier<ChatsListState> {
     );
   }
 
+  /// Toggle mute status for a chat (local update - API not available yet)
+  void toggleMute(String chatId) {
+    debugPrint('💬 [ChatProvider] Toggling mute for chat: $chatId');
+    final index = state.chats.indexWhere((c) => c.id == chatId);
+    if (index != -1) {
+      final chat = state.chats[index];
+      final updatedChat = chat.copyWith(isMuted: !chat.isMuted);
+      final updatedChats = [...state.chats];
+      updatedChats[index] = updatedChat;
+      state = state.copyWith(chats: updatedChats);
+      debugPrint('✅ [ChatProvider] Chat ${updatedChat.isMuted ? "muted" : "unmuted"}');
+    }
+  }
+
   void updateChatInList(ChatModel updatedChat) {
     final index = state.chats.indexWhere((c) => c.id == updatedChat.id);
     if (index != -1) {
@@ -274,6 +288,13 @@ class ChatMessagesNotifier extends StateNotifier<ChatMessagesState> {
         );
       },
     );
+  }
+
+  /// Refresh messages (pull-to-refresh)
+  Future<void> refresh() async {
+    debugPrint('💬 [ChatMessages] Refreshing messages for chat: ${state.chatId}');
+    state = ChatMessagesState(chatId: state.chatId);
+    await loadMessages();
   }
 
   Future<void> sendMessage(String content, {MessageType type = MessageType.text}) async {

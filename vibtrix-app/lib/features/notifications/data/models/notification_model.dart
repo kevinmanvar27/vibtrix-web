@@ -229,13 +229,19 @@ class NotificationDataModel {
   final String? postId;
   final String? commentId;
   final String? competitionId;
+  final String? chatId;
   final String? userId;
+  final String? transactionId;
+  final Map<String, dynamic>? extra;
 
   const NotificationDataModel({
     this.postId,
     this.commentId,
     this.competitionId,
+    this.chatId,
     this.userId,
+    this.transactionId,
+    this.extra,
   });
 
   factory NotificationDataModel.fromJson(Map<String, dynamic> json) =>

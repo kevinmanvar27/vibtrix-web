@@ -44,7 +44,8 @@
         "shimmer",
         "timeago",
         "url_launcher",
-        "video_player"
+        "video_player",
+        "visibility_detector"
       ],
       "devDependencies": [
         "build_runner",
@@ -374,6 +375,13 @@
         "clock",
         "meta",
         "path"
+      ]
+    },
+    {
+      "name": "visibility_detector",
+      "version": "0.4.0+2",
+      "dependencies": [
+        "flutter"
       ]
     },
     {

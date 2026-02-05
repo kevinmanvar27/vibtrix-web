@@ -1256,6 +1256,12 @@
       "languageVersion": "3.6"
     },
     {
+      "name": "visibility_detector",
+      "rootUri": "file:///Users/kevinmanvar/.pub-cache/hosted/pub.dev/visibility_detector-0.4.0+2",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "vm_service",
       "rootUri": "file:///Users/kevinmanvar/.pub-cache/hosted/pub.dev/vm_service-15.0.2",
       "packageUri": "lib/",

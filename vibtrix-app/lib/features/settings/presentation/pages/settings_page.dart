@@ -1,67 +1,178 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-/// Settings state provider
-final settingsStateProvider = StateNotifierProvider<SettingsStateNotifier, SettingsState>((ref) {
-  return SettingsStateNotifier();
-});
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/network_avatar.dart';
+import '../../../../core/providers/repository_providers.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../users/presentation/providers/users_provider.dart' hide currentUserProvider;
+import '../../../auth/data/models/user_model.dart';
+import '../../data/datasources/settings_api_service.dart' show UpdatePrivacySettingsRequest;
+
+// ============================================================================
+// Settings State - Extended with notification preferences
+// Persists to both local storage and backend API
+// ============================================================================
 
 class SettingsState {
-  final bool isDarkMode;
   final bool pushNotifications;
-  final bool emailNotifications;
   final bool privateAccount;
   final bool showOnlineStatus;
   final bool allowComments;
-  final bool allowDuets;
   final String language;
+  
+  // Notification preferences
+  final bool notifyLikes;
+  final bool notifyComments;
+  final bool notifyFollowers;
+  final bool notifyMentions;
+  final bool notifyCompetitions;
+  final bool notifyMessages;
 
   const SettingsState({
-    this.isDarkMode = false,
     this.pushNotifications = true,
-    this.emailNotifications = true,
     this.privateAccount = false,
     this.showOnlineStatus = true,
     this.allowComments = true,
-    this.allowDuets = true,
     this.language = 'English',
+    // Notification preferences defaults
+    this.notifyLikes = true,
+    this.notifyComments = true,
+    this.notifyFollowers = true,
+    this.notifyMentions = true,
+    this.notifyCompetitions = true,
+    this.notifyMessages = true,
   });
 
   SettingsState copyWith({
-    bool? isDarkMode,
     bool? pushNotifications,
-    bool? emailNotifications,
     bool? privateAccount,
     bool? showOnlineStatus,
     bool? allowComments,
-    bool? allowDuets,
     String? language,
+    bool? notifyLikes,
+    bool? notifyComments,
+    bool? notifyFollowers,
+    bool? notifyMentions,
+    bool? notifyCompetitions,
+    bool? notifyMessages,
   }) {
     return SettingsState(
-      isDarkMode: isDarkMode ?? this.isDarkMode,
       pushNotifications: pushNotifications ?? this.pushNotifications,
-      emailNotifications: emailNotifications ?? this.emailNotifications,
       privateAccount: privateAccount ?? this.privateAccount,
       showOnlineStatus: showOnlineStatus ?? this.showOnlineStatus,
       allowComments: allowComments ?? this.allowComments,
-      allowDuets: allowDuets ?? this.allowDuets,
       language: language ?? this.language,
+      notifyLikes: notifyLikes ?? this.notifyLikes,
+      notifyComments: notifyComments ?? this.notifyComments,
+      notifyFollowers: notifyFollowers ?? this.notifyFollowers,
+      notifyMentions: notifyMentions ?? this.notifyMentions,
+      notifyCompetitions: notifyCompetitions ?? this.notifyCompetitions,
+      notifyMessages: notifyMessages ?? this.notifyMessages,
     );
   }
 }
 
 class SettingsStateNotifier extends StateNotifier<SettingsState> {
-  SettingsStateNotifier() : super(const SettingsState());
+  static const _prefsKeyPrefix = 'settings_';
+  
+  SettingsStateNotifier() : super(const SettingsState()) {
+    _loadFromLocalStorage();
+  }
+  
+  /// Load settings from local storage on init
+  Future<void> _loadFromLocalStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+    state = SettingsState(
+      pushNotifications: prefs.getBool('${_prefsKeyPrefix}pushNotifications') ?? true,
+      privateAccount: prefs.getBool('${_prefsKeyPrefix}privateAccount') ?? false,
+      showOnlineStatus: prefs.getBool('${_prefsKeyPrefix}showOnlineStatus') ?? true,
+      allowComments: prefs.getBool('${_prefsKeyPrefix}allowComments') ?? true,
+      language: prefs.getString('${_prefsKeyPrefix}language') ?? 'English',
+      notifyLikes: prefs.getBool('${_prefsKeyPrefix}notifyLikes') ?? true,
+      notifyComments: prefs.getBool('${_prefsKeyPrefix}notifyComments') ?? true,
+      notifyFollowers: prefs.getBool('${_prefsKeyPrefix}notifyFollowers') ?? true,
+      notifyMentions: prefs.getBool('${_prefsKeyPrefix}notifyMentions') ?? true,
+      notifyCompetitions: prefs.getBool('${_prefsKeyPrefix}notifyCompetitions') ?? true,
+      notifyMessages: prefs.getBool('${_prefsKeyPrefix}notifyMessages') ?? true,
+    );
+  }
+  
+  /// Save a boolean setting to local storage
+  Future<void> _saveBool(String key, bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('$_prefsKeyPrefix$key', value);
+  }
+  
+  /// Save a string setting to local storage
+  Future<void> _saveString(String key, String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('$_prefsKeyPrefix$key', value);
+  }
 
-  void toggleDarkMode(bool value) => state = state.copyWith(isDarkMode: value);
-  void togglePushNotifications(bool value) => state = state.copyWith(pushNotifications: value);
-  void toggleEmailNotifications(bool value) => state = state.copyWith(emailNotifications: value);
-  void togglePrivateAccount(bool value) => state = state.copyWith(privateAccount: value);
-  void toggleShowOnlineStatus(bool value) => state = state.copyWith(showOnlineStatus: value);
-  void toggleAllowComments(bool value) => state = state.copyWith(allowComments: value);
-  void toggleAllowDuets(bool value) => state = state.copyWith(allowDuets: value);
-  void setLanguage(String value) => state = state.copyWith(language: value);
+  void togglePushNotifications(bool value) {
+    state = state.copyWith(pushNotifications: value);
+    _saveBool('pushNotifications', value);
+  }
+  
+  void togglePrivateAccount(bool value) {
+    state = state.copyWith(privateAccount: value);
+    _saveBool('privateAccount', value);
+  }
+  
+  void toggleShowOnlineStatus(bool value) {
+    state = state.copyWith(showOnlineStatus: value);
+    _saveBool('showOnlineStatus', value);
+  }
+  
+  void toggleAllowComments(bool value) {
+    state = state.copyWith(allowComments: value);
+    _saveBool('allowComments', value);
+  }
+  
+  void setLanguage(String value) {
+    state = state.copyWith(language: value);
+    _saveString('language', value);
+  }
+  
+  // Notification preference toggles
+  void toggleNotifyLikes(bool value) {
+    state = state.copyWith(notifyLikes: value);
+    _saveBool('notifyLikes', value);
+  }
+  
+  void toggleNotifyComments(bool value) {
+    state = state.copyWith(notifyComments: value);
+    _saveBool('notifyComments', value);
+  }
+  
+  void toggleNotifyFollowers(bool value) {
+    state = state.copyWith(notifyFollowers: value);
+    _saveBool('notifyFollowers', value);
+  }
+  
+  void toggleNotifyMentions(bool value) {
+    state = state.copyWith(notifyMentions: value);
+    _saveBool('notifyMentions', value);
+  }
+  
+  void toggleNotifyCompetitions(bool value) {
+    state = state.copyWith(notifyCompetitions: value);
+    _saveBool('notifyCompetitions', value);
+  }
+  
+  void toggleNotifyMessages(bool value) {
+    state = state.copyWith(notifyMessages: value);
+    _saveBool('notifyMessages', value);
+  }
 }
+
+/// Settings state provider
+final settingsStateProvider = StateNotifierProvider<SettingsStateNotifier, SettingsState>((ref) {
+  return SettingsStateNotifier();
+});
 
 /// Main settings page with all setting categories
 class SettingsPage extends ConsumerWidget {
@@ -70,42 +181,49 @@ class SettingsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsStateProvider);
+    final currentUser = ref.watch(currentUserProvider);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
+        backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       ),
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       body: ListView(
         children: [
+          // User Profile Header
+          if (currentUser != null) ...[
+            _buildUserHeader(context, currentUser, theme, isDark),
+            const Divider(height: 1),
+          ],
+
           // Account Section
           _buildSection(
             context,
             'Account',
             [
               _buildSettingTile(
-                Icons.person_outline,
-                'Edit Profile',
-                'Change your profile information',
-                () => Navigator.pushNamed(context, '/edit-profile'),
-              ),
-              _buildSettingTile(
                 Icons.lock_outline,
                 'Change Password',
                 'Update your password',
                 () => _showChangePasswordDialog(context),
               ),
-              _buildSettingTile(
-                Icons.email_outlined,
-                'Email',
-                'demo@vidibattle.com',
-                () => _showChangeEmailDialog(context),
-              ),
-              _buildSettingTile(
-                Icons.phone_outlined,
-                'Phone Number',
-                '+91 98765 43210',
-                () => _showChangePhoneDialog(context),
-              ),
+              if (currentUser != null) ...[
+                _buildSettingTile(
+                  Icons.email_outlined,
+                  'Email',
+                  currentUser.email ?? 'Not set',
+                  () => _showChangeEmailDialog(context, currentUser.email),
+                ),
+                _buildSettingTile(
+                  Icons.phone_outlined,
+                  'Phone Number',
+                  currentUser.phone ?? 'Not set',
+                  () => _showChangePhoneDialog(context, ref, currentUser.phone),
+                ),
+              ],
             ],
           ),
 
@@ -124,7 +242,7 @@ class SettingsPage extends ConsumerWidget {
               _buildSwitchTile(
                 Icons.visibility,
                 'Show Online Status',
-                'Let others see when you\'re online',
+                'Let others see when you\'re online in messages',
                 settings.showOnlineStatus,
                 (value) => ref.read(settingsStateProvider.notifier).toggleShowOnlineStatus(value),
               ),
@@ -135,18 +253,11 @@ class SettingsPage extends ConsumerWidget {
                 settings.allowComments,
                 (value) => ref.read(settingsStateProvider.notifier).toggleAllowComments(value),
               ),
-              _buildSwitchTile(
-                Icons.people,
-                'Allow Duets',
-                'Let others create duets with your videos',
-                settings.allowDuets,
-                (value) => ref.read(settingsStateProvider.notifier).toggleAllowDuets(value),
-              ),
               _buildSettingTile(
                 Icons.block_outlined,
                 'Blocked Users',
                 'Manage blocked accounts',
-                () => _showBlockedUsersPage(context),
+                () => _showBlockedUsersPage(context, ref),
               ),
             ],
           ),
@@ -163,39 +274,11 @@ class SettingsPage extends ConsumerWidget {
                 settings.pushNotifications,
                 (value) => ref.read(settingsStateProvider.notifier).togglePushNotifications(value),
               ),
-              _buildSwitchTile(
-                Icons.email,
-                'Email Notifications',
-                'Receive email updates',
-                settings.emailNotifications,
-                (value) => ref.read(settingsStateProvider.notifier).toggleEmailNotifications(value),
-              ),
               _buildSettingTile(
                 Icons.tune,
                 'Notification Preferences',
                 'Customize what you get notified about',
-                () => _showNotificationPreferences(context),
-              ),
-            ],
-          ),
-
-          // Appearance Section
-          _buildSection(
-            context,
-            'Appearance',
-            [
-              _buildSwitchTile(
-                Icons.dark_mode,
-                'Dark Mode',
-                'Use dark theme',
-                settings.isDarkMode,
-                (value) => ref.read(settingsStateProvider.notifier).toggleDarkMode(value),
-              ),
-              _buildSettingTile(
-                Icons.language,
-                'Language',
-                settings.language,
-                () => _showLanguageSelector(context, ref),
+                () => _showNotificationPreferences(context, ref),
               ),
             ],
           ),
@@ -264,7 +347,7 @@ class SettingsPage extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: OutlinedButton.icon(
-              onPressed: () => _showLogoutDialog(context),
+              onPressed: () => _showLogoutDialog(context, ref),
               icon: const Icon(Icons.logout),
               label: const Text('Log Out'),
               style: OutlinedButton.styleFrom(
@@ -290,6 +373,71 @@ class SettingsPage extends ConsumerWidget {
           ),
 
           const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserHeader(BuildContext context, dynamic user, ThemeData theme, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: isDark ? AppColors.darkCard : Colors.white,
+      child: Row(
+        children: [
+          NetworkAvatar(
+            imageUrl: user.profilePicture,
+            radius: 35,
+            fallbackText: user.name ?? user.username ?? 'U',
+            backgroundColor: AppColors.primary.withValues(alpha: 0.2),
+            foregroundColor: AppColors.primary,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        user.name ?? user.username ?? 'User',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (user.isVerified == true)
+                      const Padding(
+                        padding: EdgeInsets.only(left: 4),
+                        child: Icon(Icons.verified, color: AppColors.primary, size: 20),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '@${user.username ?? ''}',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey,
+                  ),
+                ),
+                if (user.email != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    user.email,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () => context.push('/edit-profile'),
+            tooltip: 'Edit Profile',
+          ),
         ],
       ),
     );
@@ -406,8 +554,8 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  void _showChangeEmailDialog(BuildContext context) {
-    final emailController = TextEditingController(text: 'demo@vidibattle.com');
+  void _showChangeEmailDialog(BuildContext context, String? currentEmail) {
+    final emailController = TextEditingController(text: currentEmail ?? '');
 
     showDialog(
       context: context,
@@ -440,20 +588,34 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  void _showChangePhoneDialog(BuildContext context) {
-    final phoneController = TextEditingController(text: '+91 98765 43210');
+  void _showChangePhoneDialog(BuildContext context, WidgetRef ref, String? currentPhone) {
+    final phoneController = TextEditingController(text: currentPhone ?? '');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Change Phone Number'),
-        content: TextField(
-          controller: phoneController,
-          keyboardType: TextInputType.phone,
-          decoration: const InputDecoration(
-            labelText: 'Phone Number',
-            border: OutlineInputBorder(),
-          ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: phoneController,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(
+                labelText: 'Phone Number',
+                border: OutlineInputBorder(),
+                hintText: '+1 234 567 8900',
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'This number will be shown in your bio section if you enable it.',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -461,11 +623,24 @@ class SettingsPage extends ConsumerWidget {
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('OTP sent to new number')),
-              );
+            onPressed: () async {
+              final phone = phoneController.text.trim();
+              if (phone.isNotEmpty) {
+                // Update profile with new phone number
+                final success = await ref.read(authProvider.notifier).updateProfile(
+                  whatsappNumber: phone,
+                );
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(success 
+                      ? 'Phone number updated successfully' 
+                      : 'Failed to update phone number'),
+                  ),
+                );
+              } else {
+                Navigator.pop(context);
+              }
             },
             child: const Text('Update'),
           ),
@@ -474,122 +649,22 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  void _showBlockedUsersPage(BuildContext context) {
+  /// Show blocked users page with real data from API
+  void _showBlockedUsersPage(BuildContext context, WidgetRef ref) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(title: const Text('Blocked Users')),
-          body: ListView.builder(
-            itemCount: 3,
-            itemBuilder: (context, index) {
-              final users = ['blocked_user1', 'spam_account', 'annoying_person'];
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Colors.grey.shade300,
-                  child: const Icon(Icons.person),
-                ),
-                title: Text('@${users[index]}'),
-                trailing: OutlinedButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Unblocked @${users[index]}')),
-                    );
-                  },
-                  child: const Text('Unblock'),
-                ),
-              );
-            },
-          ),
-        ),
+        builder: (context) => const BlockedUsersPage(),
       ),
     );
   }
 
-  void _showNotificationPreferences(BuildContext context) {
+  /// Show notification preferences with real state management
+  void _showNotificationPreferences(BuildContext context, WidgetRef ref) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(title: const Text('Notification Preferences')),
-          body: ListView(
-            children: [
-              SwitchListTile(
-                title: const Text('Likes'),
-                subtitle: const Text('When someone likes your post'),
-                value: true,
-                onChanged: (v) {},
-              ),
-              SwitchListTile(
-                title: const Text('Comments'),
-                subtitle: const Text('When someone comments on your post'),
-                value: true,
-                onChanged: (v) {},
-              ),
-              SwitchListTile(
-                title: const Text('New Followers'),
-                subtitle: const Text('When someone follows you'),
-                value: true,
-                onChanged: (v) {},
-              ),
-              SwitchListTile(
-                title: const Text('Mentions'),
-                subtitle: const Text('When someone mentions you'),
-                value: true,
-                onChanged: (v) {},
-              ),
-              SwitchListTile(
-                title: const Text('Competition Updates'),
-                subtitle: const Text('Updates about competitions you joined'),
-                value: true,
-                onChanged: (v) {},
-              ),
-              SwitchListTile(
-                title: const Text('Messages'),
-                subtitle: const Text('When you receive a new message'),
-                value: true,
-                onChanged: (v) {},
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showLanguageSelector(BuildContext context, WidgetRef ref) {
-    final languages = ['English', 'हिंदी', 'தமிழ்', 'తెలుగు', 'मराठी', 'বাংলা'];
-    final currentLanguage = ref.read(settingsStateProvider).language;
-
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                'Select Language',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
-            ...languages.map((lang) => ListTile(
-                  title: Text(lang),
-                  trailing: currentLanguage == lang
-                      ? const Icon(Icons.check, color: Colors.green)
-                      : null,
-                  onTap: () {
-                    ref.read(settingsStateProvider.notifier).setLanguage(lang);
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Language changed to $lang')),
-                    );
-                  },
-                )),
-            const SizedBox(height: 16),
-          ],
-        ),
+        builder: (context) => const NotificationPreferencesPage(),
       ),
     );
   }
@@ -819,7 +894,7 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  void _showLogoutDialog(BuildContext context) {
+  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -833,8 +908,10 @@ class SettingsPage extends ConsumerWidget {
           FilledButton(
             onPressed: () {
               Navigator.pop(context);
+              // Logout using auth provider
+              ref.read(authProvider.notifier).logout();
               // Navigate to login
-              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+              context.go('/login');
             },
             style: FilledButton.styleFrom(
               backgroundColor: Colors.orange,
@@ -890,6 +967,168 @@ class SettingsPage extends ConsumerWidget {
               backgroundColor: Colors.red,
             ),
             child: const Text('Delete Account'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// Blocked Users Page - Connected to Real API
+// ============================================================================
+
+class BlockedUsersPage extends ConsumerWidget {
+  const BlockedUsersPage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final blockedUsersAsync = ref.watch(blockedUsersProvider);
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Blocked Users')),
+      body: blockedUsersAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              Text('Failed to load blocked users'),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: () => ref.invalidate(blockedUsersProvider),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+        data: (blockedUsers) {
+          if (blockedUsers.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.block, size: 64, color: Colors.grey.shade400),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No blocked users',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Users you block will appear here',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: blockedUsers.length,
+            itemBuilder: (context, index) {
+              final user = blockedUsers[index];
+              return ListTile(
+                leading: NetworkAvatar(
+                  imageUrl: user.profilePicture,
+                  radius: 24,
+                  fallbackText: user.username,
+                ),
+                title: Text(user.name ?? user.username),
+                subtitle: Text('@${user.username}'),
+                trailing: OutlinedButton(
+                  onPressed: () async {
+                    final repository = ref.read(usersRepositoryProvider);
+                    final result = await repository.unblockUser(user.id);
+                    result.fold(
+                      (failure) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed to unblock @${user.username}')),
+                        );
+                      },
+                      (_) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Unblocked @${user.username}')),
+                        );
+                        // Refresh the list
+                        ref.invalidate(blockedUsersProvider);
+                      },
+                    );
+                  },
+                  child: const Text('Unblock'),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// Notification Preferences Page - Connected to Settings State
+// ============================================================================
+
+class NotificationPreferencesPage extends ConsumerWidget {
+  const NotificationPreferencesPage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsStateProvider);
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Notification Preferences')),
+      body: ListView(
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Choose which notifications you want to receive. Disabled notifications will not appear in your notification screen.',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+          SwitchListTile(
+            title: const Text('Likes'),
+            subtitle: const Text('When someone likes your post'),
+            value: settings.notifyLikes,
+            onChanged: (v) => ref.read(settingsStateProvider.notifier).toggleNotifyLikes(v),
+          ),
+          SwitchListTile(
+            title: const Text('Comments'),
+            subtitle: const Text('When someone comments on your post'),
+            value: settings.notifyComments,
+            onChanged: (v) => ref.read(settingsStateProvider.notifier).toggleNotifyComments(v),
+          ),
+          SwitchListTile(
+            title: const Text('New Followers'),
+            subtitle: const Text('When someone follows you'),
+            value: settings.notifyFollowers,
+            onChanged: (v) => ref.read(settingsStateProvider.notifier).toggleNotifyFollowers(v),
+          ),
+          SwitchListTile(
+            title: const Text('Mentions'),
+            subtitle: const Text('When someone mentions you'),
+            value: settings.notifyMentions,
+            onChanged: (v) => ref.read(settingsStateProvider.notifier).toggleNotifyMentions(v),
+          ),
+          SwitchListTile(
+            title: const Text('Competition Updates'),
+            subtitle: const Text('Updates about competitions you joined'),
+            value: settings.notifyCompetitions,
+            onChanged: (v) => ref.read(settingsStateProvider.notifier).toggleNotifyCompetitions(v),
+          ),
+          SwitchListTile(
+            title: const Text('Messages'),
+            subtitle: const Text('When you receive a new message'),
+            value: settings.notifyMessages,
+            onChanged: (v) => ref.read(settingsStateProvider.notifier).toggleNotifyMessages(v),
           ),
         ],
       ),

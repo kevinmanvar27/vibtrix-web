@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:video_player/video_player.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../../../../core/router/route_names.dart';
@@ -13,6 +12,7 @@ import '../../../../core/utils/url_utils.dart';
 import '../../../../core/widgets/network_avatar.dart';
 import '../../../posts/data/models/post_model.dart';
 import '../providers/feed_provider.dart';
+import 'video_player_widget.dart';
 
 /// Post card widget for displaying a single post in the feed
 class PostCard extends ConsumerStatefulWidget {
@@ -36,61 +36,28 @@ class PostCard extends ConsumerStatefulWidget {
 }
 
 class _PostCardState extends ConsumerState<PostCard> {
-  VideoPlayerController? _videoController;
-  bool _isVideoInitialized = false;
-  bool _isVideoPlaying = false;
+  bool _isCaptionExpanded = false;
 
   @override
   void initState() {
     super.initState();
-    _initializeVideo();
   }
 
   @override
   void dispose() {
-    _videoController?.dispose();
     super.dispose();
-  }
-
-  void _initializeVideo() {
-    final media = widget.post.media;
-    if (media != null && media.isVideo) {
-      final videoUrl = UrlUtils.getFullMediaUrl(media.url);
-      _videoController = VideoPlayerController.networkUrl(Uri.parse(videoUrl))
-        ..initialize().then((_) {
-          if (mounted) {
-            setState(() {
-              _isVideoInitialized = true;
-            });
-          }
-        }).catchError((error) {
-          debugPrint('Error initializing video: $error');
-        });
-    }
   }
 
   String _getFullUrl(String url) {
     return UrlUtils.getFullMediaUrl(url);
   }
 
-  void _toggleVideoPlayback() {
-    if (_videoController == null || !_isVideoInitialized) return;
-
-    setState(() {
-      if (_videoController!.value.isPlaying) {
-        _videoController!.pause();
-        _isVideoPlaying = false;
-      } else {
-        _videoController!.play();
-        _isVideoPlaying = true;
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final hasMedia = widget.post.media != null;
+    final isTextOnly = !hasMedia && widget.post.caption != null && widget.post.caption!.isNotEmpty;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
@@ -99,33 +66,109 @@ class _PostCardState extends ConsumerState<PostCard> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(0),
       ),
+      child: InkWell(
+        onTap: widget.onTap,
+        onDoubleTap: _handleDoubleTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // User header
+            _buildUserHeader(theme),
+            
+            // Text-only content (Twitter style) or Media content
+            if (isTextOnly)
+              _buildTextOnlyContent(theme)
+            else if (hasMedia)
+              _buildMediaContent(theme),
+            
+            // Caption (only show separately if there's media)
+            if (hasMedia && widget.post.caption != null && widget.post.caption!.isNotEmpty)
+              _buildCaption(theme),
+            
+            // Action buttons
+            _buildActionButtons(theme),
+            
+            // Likes count
+            _buildLikesCount(theme),
+            
+            // Comments preview
+            if (widget.post.commentsCount > 0)
+              _buildCommentsPreview(theme),
+            
+            // Timestamp
+            _buildTimestamp(theme),
+            
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build text-only post content like Twitter
+  Widget _buildTextOnlyContent(ThemeData theme) {
+    final caption = widget.post.caption ?? '';
+    final isLongText = caption.length > 280;
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // User header
-          _buildUserHeader(theme),
+          // Main text content
+          Text(
+            caption,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              fontSize: caption.length < 100 ? 18 : 16,
+              height: 1.4,
+            ),
+            maxLines: _isCaptionExpanded ? null : 12,
+            overflow: _isCaptionExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+          ),
           
-          // Media content
-          _buildMediaContent(theme),
+          // Show more button for long text
+          if (isLongText && !_isCaptionExpanded)
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _isCaptionExpanded = true;
+                });
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  'Show more',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
           
-          // Action buttons
-          _buildActionButtons(theme),
-          
-          // Likes count
-          _buildLikesCount(theme),
-          
-          // Caption
-          if (widget.post.caption != null && widget.post.caption!.isNotEmpty)
-            _buildCaption(theme),
-          
-          // Comments preview
-          if (widget.post.commentsCount > 0)
-            _buildCommentsPreview(theme),
-          
-          // Timestamp
-          _buildTimestamp(theme),
-          
-          const SizedBox(height: 8),
+          // Hashtags as clickable chips
+          if (widget.post.hashtags != null && widget.post.hashtags!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: widget.post.hashtags!.map((tag) {
+                return GestureDetector(
+                  onTap: () {
+                    // Navigate to hashtag search
+                    context.push('/search?q=%23$tag');
+                  },
+                  child: Text(
+                    '#$tag',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
         ],
       ),
     );
@@ -193,75 +236,43 @@ class _PostCardState extends ConsumerState<PostCard> {
       return const SizedBox.shrink();
     }
 
-    return GestureDetector(
-      onTap: widget.onTap ?? (media.isVideo ? _toggleVideoPlayback : null),
-      onDoubleTap: () => _handleDoubleTap(),
-      child: AspectRatio(
-        aspectRatio: media.width != null && media.height != null
-            ? media.width! / media.height!
-            : 1.0,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (media.isVideo)
-              _buildVideoPlayer(media)
-            else
-              _buildImage(media),
-            
-            // Play button overlay for videos
-            if (media.isVideo && !_isVideoPlaying)
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.5),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.play_arrow,
-                    color: Colors.white,
-                    size: 32,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
+    // For videos, use a fixed aspect ratio (4:5 like Instagram) to ensure consistent card sizes
+    // For images, use the actual aspect ratio but constrain to reasonable bounds
+    final double aspectRatio;
+    if (media.isVideo) {
+      // Fixed 4:5 aspect ratio for videos (Instagram standard)
+      aspectRatio = 4 / 5;
+    } else {
+      // For images, use actual ratio but clamp between 4:5 and 1.91:1
+      final actualRatio = media.width != null && media.height != null
+          ? media.width! / media.height!
+          : 1.0;
+      aspectRatio = actualRatio.clamp(0.8, 1.91);
+    }
 
-  Widget _buildVideoPlayer(PostMediaModel media) {
-    if (!_isVideoInitialized || _videoController == null) {
-      // Show thumbnail while loading
-      if (media.thumbnailUrl != null) {
-        return CachedNetworkImage(
-          imageUrl: _getFullUrl(media.thumbnailUrl!),
-          fit: BoxFit.cover,
-          placeholder: (context, url) => Container(
-            color: AppColors.darkMuted,
-            child: const Center(
-              child: CircularProgressIndicator(
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-          errorWidget: (context, url, error) => Container(
-            color: AppColors.darkMuted,
-            child: const Icon(Icons.error, color: AppColors.error),
-          ),
-        );
-      }
-      return Container(
-        color: AppColors.darkMuted,
-        child: const Center(
-          child: CircularProgressIndicator(
-            color: AppColors.primary,
+    if (media.isVideo) {
+      return ClipRRect(
+        child: AspectRatio(
+          aspectRatio: aspectRatio,
+          child: FeedVideoPlayer(
+            videoUrl: media.url,
+            thumbnailUrl: media.thumbnailUrl,
+            aspectRatio: aspectRatio,
+            onTap: widget.onTap,
+            onDoubleTap: _handleDoubleTap,
           ),
         ),
       );
     }
 
-    return VideoPlayer(_videoController!);
+    return GestureDetector(
+      onTap: widget.onTap,
+      onDoubleTap: _handleDoubleTap,
+      child: AspectRatio(
+        aspectRatio: aspectRatio,
+        child: _buildImage(media),
+      ),
+    );
   }
 
   Widget _buildImage(PostMediaModel media) {
@@ -346,22 +357,46 @@ class _PostCardState extends ConsumerState<PostCard> {
 
   Widget _buildCaption(ThemeData theme) {
     final user = widget.post.user;
+    final caption = widget.post.caption ?? '';
+    final shouldTruncate = caption.length > 100;
     
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: RichText(
-        text: TextSpan(
-          style: theme.textTheme.bodyMedium,
-          children: [
-            TextSpan(
-              text: '${user?.username ?? 'user'} ',
-              style: const TextStyle(fontWeight: FontWeight.w600),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          RichText(
+            text: TextSpan(
+              style: theme.textTheme.bodyMedium,
+              children: [
+                TextSpan(
+                  text: '${user?.username ?? 'user'} ',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                TextSpan(text: caption),
+              ],
             ),
-            TextSpan(text: widget.post.caption),
-          ],
-        ),
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
+            maxLines: _isCaptionExpanded ? null : 2,
+            overflow: _isCaptionExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+          ),
+          if (shouldTruncate && !_isCaptionExpanded)
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _isCaptionExpanded = true;
+                });
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(
+                  'more',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

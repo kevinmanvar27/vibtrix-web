@@ -25,7 +25,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   final List<XFile> _selectedMedia = [];
   final List<String> _hashtags = [];
   bool _isPosting = false;
-  String _selectedMediaType = 'image'; // 'image' or 'video'
+  String _selectedMediaType = 'text'; // 'text', 'image' or 'video'
   String _uploadStatus = '';
 
   @override
@@ -91,14 +91,67 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     });
   }
 
+  /// Validate hashtag format
+  /// Returns null if valid, error message if invalid
+  String? _validateHashtag(String tag) {
+    // Remove # prefix if present for validation
+    final cleanTag = tag.startsWith('#') ? tag.substring(1) : tag;
+    
+    if (cleanTag.isEmpty) {
+      return 'Hashtag cannot be empty';
+    }
+    
+    if (cleanTag.length > 30) {
+      return 'Hashtag must be 30 characters or less';
+    }
+    
+    // Only allow alphanumeric characters and underscores
+    final validPattern = RegExp(r'^[a-zA-Z0-9_]+$');
+    if (!validPattern.hasMatch(cleanTag)) {
+      return 'Hashtag can only contain letters, numbers, and underscores';
+    }
+    
+    // Must start with a letter
+    if (!RegExp(r'^[a-zA-Z]').hasMatch(cleanTag)) {
+      return 'Hashtag must start with a letter';
+    }
+    
+    return null;
+  }
+
   void _addHashtag() {
     final tag = _hashtagController.text.trim();
-    if (tag.isNotEmpty && !_hashtags.contains(tag)) {
-      setState(() {
-        _hashtags.add(tag.startsWith('#') ? tag : '#$tag');
-        _hashtagController.clear();
-      });
+    if (tag.isEmpty) return;
+    
+    // Validate hashtag
+    final error = _validateHashtag(tag);
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error)),
+      );
+      return;
     }
+    
+    final normalizedTag = tag.startsWith('#') ? tag.toLowerCase() : '#${tag.toLowerCase()}';
+    
+    if (_hashtags.contains(normalizedTag)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This hashtag is already added')),
+      );
+      return;
+    }
+    
+    if (_hashtags.length >= 30) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Maximum 30 hashtags allowed')),
+      );
+      return;
+    }
+    
+    setState(() {
+      _hashtags.add(normalizedTag);
+      _hashtagController.clear();
+    });
   }
 
   void _removeHashtag(String tag) {
@@ -108,91 +161,94 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   }
 
   Future<void> _createPost() async {
-    if (_selectedMedia.isEmpty) {
+    final hasText = _captionController.text.trim().isNotEmpty || _hashtags.isNotEmpty;
+    final hasMedia = _selectedMedia.isNotEmpty;
+    
+    // Must have either text or media
+    if (!hasText && !hasMedia) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least one image or video')),
+        const SnackBar(content: Text('Please add some text or media to your post')),
       );
       return;
     }
 
     setState(() {
       _isPosting = true;
-      _uploadStatus = 'Uploading media...';
+      _uploadStatus = hasMedia ? 'Uploading media...' : 'Creating post...';
     });
 
     try {
-      // Step 1: Upload all media files and collect media IDs
-      final dioClient = ref.read(dioClientProvider);
       final List<String> mediaIds = [];
       
-      for (int i = 0; i < _selectedMedia.length; i++) {
-        final media = _selectedMedia[i];
-        setState(() {
-          _uploadStatus = 'Uploading ${i + 1}/${_selectedMedia.length}...';
-        });
+      // Step 1: Upload media files if any
+      if (hasMedia) {
+        final dioClient = ref.read(dioClientProvider);
         
-        // Read file bytes
-        final file = File(media.path);
-        final bytes = await file.readAsBytes();
-        final fileName = media.name;
-        
-        // Determine content type
-        final ext = fileName.split('.').last.toLowerCase();
-        String contentType;
-        switch (ext) {
-          case 'jpg':
-          case 'jpeg':
-            contentType = 'image/jpeg';
-            break;
-          case 'png':
-            contentType = 'image/png';
-            break;
-          case 'gif':
-            contentType = 'image/gif';
-            break;
-          case 'webp':
-            contentType = 'image/webp';
-            break;
-          case 'mp4':
-            contentType = 'video/mp4';
-            break;
-          case 'mov':
-            contentType = 'video/quicktime';
-            break;
-          case 'avi':
-            contentType = 'video/x-msvideo';
-            break;
-          default:
-            contentType = 'application/octet-stream';
+        for (int i = 0; i < _selectedMedia.length; i++) {
+          final media = _selectedMedia[i];
+          setState(() {
+            _uploadStatus = 'Uploading ${i + 1}/${_selectedMedia.length}...';
+          });
+          
+          // Read file bytes
+          final file = File(media.path);
+          final bytes = await file.readAsBytes();
+          final fileName = media.name;
+          
+          // Determine content type
+          final ext = fileName.split('.').last.toLowerCase();
+          String contentType;
+          switch (ext) {
+            case 'jpg':
+            case 'jpeg':
+              contentType = 'image/jpeg';
+              break;
+            case 'png':
+              contentType = 'image/png';
+              break;
+            case 'gif':
+              contentType = 'image/gif';
+              break;
+            case 'webp':
+              contentType = 'image/webp';
+              break;
+            case 'mp4':
+              contentType = 'video/mp4';
+              break;
+            case 'mov':
+              contentType = 'video/quicktime';
+              break;
+            case 'avi':
+              contentType = 'video/x-msvideo';
+              break;
+            default:
+              contentType = 'application/octet-stream';
+          }
+          
+          // Create form data for upload
+          final formData = FormData();
+          formData.files.add(MapEntry(
+            'files',
+            MultipartFile.fromBytes(
+              bytes.toList(),
+              filename: fileName,
+              contentType: MediaType.parse(contentType),
+            ),
+          ));
+          
+          // Upload to server
+          final response = await dioClient.dio.post(
+            '/upload',
+            data: formData,
+            options: Options(contentType: 'multipart/form-data'),
+          );
+          
+          // Parse response and collect media IDs
+          final uploadResponse = MediaUploadResponse.fromJson(response.data as Map<String, dynamic>);
+          for (final uploadedFile in uploadResponse.files) {
+            mediaIds.add(uploadedFile.mediaId);
+          }
         }
-        
-        // Create form data for upload
-        final formData = FormData();
-        formData.files.add(MapEntry(
-          'files',
-          MultipartFile.fromBytes(
-            bytes.toList(),
-            filename: fileName,
-            contentType: MediaType.parse(contentType),
-          ),
-        ));
-        
-        // Upload to server
-        final response = await dioClient.dio.post(
-          '/upload',
-          data: formData,
-          options: Options(contentType: 'multipart/form-data'),
-        );
-        
-        // Parse response and collect media IDs
-        final uploadResponse = MediaUploadResponse.fromJson(response.data as Map<String, dynamic>);
-        for (final uploadedFile in uploadResponse.files) {
-          mediaIds.add(uploadedFile.mediaId);
-        }
-      }
-      
-      if (mediaIds.isEmpty) {
-        throw Exception('Failed to upload media files');
       }
       
       setState(() {
@@ -206,7 +262,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         caption = caption.isEmpty ? hashtagString : '$caption\n\n$hashtagString';
       }
       
-      // Step 3: Create the post with media IDs
+      // Step 3: Create the post with media IDs (can be empty for text-only)
       final request = CreatePostRequest(
         content: caption,
         mediaIds: mediaIds,
@@ -311,12 +367,14 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
             )
           else
             TextButton(
-              onPressed: _selectedMedia.isEmpty ? null : _createPost,
+              onPressed: (_selectedMedia.isEmpty && _captionController.text.trim().isEmpty && _hashtags.isEmpty) 
+                  ? null 
+                  : _createPost,
               child: Text(
                 'Post',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: _selectedMedia.isEmpty 
+                  color: (_selectedMedia.isEmpty && _captionController.text.trim().isEmpty && _hashtags.isEmpty)
                       ? Colors.grey 
                       : Theme.of(context).colorScheme.primary,
                 ),
@@ -329,12 +387,17 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Media type selector
+            // Post type selector
             Row(
               children: [
                 Expanded(
                   child: SegmentedButton<String>(
                     segments: const [
+                      ButtonSegment(
+                        value: 'text',
+                        icon: Icon(Icons.text_fields),
+                        label: Text('Text'),
+                      ),
                       ButtonSegment(
                         value: 'image',
                         icon: Icon(Icons.image),
@@ -359,26 +422,45 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
             ),
             const SizedBox(height: 16),
             
-            // Media picker/preview
-            _selectedMedia.isEmpty
-                ? _buildMediaPicker()
-                : _buildMediaPreview(),
-            
-            const SizedBox(height: 20),
-            
-            // Caption
-            TextField(
-              controller: _captionController,
-              maxLines: 4,
-              maxLength: 2200,
-              decoration: InputDecoration(
-                hintText: 'Write a caption...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+            // Caption/Text content - show first for text posts
+            if (_selectedMediaType == 'text') ...[
+              TextField(
+                controller: _captionController,
+                maxLines: 8,
+                maxLength: 2200,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: "What's on your mind?",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
                 ),
-                filled: true,
+                onChanged: (_) => setState(() {}), // Rebuild to update Post button
               ),
-            ),
+            ] else ...[
+              // Media picker/preview for image/video
+              _selectedMedia.isEmpty
+                  ? _buildMediaPicker()
+                  : _buildMediaPreview(),
+              
+              const SizedBox(height: 20),
+              
+              // Caption for media posts
+              TextField(
+                controller: _captionController,
+                maxLines: 4,
+                maxLength: 2200,
+                decoration: InputDecoration(
+                  hintText: 'Write a caption...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                ),
+                onChanged: (_) => setState(() {}), // Rebuild to update Post button
+              ),
+            ],
             
             const SizedBox(height: 16),
             

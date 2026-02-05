@@ -75,6 +75,10 @@ class _CommentsPageState extends ConsumerState<CommentsPage> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final state = ref.watch(postDetailProvider(widget.postId));
+    
+    // Check if comments are allowed on this post
+    final post = state.post;
+    final commentsAllowed = post?.allowComments ?? true;
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
@@ -87,10 +91,42 @@ class _CommentsPageState extends ConsumerState<CommentsPage> {
           ? const Center(
               child: CircularProgressIndicator(color: AppColors.primary),
             )
-          : state.comments.isEmpty
-              ? _buildEmptyState(theme)
-              : _buildCommentsList(state.comments, theme, isDark),
-      bottomNavigationBar: _buildCommentInput(theme, isDark),
+          : !commentsAllowed
+              ? _buildCommentsDisabledState(theme)
+              : state.comments.isEmpty
+                  ? _buildEmptyState(theme)
+                  : _buildCommentsList(state.comments, theme, isDark),
+      // Only show comment input if comments are allowed
+      bottomNavigationBar: commentsAllowed ? _buildCommentInput(theme, isDark) : null,
+    );
+  }
+  
+  Widget _buildCommentsDisabledState(ThemeData theme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.comments_disabled_outlined,
+            size: 64,
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Comments are turned off',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'The post owner has disabled comments',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

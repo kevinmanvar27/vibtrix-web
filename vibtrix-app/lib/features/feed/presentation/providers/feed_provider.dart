@@ -66,8 +66,14 @@ enum FeedType { forYou, following }
 
 class FeedNotifier extends StateNotifier<FeedState> {
   final PostsRepository _repository;
+  final void Function()? onLikeChanged;
+  final void Function()? onSaveChanged;
+  
+  // Track posts currently being processed to prevent race conditions
+  final Set<String> _processingLikes = {};
+  final Set<String> _processingBookmarks = {};
 
-  FeedNotifier(this._repository) : super(FeedState.initial()) {
+  FeedNotifier(this._repository, {this.onLikeChanged, this.onSaveChanged}) : super(FeedState.initial()) {
     loadFeed();
   }
 
@@ -170,7 +176,12 @@ class FeedNotifier extends StateNotifier<FeedState> {
   }
 
   /// Like a post (optimistic update with API call)
+  /// Includes lock to prevent race conditions from rapid taps
   Future<void> likePost(String postId) async {
+    // Prevent duplicate requests
+    if (_processingLikes.contains(postId)) return;
+    _processingLikes.add(postId);
+    
     debugPrint('[FeedProvider] ❤️ Liking post: $postId');
     _updatePostInList(postId, (post) => post.copyWith(
       isLiked: true,
@@ -189,12 +200,21 @@ class FeedNotifier extends StateNotifier<FeedState> {
       },
       (_) {
         debugPrint('[FeedProvider] ✅ Like successful');
+        // Notify that liked posts have changed
+        onLikeChanged?.call();
       },
     );
+    
+    _processingLikes.remove(postId);
   }
 
   /// Unlike a post (optimistic update with API call)
+  /// Includes lock to prevent race conditions from rapid taps
   Future<void> unlikePost(String postId) async {
+    // Prevent duplicate requests
+    if (_processingLikes.contains(postId)) return;
+    _processingLikes.add(postId);
+    
     debugPrint('[FeedProvider] 💔 Unliking post: $postId');
     _updatePostInList(postId, (post) => post.copyWith(
       isLiked: false,
@@ -213,12 +233,19 @@ class FeedNotifier extends StateNotifier<FeedState> {
       },
       (_) {
         debugPrint('[FeedProvider] ✅ Unlike successful');
+        // Notify that liked posts have changed
+        onLikeChanged?.call();
       },
     );
+    
+    _processingLikes.remove(postId);
   }
 
   /// Toggle like state
   void toggleLike(String postId) {
+    // Check if already processing
+    if (_processingLikes.contains(postId)) return;
+    
     final postIndex = state.posts.indexWhere((p) => p.id == postId);
     if (postIndex == -1) return;
     
@@ -231,7 +258,12 @@ class FeedNotifier extends StateNotifier<FeedState> {
   }
 
   /// Save a post (optimistic update with API call)
+  /// Includes lock to prevent race conditions from rapid taps
   Future<void> savePost(String postId) async {
+    // Prevent duplicate requests
+    if (_processingBookmarks.contains(postId)) return;
+    _processingBookmarks.add(postId);
+    
     debugPrint('[FeedProvider] 🔖 Saving post: $postId');
     _updatePostInList(postId, (post) => post.copyWith(isBookmarked: true));
     
@@ -243,12 +275,21 @@ class FeedNotifier extends StateNotifier<FeedState> {
       },
       (_) {
         debugPrint('[FeedProvider] ✅ Save successful');
+        // Notify that saved posts have changed
+        onSaveChanged?.call();
       },
     );
+    
+    _processingBookmarks.remove(postId);
   }
 
   /// Unsave a post (optimistic update with API call)
+  /// Includes lock to prevent race conditions from rapid taps
   Future<void> unsavePost(String postId) async {
+    // Prevent duplicate requests
+    if (_processingBookmarks.contains(postId)) return;
+    _processingBookmarks.add(postId);
+    
     debugPrint('[FeedProvider] 🔖 Unsaving post: $postId');
     _updatePostInList(postId, (post) => post.copyWith(isBookmarked: false));
     
@@ -260,12 +301,19 @@ class FeedNotifier extends StateNotifier<FeedState> {
       },
       (_) {
         debugPrint('[FeedProvider] ✅ Unsave successful');
+        // Notify that saved posts have changed
+        onSaveChanged?.call();
       },
     );
+    
+    _processingBookmarks.remove(postId);
   }
 
   /// Toggle bookmark state
   void toggleBookmark(String postId) {
+    // Check if already processing
+    if (_processingBookmarks.contains(postId)) return;
+    
     final postIndex = state.posts.indexWhere((p) => p.id == postId);
     if (postIndex == -1) return;
     
@@ -341,7 +389,11 @@ class FeedNotifier extends StateNotifier<FeedState> {
 /// Main feed state provider - connected to real API
 final feedProvider = StateNotifierProvider<FeedNotifier, FeedState>((ref) {
   final repository = ref.watch(postsRepositoryProvider);
-  return FeedNotifier(repository);
+  return FeedNotifier(
+    repository,
+    onLikeChanged: () => ref.invalidate(likedPostsProvider),
+    onSaveChanged: () => ref.invalidate(savedPostsProvider),
+  );
 });
 
 /// Current feed type provider (convenience)
@@ -406,6 +458,23 @@ final savedPostsProvider = FutureProvider<List<PostModel>>((ref) async {
     },
     (response) {
       debugPrint('[SavedPostsProvider] ✅ Loaded ${response.data.length} posts');
+      return response.data;
+    },
+  );
+});
+
+/// Liked posts provider - using real API
+final likedPostsProvider = FutureProvider<List<PostModel>>((ref) async {
+  debugPrint('[LikedPostsProvider] 📱 Loading liked posts...');
+  final repository = ref.watch(postsRepositoryProvider);
+  final result = await repository.getLikedPosts();
+  return result.fold(
+    (failure) {
+      debugPrint('[LikedPostsProvider] ❌ Failed: ${failure.message}');
+      return <PostModel>[];
+    },
+    (response) {
+      debugPrint('[LikedPostsProvider] ✅ Loaded ${response.data.length} posts');
       return response.data;
     },
   );

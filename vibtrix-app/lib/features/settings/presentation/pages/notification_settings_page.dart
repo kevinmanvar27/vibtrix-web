@@ -1,24 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'settings_page.dart';
+
 /// Notification settings page
-class NotificationSettingsPage extends ConsumerStatefulWidget {
+/// 
+/// NOTE: Backend notification settings endpoints are not implemented yet.
+/// Settings are persisted locally using SharedPreferences.
+/// TODO: Sync with backend once notification settings API is available.
+class NotificationSettingsPage extends ConsumerWidget {
   const NotificationSettingsPage({super.key});
 
   @override
-  ConsumerState<NotificationSettingsPage> createState() => _NotificationSettingsPageState();
-}
-
-class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsPage> {
-  bool _pushNotifications = true;
-  bool _likes = true;
-  bool _comments = true;
-  bool _follows = true;
-  bool _messages = true;
-  bool _competitions = true;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsStateProvider);
+    final notifier = ref.read(settingsStateProvider.notifier);
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Notifications'),
@@ -28,10 +25,8 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
           SwitchListTile(
             title: const Text('Push Notifications'),
             subtitle: const Text('Enable all push notifications'),
-            value: _pushNotifications,
-            onChanged: (value) {
-              setState(() => _pushNotifications = value);
-            },
+            value: settings.pushNotifications,
+            onChanged: (value) => notifier.togglePushNotifications(value),
           ),
           const Divider(),
           const Padding(
@@ -46,37 +41,37 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
           ),
           SwitchListTile(
             title: const Text('Likes'),
-            value: _likes,
-            onChanged: _pushNotifications
-                ? (value) => setState(() => _likes = value)
+            value: settings.notifyLikes,
+            onChanged: settings.pushNotifications
+                ? (value) => notifier.toggleNotifyLikes(value)
                 : null,
           ),
           SwitchListTile(
             title: const Text('Comments'),
-            value: _comments,
-            onChanged: _pushNotifications
-                ? (value) => setState(() => _comments = value)
+            value: settings.notifyComments,
+            onChanged: settings.pushNotifications
+                ? (value) => notifier.toggleNotifyComments(value)
                 : null,
           ),
           SwitchListTile(
             title: const Text('New Followers'),
-            value: _follows,
-            onChanged: _pushNotifications
-                ? (value) => setState(() => _follows = value)
+            value: settings.notifyFollowers,
+            onChanged: settings.pushNotifications
+                ? (value) => notifier.toggleNotifyFollowers(value)
                 : null,
           ),
           SwitchListTile(
             title: const Text('Direct Messages'),
-            value: _messages,
-            onChanged: _pushNotifications
-                ? (value) => setState(() => _messages = value)
+            value: settings.notifyMessages,
+            onChanged: settings.pushNotifications
+                ? (value) => notifier.toggleNotifyMessages(value)
                 : null,
           ),
           SwitchListTile(
             title: const Text('Competitions'),
-            value: _competitions,
-            onChanged: _pushNotifications
-                ? (value) => setState(() => _competitions = value)
+            value: settings.notifyCompetitions,
+            onChanged: settings.pushNotifications
+                ? (value) => notifier.toggleNotifyCompetitions(value)
                 : null,
           ),
         ],

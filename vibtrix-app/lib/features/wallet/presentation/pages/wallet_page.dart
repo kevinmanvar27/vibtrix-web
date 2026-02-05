@@ -2,6 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+/// Wallet Page - Currently uses dummy data
+/// 
+/// NOTE: The backend API does not have wallet endpoints implemented yet.
+/// This page shows a placeholder UI with dummy data until the backend
+/// implements the following endpoints:
+/// - GET /wallet - Wallet info
+/// - GET /wallet/balance - Balance info  
+/// - GET /wallet/transactions - Transaction history
+/// - POST /wallet/withdraw - Withdrawals
+/// 
+/// TODO: Connect to real API once backend implements wallet endpoints
+
 /// Transaction model for wallet
 class TransactionModel {
   final String id;

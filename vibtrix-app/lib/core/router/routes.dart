@@ -26,6 +26,9 @@ import '../../features/explore/presentation/pages/explore_page.dart';
 // Feed pages
 import '../../features/feed/presentation/pages/feed_page.dart';
 
+// Reels pages
+import '../../features/reels/presentation/pages/reels_page.dart';
+
 // Feedback pages
 import '../../features/feedback/presentation/pages/feedback_page.dart';
 
@@ -58,7 +61,7 @@ import '../../features/settings/presentation/pages/blocked_users_page.dart';
 import '../../features/settings/presentation/pages/help_page.dart';
 import '../../features/settings/presentation/pages/notification_settings_page.dart';
 import '../../features/settings/presentation/pages/privacy_settings_page.dart';
-import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/settings/presentation/pages/settings_page.dart' hide BlockedUsersPage;
 
 // Splash pages
 import '../../features/splash/presentation/pages/splash_page.dart';
@@ -202,6 +205,20 @@ final List<RouteBase> appRoutes = [
     path: RouteNames.createPost,
     name: 'createPost',
     builder: (context, state) => const CreatePostPage(),
+  ),
+  // Reels route - full screen vertical video feed
+  GoRoute(
+    path: RouteNames.reels,
+    name: 'reels',
+    builder: (context, state) => const ReelsPage(),
+  ),
+  GoRoute(
+    path: RouteNames.reelsWithPost,
+    name: 'reelsWithPost',
+    builder: (context, state) {
+      final postId = state.pathParameters['postId'];
+      return ReelsPage(initialPostId: postId);
+    },
   ),
   GoRoute(
     path: RouteNames.postDetail,

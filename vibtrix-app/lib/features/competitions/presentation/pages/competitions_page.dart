@@ -101,6 +101,7 @@ class _CompetitionsPageState extends ConsumerState<CompetitionsPage>
       onRefresh: () => ref.read(competitionsListProvider.notifier).refresh(),
       color: AppColors.primary,
       child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
         itemCount: competitions.length,
         itemBuilder: (context, index) {

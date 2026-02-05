@@ -33,6 +33,9 @@ class PostModel {
   final PostLocationModel? location;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  // Whether comments are allowed on this post (based on post owner's settings)
+  @JsonKey(defaultValue: true)
+  final bool allowComments;
 
   const PostModel({
     required this.id,
@@ -53,6 +56,7 @@ class PostModel {
     this.location,
     required this.createdAt,
     this.updatedAt,
+    this.allowComments = true,
   });
 
   /// Custom fromJson that handles API response format differences
@@ -135,6 +139,8 @@ class PostModel {
       updatedAt: json['updatedAt'] == null
           ? null
           : DateTime.parse(json['updatedAt'] as String),
+      // Allow comments - defaults to true if not provided by API
+      allowComments: json['allowComments'] as bool? ?? true,
     );
   }
 
@@ -159,6 +165,7 @@ class PostModel {
     PostLocationModel? location,
     DateTime? createdAt,
     DateTime? updatedAt,
+    bool? allowComments,
   }) {
     return PostModel(
       id: id ?? this.id,
@@ -179,6 +186,7 @@ class PostModel {
       location: location ?? this.location,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      allowComments: allowComments ?? this.allowComments,
     );
   }
 }

@@ -156,6 +156,21 @@ class PostsRepositoryImpl implements PostsRepository {
   }
 
   @override
+  Future<Result<PaginatedResponse<PostModel>>> getLikedPosts({
+    String? cursor,
+    int limit = 20,
+  }) async {
+    try {
+      final response = await _apiService.getLikedPosts(cursor: cursor, limit: limit);
+      return Right(response);
+    } on DioException catch (e) {
+      return Left(NetworkErrorHandler.handleDioError(e));
+    } catch (e) {
+      return Left(NetworkErrorHandler.handleException(e));
+    }
+  }
+
+  @override
   Future<Result<void>> sharePost(String postId) async {
     try {
       await _apiService.sharePost(postId);

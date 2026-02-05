@@ -96,6 +96,13 @@ abstract class PostsApiService {
     @Query('limit') int limit = 20,
   });
 
+  /// GET /posts/liked - Get liked posts
+  @GET('/posts/liked')
+  Future<PaginatedResponse<PostModel>> getLikedPosts({
+    @Query('cursor') String? cursor,
+    @Query('limit') int limit = 20,
+  });
+
   // ============ SHARE & VIEW ============
 
   /// POST /posts/{postId}/share - Share a post

@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/network_avatar.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/data/models/user_model.dart';
+import '../../../settings/presentation/pages/settings_page.dart';
 import '../../data/models/chat_model.dart';
 import '../providers/chat_provider.dart';
 
@@ -98,6 +99,21 @@ class _ChatRoomPageState extends ConsumerState<ChatRoomPage> {
   }
 
   PreferredSizeWidget _buildAppBar(ThemeData theme, bool isDark) {
+    // Check if current user has enabled showing online status
+    final settings = ref.watch(settingsStateProvider);
+    final showOnlineStatus = settings.showOnlineStatus;
+    
+    // Also check if the other user allows showing their online status
+    // The other user's showOnlineStatus preference should be respected
+    final otherUserShowsOnlineStatus = widget.otherUser?.showOnlineStatus ?? true;
+    
+    // Only show online status if both users have it enabled
+    final shouldShowOnlineStatus = showOnlineStatus && otherUserShowsOnlineStatus;
+    
+    // Determine online status based on the other user's actual status (string like "online", "offline")
+    final otherUserOnlineStatus = widget.otherUser?.onlineStatus;
+    final isOtherUserOnline = otherUserOnlineStatus?.toLowerCase() == 'online';
+    
     return AppBar(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       elevation: 0,
@@ -140,10 +156,15 @@ class _ChatRoomPageState extends ConsumerState<ChatRoomPage> {
                         ),
                     ],
                   ),
-                  const Text(
-                    'Online',
-                    style: TextStyle(fontSize: 12, color: Colors.green),
-                  ),
+                  // Only show online status if both users have it enabled
+                  if (shouldShowOnlineStatus)
+                    Text(
+                      isOtherUserOnline ? 'Online' : 'Offline',
+                      style: TextStyle(
+                        fontSize: 12, 
+                        color: isOtherUserOnline ? Colors.green : Colors.grey,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -204,12 +225,15 @@ class _ChatRoomPageState extends ConsumerState<ChatRoomPage> {
       return _buildEmptyState();
     }
 
-    return ListView.builder(
-      controller: _scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      reverse: true, // Messages are newest first
-      itemCount: state.messages.length + (state.isLoadingMore ? 1 : 0),
-      itemBuilder: (context, index) {
+    return RefreshIndicator(
+      onRefresh: () => ref.read(chatMessagesProvider(widget.chatId).notifier).refresh(),
+      color: AppColors.primary,
+      child: ListView.builder(
+        controller: _scrollController,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        reverse: true, // Messages are newest first
+        itemCount: state.messages.length + (state.isLoadingMore ? 1 : 0),
+        itemBuilder: (context, index) {
         if (index == state.messages.length) {
           return const Center(
             child: Padding(
@@ -240,6 +264,7 @@ class _ChatRoomPageState extends ConsumerState<ChatRoomPage> {
           ],
         );
       },
+      ),
     );
   }
 
@@ -376,7 +401,7 @@ class _ChatRoomPageState extends ConsumerState<ChatRoomPage> {
   }
 
   void _scrollToBottom() {
-    if (_scrollController.hasClients) {
+    if (_scrollController.hasClients && _scrollController.position.hasContentDimensions) {
       _scrollController.animateTo(
         0, // Since reverse: true, 0 is the bottom
         duration: const Duration(milliseconds: 300),

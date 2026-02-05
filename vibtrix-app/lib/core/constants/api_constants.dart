@@ -1,13 +1,43 @@
 /// API Constants for VidiBattle
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 class ApiConstants {
   ApiConstants._();
 
-  // Base URL - Change this for production
-  // For physical device testing, use your computer's local IP address
-  // Example: 'http://192.168.1.100:3000'
-  // For Android emulator, use: 'http://10.0.2.2:3000'
-  // For iOS simulator, use: 'http://localhost:3000'
-  static const String baseUrl = 'http://10.0.2.2:3000';
+  // Base URL - Automatically detects platform for local development
+  // For production, change _localPort to your production URL
+  static const String _localPort = '3000';
+  static const String _productionUrl = 'https://api.vidibattle.com'; // Change for production
+  static const bool _useProduction = false; // Set to true for production builds
+  
+  /// Get the appropriate base URL based on platform
+  static String get baseUrl {
+    if (_useProduction) {
+      return _productionUrl;
+    }
+    
+    // Local development URLs
+    if (kIsWeb) {
+      return 'http://localhost:$_localPort';
+    }
+    
+    try {
+      if (Platform.isAndroid) {
+        // Android emulator uses 10.0.2.2 to access host machine
+        return 'http://10.0.2.2:$_localPort';
+      } else if (Platform.isIOS) {
+        // iOS simulator can use localhost
+        return 'http://localhost:$_localPort';
+      } else {
+        // Desktop platforms
+        return 'http://localhost:$_localPort';
+      }
+    } catch (e) {
+      // Fallback for web or other platforms
+      return 'http://localhost:$_localPort';
+    }
+  }
   
   // API Version
   static const String apiVersion = '/api';

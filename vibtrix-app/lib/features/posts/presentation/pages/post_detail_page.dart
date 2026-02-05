@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/network_avatar.dart';
 import '../../../../core/utils/url_utils.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../feed/presentation/widgets/video_player_widget.dart';
 import '../../data/models/post_model.dart';
 import '../providers/posts_provider.dart';
 import 'comments_page.dart';
@@ -82,50 +83,47 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
     final post = state.post!;
     final currentUser = ref.watch(authProvider).user;
     final isOwner = currentUser?.id == post.userId;
-    final isVideo = post.media?.type == 'video';
+    final isVideo = post.media?.type?.toLowerCase() == 'video';
+    final hasMedia = post.media != null && post.media!.url.isNotEmpty;
     // Use URL utility to get full URL for media
     final mediaUrl = UrlUtils.getPostThumbnailUrl(post.media?.thumbnailUrl, post.media?.url);
     final user = post.user;
 
+    // Text-only posts get a different layout
+    if (!hasMedia) {
+      return _buildTextOnlyPostContent(post, user, isOwner);
+    }
+
     return Stack(
       fit: StackFit.expand,
       children: [
-        // Media (Image/Video thumbnail)
+        // Media (Image/Video)
         GestureDetector(
           onDoubleTap: () {
             if (!post.isLiked) {
               ref.read(postDetailProvider(widget.postId).notifier).toggleLike();
             }
           },
-          child: CachedNetworkImage(
-            imageUrl: mediaUrl,
-            fit: BoxFit.contain,
-            placeholder: (context, url) => const Center(
-              child: CircularProgressIndicator(color: Colors.white),
-            ),
-            errorWidget: (context, url, error) => Container(
-              color: Colors.grey.shade900,
-              child: const Icon(Icons.error, color: Colors.white, size: 48),
-            ),
-          ),
+          child: isVideo && post.media?.url != null
+              ? VideoPlayerWidget(
+                  videoUrl: post.media!.url,
+                  thumbnailUrl: post.media?.thumbnailUrl,
+                  autoPlay: true,
+                  looping: true,
+                  showControls: true,
+                )
+              : CachedNetworkImage(
+                  imageUrl: mediaUrl,
+                  fit: BoxFit.contain,
+                  placeholder: (context, url) => const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: Colors.grey.shade900,
+                    child: const Icon(Icons.error, color: Colors.white, size: 48),
+                  ),
+                ),
         ),
-
-        // Video play button overlay
-        if (isVideo)
-          Center(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.5),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.play_arrow,
-                color: Colors.white,
-                size: 48,
-              ),
-            ),
-          ),
 
         // Top bar
         Positioned(
@@ -342,6 +340,212 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           ),
         ),
       ],
+    );
+  }
+
+  /// Build text-only post content (Twitter-style)
+  Widget _buildTextOnlyPostContent(PostModel post, dynamic user, bool isOwner) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    return Scaffold(
+      backgroundColor: isDark ? Colors.black : Colors.white,
+      appBar: AppBar(
+        backgroundColor: isDark ? Colors.black : Colors.white,
+        foregroundColor: isDark ? Colors.white : Colors.black,
+        elevation: 0,
+        title: const Text('Post'),
+        actions: [
+          IconButton(
+            onPressed: () => _showMoreOptions(post, isOwner),
+            icon: const Icon(Icons.more_vert),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // User header
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => context.push('/user/${post.userId}'),
+                    child: NetworkAvatar(
+                      imageUrl: user?.profilePicture,
+                      fallbackText: user?.name ?? user?.username ?? 'U',
+                      radius: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => context.push('/user/${post.userId}'),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                user?.name ?? user?.username ?? 'Unknown',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              if (user?.isVerified ?? false) ...[
+                                const SizedBox(width: 4),
+                                const Icon(
+                                  Icons.verified,
+                                  color: Colors.blue,
+                                  size: 16,
+                                ),
+                              ],
+                            ],
+                          ),
+                          Text(
+                            '@${user?.username ?? 'unknown'}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Main text content - Twitter style
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                post.caption ?? '',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontSize: (post.caption?.length ?? 0) < 100 ? 22 : 18,
+                  height: 1.4,
+                ),
+              ),
+            ),
+            
+            // Hashtags
+            if (post.hashtags != null && post.hashtags!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: post.hashtags!.map((tag) {
+                    return GestureDetector(
+                      onTap: () => context.push('/search?q=%23$tag'),
+                      child: Text(
+                        '#$tag',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+            
+            // Timestamp
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                timeago.format(post.createdAt),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+            
+            const Divider(),
+            
+            // Stats row
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Text(
+                    '${_formatCount(post.likesCount)} likes',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    '${_formatCount(post.commentsCount)} comments',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    '${_formatCount(post.sharesCount)} shares',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            const Divider(),
+            
+            // Action buttons
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      ref.read(postDetailProvider(widget.postId).notifier).toggleLike();
+                    },
+                    icon: Icon(
+                      post.isLiked ? Icons.favorite : Icons.favorite_border,
+                      color: post.isLiked ? Colors.red : null,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: _showCommentsSheet,
+                    icon: const Icon(Icons.chat_bubble_outline),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Share options')),
+                      );
+                    },
+                    icon: const Icon(Icons.share_outlined),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      ref.read(postDetailProvider(widget.postId).notifier).toggleSave();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(post.isBookmarked ? 'Removed from bookmarks' : 'Saved to bookmarks'),
+                          duration: const Duration(seconds: 1),
+                        ),
+                      );
+                    },
+                    icon: Icon(
+                      post.isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                      color: post.isBookmarked ? Colors.amber : null,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

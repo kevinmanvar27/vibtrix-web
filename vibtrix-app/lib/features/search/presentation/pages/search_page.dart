@@ -1,7 +1,11 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:async';
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/widgets/network_avatar.dart';
 import '../../../../core/utils/url_utils.dart';
 import '../../../auth/data/models/user_model.dart';
@@ -11,7 +15,7 @@ import '../../../explore/presentation/providers/explore_provider.dart';
 import '../../../users/presentation/pages/profile_page.dart';
 
 /// Search page for finding users, posts, and competitions
-/// CONNECTED TO REAL API
+/// CONNECTED TO REAL API - Instagram-style real-time search
 class SearchPage extends ConsumerStatefulWidget {
   const SearchPage({super.key});
 
@@ -20,43 +24,91 @@ class SearchPage extends ConsumerStatefulWidget {
 }
 
 class _SearchPageState extends ConsumerState<SearchPage> with SingleTickerProviderStateMixin {
+  static const _recentSearchesKey = 'recent_searches';
+  
   final _searchController = TextEditingController();
   late TabController _tabController;
   String _query = '';
   List<String> _recentSearches = [];
+  Timer? _debounceTimer;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _searchController.addListener(() {
-      setState(() {
-        _query = _searchController.text;
-      });
-    });
+    _searchController.addListener(_onSearchChanged);
+    _loadRecentSearches();
   }
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     _tabController.dispose();
     super.dispose();
   }
 
+  /// Load recent searches from SharedPreferences
+  Future<void> _loadRecentSearches() async {
+    final prefs = await SharedPreferences.getInstance();
+    final searches = prefs.getStringList(_recentSearchesKey) ?? [];
+    if (mounted) {
+      setState(() {
+        _recentSearches = searches;
+      });
+    }
+  }
+
+  /// Save recent searches to SharedPreferences
+  Future<void> _saveRecentSearches() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_recentSearchesKey, _recentSearches);
+  }
+
+  /// Called when search text changes - implements debounced real-time search
+  void _onSearchChanged() {
+    final query = _searchController.text;
+    
+    setState(() {
+      _query = query;
+    });
+
+    // Cancel previous timer
+    _debounceTimer?.cancel();
+
+    // If query is empty, clear search results
+    if (query.trim().isEmpty) {
+      ref.read(searchProvider.notifier).clearSearch();
+      return;
+    }
+
+    // Debounce search - wait 300ms after user stops typing
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      _performSearch(query);
+    });
+  }
+
   void _performSearch(String query) {
     if (query.trim().isEmpty) return;
     
+    // Don't add to recent searches here - only add when user explicitly submits
+    // or taps on a search result
+
+    // Perform search using provider
+    ref.read(searchProvider.notifier).search(query);
+  }
+
+  void _addToRecentSearches(String query) {
     setState(() {
-      // Add to recent searches
       _recentSearches.remove(query);
       _recentSearches.insert(0, query);
       if (_recentSearches.length > 10) {
         _recentSearches = _recentSearches.take(10).toList();
       }
     });
-
-    // Perform search using provider
-    ref.read(searchProvider.notifier).search(query);
+    // Persist to storage
+    _saveRecentSearches();
   }
 
   void _clearSearch() {
@@ -71,6 +123,7 @@ class _SearchPageState extends ConsumerState<SearchPage> with SingleTickerProvid
   Widget build(BuildContext context) {
     final searchState = ref.watch(searchProvider);
     final exploreState = ref.watch(exploreProvider);
+    final hasResults = searchState.users.isNotEmpty || searchState.posts.isNotEmpty;
     
     return Scaffold(
       appBar: AppBar(
@@ -90,16 +143,13 @@ class _SearchPageState extends ConsumerState<SearchPage> with SingleTickerProvid
                 : null,
           ),
           textInputAction: TextInputAction.search,
-          onSubmitted: _performSearch,
+          onSubmitted: (query) {
+            if (query.isNotEmpty) {
+              _addToRecentSearches(query);
+            }
+          },
         ),
-        actions: [
-          if (_query.isNotEmpty)
-            TextButton(
-              onPressed: () => _performSearch(_query),
-              child: const Text('Search'),
-            ),
-        ],
-        bottom: _query.isNotEmpty
+        bottom: _query.isNotEmpty && hasResults
             ? TabBar(
                 controller: _tabController,
                 isScrollable: true,
@@ -116,15 +166,17 @@ class _SearchPageState extends ConsumerState<SearchPage> with SingleTickerProvid
           ? _buildInitialState(exploreState)
           : searchState.isLoading
               ? const Center(child: CircularProgressIndicator())
-              : TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildAllResults(searchState),
-                    _buildUserResults(searchState),
-                    _buildPostResults(searchState),
-                    _buildCompetitionResults(),
-                  ],
-                ),
+              : !hasResults
+                  ? _buildNoResults()
+                  : TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _buildAllResults(searchState),
+                        _buildUserResults(searchState),
+                        _buildPostResults(searchState),
+                        _buildCompetitionResults(),
+                      ],
+                    ),
     );
   }
 
@@ -444,6 +496,7 @@ class _SearchPageState extends ConsumerState<SearchPage> with SingleTickerProvid
         child: const Text('Follow'),
       ),
       onTap: () {
+        _addToRecentSearches(user.username);
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => ProfilePage(userId: user.id)),
@@ -459,35 +512,65 @@ class _SearchPageState extends ConsumerState<SearchPage> with SingleTickerProvid
       post.media?.url,
     );
     final isVideo = post.media?.type == 'video';
+    final isTextOnly = post.media == null || post.media!.url.isEmpty;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     
     return GestureDetector(
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Opening post by ${post.user?.name ?? 'Unknown'}')),
-        );
+        context.push('/post/${post.id}');
       },
       child: ClipRRect(
         borderRadius: BorderRadius.circular(4),
         child: Stack(
           fit: StackFit.expand,
           children: [
-            thumbnailUrl.isNotEmpty
-                ? CachedNetworkImage(
-                    imageUrl: thumbnailUrl,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: Colors.grey.shade200,
+            // Text-only posts show text preview
+            if (isTextOnly)
+              Container(
+                color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.text_fields,
+                      color: theme.colorScheme.primary,
+                      size: 16,
                     ),
-                    errorWidget: (context, url, error) => Container(
-                      color: Colors.grey.shade200,
-                      child: const Icon(Icons.error),
+                    const SizedBox(height: 4),
+                    Expanded(
+                      child: Text(
+                        post.caption ?? '',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: 11,
+                          height: 1.2,
+                        ),
+                        maxLines: 5,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  )
-                : Container(
-                    color: Colors.grey.shade200,
-                    child: const Icon(Icons.image_not_supported),
-                  ),
-            if (isVideo)
+                  ],
+                ),
+              )
+            else if (thumbnailUrl.isNotEmpty)
+              CachedNetworkImage(
+                imageUrl: thumbnailUrl,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  color: Colors.grey.shade200,
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: Colors.grey.shade200,
+                  child: const Icon(Icons.error),
+                ),
+              )
+            else
+              Container(
+                color: Colors.grey.shade200,
+                child: const Icon(Icons.image_not_supported),
+              ),
+            if (isVideo && !isTextOnly)
               const Positioned(
                 top: 4,
                 right: 4,
@@ -500,101 +583,31 @@ class _SearchPageState extends ConsumerState<SearchPage> with SingleTickerProvid
   }
 
   Widget _buildCompetitionTile(CompetitionModel competition) {
-    // Use URL utility to get full URL for images
-    final thumbnailUrl = UrlUtils.getFullMediaUrl(competition.thumbnailUrl ?? '');
-    
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: () {
-          Navigator.pushNamed(context, '/competition-detail', arguments: competition.id);
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: thumbnailUrl.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: thumbnailUrl,
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          width: 80,
-                          height: 80,
-                          color: Colors.grey.shade200,
-                          child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          width: 80,
-                          height: 80,
-                          color: Colors.grey.shade200,
-                          child: const Icon(Icons.emoji_events),
-                        ),
-                      )
-                    : Container(
-                        width: 80,
-                        height: 80,
-                        color: Colors.grey.shade200,
-                        child: const Icon(Icons.emoji_events),
-                      ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      competition.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      competition.type.name.toUpperCase(),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.emoji_events, size: 14, color: Colors.amber),
-                        const SizedBox(width: 4),
-                        Text(
-                          '₹${competition.prizePool}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Icon(Icons.people, size: 14, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${competition.participantsCount}',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                color: Colors.grey.shade400,
-              ),
-            ],
+      child: ListTile(
+        leading: Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            color: Colors.orange.shade100,
+            borderRadius: BorderRadius.circular(8),
           ),
+          child: const Icon(Icons.emoji_events, color: Colors.orange),
         ),
+        title: Text(
+          competition.name,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(
+          '${competition.participantsCount} participants • ${competition.status.name}',
+        ),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Opening ${competition.name}')),
+          );
+        },
       ),
     );
   }

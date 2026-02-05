@@ -2,19 +2,7 @@
 const nextConfig = {
   // Ensure SPA behavior with proper client-side navigation
   skipTrailingSlashRedirect: true,
-  skipMiddlewareUrlNormalize: true,
-
-  // Enable strict mode in development for better error detection
-  reactStrictMode: process.env.NODE_ENV !== 'production',
-
-  // Disable console output in production
-  onDemandEntries: {
-    // Keep error pages in memory
-    maxInactiveAge: 60 * 60 * 1000, // 1 hour
-    // Suppress webpack logs
-    pagesBufferLength: 2,
-  },
-
+  
   experimental: {
     // Enable staleTimes for faster navigation - IMPORTANT for instant page loads
     staleTimes: {
@@ -41,8 +29,8 @@ const nextConfig = {
     // Enable server minification for smaller bundles
     serverMinification: true,
   },
-  // Optimize fonts
-  optimizeFonts: true,
+  // Font optimization is now handled by Next.js automatically
+  // optimizeFonts option removed as it's deprecated
   serverExternalPackages: ["@node-rs/argon2", "sharp"],
   images: {
     remotePatterns: [

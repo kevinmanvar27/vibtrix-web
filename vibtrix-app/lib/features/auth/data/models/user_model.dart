@@ -549,6 +549,9 @@ class SimpleUserModel {
   final bool? isFollowedBy;
   final int? followersCount;
   final int? followingCount;
+  // Online status fields for chat
+  final String? onlineStatus; // "online", "offline", etc.
+  final bool? showOnlineStatus;
 
   const SimpleUserModel({
     required this.id,
@@ -561,6 +564,8 @@ class SimpleUserModel {
     this.isFollowedBy,
     this.followersCount,
     this.followingCount,
+    this.onlineStatus,
+    this.showOnlineStatus,
   });
 
   /// Custom fromJson that handles API field name differences
@@ -592,7 +597,22 @@ class SimpleUserModel {
                       (json['followersCount'] as num?)?.toInt(),
       followingCount: count?['following'] as int? ?? 
                       (json['followingCount'] as num?)?.toInt(),
+      // Online status fields
+      onlineStatus: json['onlineStatus'] as String?,
+      showOnlineStatus: _parseBool(json['showOnlineStatus']),
     );
+  }
+  
+  /// Helper to parse bool values that might come as strings from API
+  static bool? _parseBool(dynamic value) {
+    if (value == null) return null;
+    if (value is bool) return value;
+    if (value is String) {
+      final lower = value.toLowerCase();
+      if (lower == 'true' || lower == '1') return true;
+      if (lower == 'false' || lower == '0') return false;
+    }
+    return null;
   }
 
   Map<String, dynamic> toJson() => _$SimpleUserModelToJson(this);
@@ -608,6 +628,8 @@ class SimpleUserModel {
     bool? isFollowedBy,
     int? followersCount,
     int? followingCount,
+    String? onlineStatus,
+    bool? showOnlineStatus,
   }) {
     return SimpleUserModel(
       id: id ?? this.id,
@@ -620,6 +642,8 @@ class SimpleUserModel {
       isFollowedBy: isFollowedBy ?? this.isFollowedBy,
       followersCount: followersCount ?? this.followersCount,
       followingCount: followingCount ?? this.followingCount,
+      onlineStatus: onlineStatus ?? this.onlineStatus,
+      showOnlineStatus: showOnlineStatus ?? this.showOnlineStatus,
     );
   }
 }

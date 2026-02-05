@@ -5,18 +5,27 @@ import 'package:go_router/go_router.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/network_avatar.dart';
+import '../../../../core/providers/repository_providers.dart';
+import '../../../settings/presentation/pages/settings_page.dart';
+import '../../../users/data/models/users_models.dart';
+import '../../../auth/data/models/user_model.dart';
 import '../../data/models/notification_model.dart';
 import '../providers/notifications_provider.dart';
 
 /// Page showing user notifications
 /// CONNECTED TO REAL API
+/// Filters notifications based on user preferences from settings
 class NotificationsPage extends ConsumerWidget {
   const NotificationsPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(notificationsProvider);
-    final unreadCount = state.unreadCount;
+    final settings = ref.watch(settingsStateProvider);
+    
+    // Filter notifications based on user preferences
+    final filteredNotifications = _filterNotifications(state.notifications, settings);
+    final unreadCount = filteredNotifications.where((n) => !n.isRead).length;
 
     return Scaffold(
       appBar: AppBar(
@@ -53,7 +62,12 @@ class NotificationsPage extends ConsumerWidget {
           PopupMenuButton<String>(
             onSelected: (value) {
               if (value == 'settings') {
-                context.push('/settings/notifications');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const NotificationPreferencesPage(),
+                  ),
+                );
               }
             },
             itemBuilder: (context) => [
@@ -75,13 +89,41 @@ class NotificationsPage extends ConsumerWidget {
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : state.errorMessage != null
               ? _buildErrorState(context, ref, state.errorMessage!)
-              : state.notifications.isEmpty
+              : filteredNotifications.isEmpty
                   ? _buildEmptyState(context)
                   : RefreshIndicator(
                       onRefresh: () => ref.read(notificationsProvider.notifier).refresh(),
-                      child: _buildNotificationsList(context, ref, state.notifications),
+                      child: _buildNotificationsList(context, ref, filteredNotifications, settings),
                     ),
     );
+  }
+
+  /// Filter notifications based on user preferences
+  List<NotificationModel> _filterNotifications(List<NotificationModel> notifications, SettingsState settings) {
+    return notifications.where((notification) {
+      switch (notification.type) {
+        case NotificationType.like:
+          return settings.notifyLikes;
+        case NotificationType.comment:
+          return settings.notifyComments;
+        case NotificationType.follow:
+        case NotificationType.followRequest:
+        case NotificationType.followAccepted:
+          return settings.notifyFollowers;
+        case NotificationType.mention:
+          return settings.notifyMentions;
+        case NotificationType.competitionStart:
+        case NotificationType.competitionEnd:
+        case NotificationType.competitionResult:
+        case NotificationType.competitionReminder:
+          return settings.notifyCompetitions;
+        case NotificationType.newMessage:
+          return settings.notifyMessages;
+        case NotificationType.payment:
+        case NotificationType.system:
+          return true; // Always show payment and system notifications
+      }
+    }).toList();
   }
 
   void _showMarkAllReadDialog(BuildContext context, WidgetRef ref) {
@@ -110,7 +152,7 @@ class NotificationsPage extends ConsumerWidget {
     );
   }
 
-  void _handleNotificationTap(BuildContext context, WidgetRef ref, NotificationModel notification) {
+  void _handleNotificationTap(BuildContext context, WidgetRef ref, NotificationModel notification, SettingsState settings) {
     // Mark as read
     ref.read(notificationsProvider.notifier).markAsRead(notification.id);
 
@@ -124,9 +166,16 @@ class NotificationsPage extends ConsumerWidget {
         }
         break;
       case NotificationType.follow:
-      case NotificationType.followRequest:
       case NotificationType.followAccepted:
         if (notification.actor != null) {
+          context.push('/profile/${notification.actor!.id}');
+        }
+        break;
+      case NotificationType.followRequest:
+        // For follow requests, show approval dialog if private account
+        if (settings.privateAccount && notification.actor != null) {
+          _showFollowRequestDialog(context, ref, notification);
+        } else if (notification.actor != null) {
           context.push('/profile/${notification.actor!.id}');
         }
         break;
@@ -153,6 +202,88 @@ class NotificationsPage extends ConsumerWidget {
         );
         break;
     }
+  }
+
+  /// Show dialog to approve/reject follow request (for private accounts)
+  void _showFollowRequestDialog(BuildContext context, WidgetRef ref, NotificationModel notification) {
+    final actor = notification.actor!;
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Follow Request'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            NetworkAvatar(
+              imageUrl: actor.profilePicture,
+              radius: 40,
+              fallbackText: actor.username,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              actor.name ?? actor.username,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            Text(
+              '@${actor.username}',
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 8),
+            const Text('wants to follow you'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              // Reject follow request
+              final repository = ref.read(usersRepositoryProvider);
+              // Use the notification ID or data.userId as the request ID
+              final requestId = notification.data?.userId ?? notification.id;
+              final result = await repository.rejectFollowRequest(requestId);
+              result.fold(
+                (failure) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Failed to reject request')),
+                  );
+                },
+                (_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Rejected @${actor.username}\'s request')),
+                  );
+                  ref.read(notificationsProvider.notifier).refresh();
+                },
+              );
+            },
+            child: const Text('Reject', style: TextStyle(color: Colors.red)),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              // Accept follow request
+              final repository = ref.read(usersRepositoryProvider);
+              final requestId = notification.data?.userId ?? notification.id;
+              final result = await repository.acceptFollowRequest(requestId);
+              result.fold(
+                (failure) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Failed to accept request')),
+                  );
+                },
+                (_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Accepted @${actor.username}\'s request')),
+                  );
+                  ref.read(notificationsProvider.notifier).refresh();
+                },
+              );
+            },
+            child: const Text('Accept'),
+          ),
+        ],
+      ),
+    );
   }
 
   IconData _getNotificationIcon(NotificationType type) {
@@ -208,19 +339,28 @@ class NotificationsPage extends ConsumerWidget {
   }
 
   Widget _buildErrorState(BuildContext context, WidgetRef ref, String message) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline, size: 64, color: AppColors.error),
-          const SizedBox(height: 16),
-          Text(message, style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => ref.read(notificationsProvider.notifier).refresh(),
-            child: const Text('Retry'),
+    return RefreshIndicator(
+      onRefresh: () => ref.read(notificationsProvider.notifier).refresh(),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.7,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: AppColors.error),
+                const SizedBox(height: 16),
+                Text(message, style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => ref.read(notificationsProvider.notifier).refresh(),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -255,17 +395,26 @@ class NotificationsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildNotificationsList(BuildContext context, WidgetRef ref, List<NotificationModel> notifications) {
+  Widget _buildNotificationsList(BuildContext context, WidgetRef ref, List<NotificationModel> notifications, SettingsState settings) {
     // Group notifications by date
     final today = <NotificationModel>[];
     final yesterday = <NotificationModel>[];
     final earlier = <NotificationModel>[];
+
+    // Separate follow requests for private accounts
+    final followRequests = <NotificationModel>[];
 
     final now = DateTime.now();
     final todayStart = DateTime(now.year, now.month, now.day);
     final yesterdayStart = todayStart.subtract(const Duration(days: 1));
 
     for (final notification in notifications) {
+      // Separate follow requests if private account is enabled
+      if (settings.privateAccount && notification.type == NotificationType.followRequest) {
+        followRequests.add(notification);
+        continue;
+      }
+      
       if (notification.createdAt.isAfter(todayStart)) {
         today.add(notification);
       } else if (notification.createdAt.isAfter(yesterdayStart)) {
@@ -276,18 +425,25 @@ class NotificationsPage extends ConsumerWidget {
     }
 
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       children: [
+        // Follow Requests Section (for private accounts)
+        if (followRequests.isNotEmpty) ...[
+          _buildSectionHeader(context, 'Follow Requests'),
+          ...followRequests.map((n) => _buildFollowRequestTile(context, ref, n)),
+          const Divider(height: 24),
+        ],
         if (today.isNotEmpty) ...[
           _buildSectionHeader(context, 'Today'),
-          ...today.map((n) => _buildNotificationTile(context, ref, n)),
+          ...today.map((n) => _buildNotificationTile(context, ref, n, settings)),
         ],
         if (yesterday.isNotEmpty) ...[
           _buildSectionHeader(context, 'Yesterday'),
-          ...yesterday.map((n) => _buildNotificationTile(context, ref, n)),
+          ...yesterday.map((n) => _buildNotificationTile(context, ref, n, settings)),
         ],
         if (earlier.isNotEmpty) ...[
           _buildSectionHeader(context, 'Earlier'),
-          ...earlier.map((n) => _buildNotificationTile(context, ref, n)),
+          ...earlier.map((n) => _buildNotificationTile(context, ref, n, settings)),
         ],
         const SizedBox(height: 20),
       ],
@@ -307,7 +463,122 @@ class NotificationsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildNotificationTile(BuildContext context, WidgetRef ref, NotificationModel notification) {
+  /// Build follow request tile with Accept/Reject buttons (Instagram-style)
+  Widget _buildFollowRequestTile(BuildContext context, WidgetRef ref, NotificationModel notification) {
+    final actor = notification.actor;
+    if (actor == null) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      color: notification.isRead 
+          ? null 
+          : Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => context.push('/profile/${actor.id}'),
+            child: NetworkAvatar(
+              imageUrl: actor.profilePicture,
+              radius: 24,
+              fallbackText: actor.username,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => context.push('/profile/${actor.id}'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  RichText(
+                    text: TextSpan(
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      children: [
+                        TextSpan(
+                          text: actor.name ?? actor.username,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const TextSpan(text: ' requested to follow you'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    timeago.format(notification.createdAt),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey.shade500,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Accept button
+          SizedBox(
+            height: 32,
+            child: FilledButton(
+              onPressed: () async {
+                final repository = ref.read(usersRepositoryProvider);
+                final requestId = notification.data?.userId ?? notification.id;
+                final result = await repository.acceptFollowRequest(requestId);
+                result.fold(
+                  (failure) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Failed to accept request')),
+                    );
+                  },
+                  (_) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Accepted @${actor.username}')),
+                    );
+                    ref.read(notificationsProvider.notifier).refresh();
+                  },
+                );
+              },
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                textStyle: const TextStyle(fontSize: 13),
+              ),
+              child: const Text('Accept'),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Reject button
+          SizedBox(
+            height: 32,
+            child: OutlinedButton(
+              onPressed: () async {
+                final repository = ref.read(usersRepositoryProvider);
+                final requestId = notification.data?.userId ?? notification.id;
+                final result = await repository.rejectFollowRequest(requestId);
+                result.fold(
+                  (failure) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Failed to reject request')),
+                    );
+                  },
+                  (_) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Rejected @${actor.username}')),
+                    );
+                    ref.read(notificationsProvider.notifier).refresh();
+                  },
+                );
+              },
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                textStyle: const TextStyle(fontSize: 13),
+              ),
+              child: const Text('Reject'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotificationTile(BuildContext context, WidgetRef ref, NotificationModel notification, SettingsState settings) {
     final iconColor = _getNotificationColor(notification.type);
     
     return Dismissible(
@@ -326,7 +597,7 @@ class NotificationsPage extends ConsumerWidget {
         );
       },
       child: InkWell(
-        onTap: () => _handleNotificationTap(context, ref, notification),
+        onTap: () => _handleNotificationTap(context, ref, notification, settings),
         child: Container(
           color: notification.isRead 
               ? null 

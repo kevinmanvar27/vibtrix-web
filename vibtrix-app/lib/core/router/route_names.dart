@@ -35,6 +35,8 @@ abstract class RouteNames {
   static const String postDetail = '/post/:postId';
   static const String postComments = '/post/:postId/comments';
   static const String postLikes = '/post/:postId/likes';
+  static const String reels = '/reels';
+  static const String reelsWithPost = '/reels/:postId';
   
   // ============================================
   // USER ROUTES
@@ -110,6 +112,9 @@ abstract class RouteNames {
   
   /// Generate post likes route
   static String postLikesPath(String postId) => '/post/$postId/likes';
+  
+  /// Generate reels route with optional initial post
+  static String reelsPath([String? postId]) => postId != null ? '/reels/$postId' : '/reels';
   
   /// Generate user profile route
   static String userProfilePath(String userId) => '/user/$userId';

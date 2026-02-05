@@ -73,6 +73,7 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
       onRefresh: () => ref.read(chatsListProvider.notifier).refresh(),
       color: AppColors.primary,
       child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
         itemCount: state.chats.length + (state.isLoadingMore ? 1 : 0),
         itemBuilder: (context, index) {
           if (index == state.chats.length) {
@@ -191,7 +192,8 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
               title: Text(chat.isMuted ? 'Unmute Notifications' : 'Mute Notifications'),
               onTap: () {
                 Navigator.pop(context);
-                // TODO: Implement mute/unmute via API
+                // Toggle mute via provider
+                ref.read(chatsListProvider.notifier).toggleMute(chat.id);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(chat.isMuted ? 'Notifications unmuted!' : 'Notifications muted!')),
                 );

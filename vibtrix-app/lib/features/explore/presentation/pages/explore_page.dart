@@ -294,6 +294,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage> with SingleTickerProv
     }
     
     return GridView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(2),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
@@ -312,6 +313,9 @@ class _ExplorePageState extends ConsumerState<ExplorePage> with SingleTickerProv
       post.media?.url,
     );
     final isVideo = post.media?.type == 'video';
+    final isTextOnly = post.media == null || post.media!.url.isEmpty;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     
     return GestureDetector(
       onTap: () {
@@ -321,27 +325,57 @@ class _ExplorePageState extends ConsumerState<ExplorePage> with SingleTickerProv
       child: Stack(
         fit: StackFit.expand,
         children: [
-          thumbnailUrl.isNotEmpty
-              ? CachedNetworkImage(
-                  imageUrl: thumbnailUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey.shade200,
-                    child: const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
+          // Text-only posts show text preview
+          if (isTextOnly)
+            Container(
+              color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Text icon indicator
+                  Icon(
+                    Icons.text_fields,
+                    color: theme.colorScheme.primary,
+                    size: 16,
+                  ),
+                  const SizedBox(height: 4),
+                  Expanded(
+                    child: Text(
+                      post.caption ?? '',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontSize: 11,
+                        height: 1.2,
+                      ),
+                      maxLines: 5,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  errorWidget: (context, url, error) => Container(
-                    color: Colors.grey.shade200,
-                    child: const Icon(Icons.error),
-                  ),
-                )
-              : Container(
-                  color: Colors.grey.shade200,
-                  child: const Icon(Icons.image_not_supported),
+                ],
+              ),
+            )
+          else if (thumbnailUrl.isNotEmpty)
+            CachedNetworkImage(
+              imageUrl: thumbnailUrl,
+              fit: BoxFit.cover,
+              placeholder: (context, url) => Container(
+                color: Colors.grey.shade200,
+                child: const Center(
+                  child: CircularProgressIndicator(strokeWidth: 2),
                 ),
+              ),
+              errorWidget: (context, url, error) => Container(
+                color: Colors.grey.shade200,
+                child: const Icon(Icons.error),
+              ),
+            )
+          else
+            Container(
+              color: Colors.grey.shade200,
+              child: const Icon(Icons.image_not_supported),
+            ),
           // Video indicator
-          if (isVideo)
+          if (isVideo && !isTextOnly)
             const Positioned(
               top: 8,
               right: 8,
@@ -351,36 +385,37 @@ class _ExplorePageState extends ConsumerState<ExplorePage> with SingleTickerProv
                 size: 24,
               ),
             ),
-          // Stats overlay on hover/tap
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.6),
-                    Colors.transparent,
+          // Stats overlay on hover/tap (only for media posts)
+          if (!isTextOnly)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.6),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.favorite, color: Colors.white, size: 12),
+                    const SizedBox(width: 2),
+                    Text(
+                      _formatCount(post.likesCount),
+                      style: const TextStyle(color: Colors.white, fontSize: 10),
+                    ),
                   ],
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.favorite, color: Colors.white, size: 12),
-                  const SizedBox(width: 2),
-                  Text(
-                    _formatCount(post.likesCount),
-                    style: const TextStyle(color: Colors.white, fontSize: 10),
-                  ),
-                ],
-              ),
             ),
-          ),
         ],
       ),
     );

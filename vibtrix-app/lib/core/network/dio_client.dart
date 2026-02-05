@@ -171,7 +171,7 @@ class DioClient {
       // Create a new Dio instance to avoid interceptor loop
       final refreshDio = Dio(
         BaseOptions(
-          baseUrl: ApiConstants.baseUrl,
+          baseUrl: ApiConstants.apiUrl,  // Use apiUrl which includes /api prefix
           headers: {'Content-Type': 'application/json'},
           connectTimeout: const Duration(seconds: 10),
           receiveTimeout: const Duration(seconds: 10),

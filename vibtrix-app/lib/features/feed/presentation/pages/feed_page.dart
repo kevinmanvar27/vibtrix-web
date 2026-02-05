@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../posts/data/models/post_model.dart';
 import '../providers/feed_provider.dart';
 import '../widgets/post_card.dart';
 
@@ -26,6 +27,11 @@ class _FeedPageState extends ConsumerState<FeedPage> with SingleTickerProviderSt
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_onTabChanged);
     _scrollController.addListener(_onScroll);
+    
+    // Sync tab controller with provider state after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncTabWithProvider();
+    });
   }
 
   @override
@@ -35,6 +41,15 @@ class _FeedPageState extends ConsumerState<FeedPage> with SingleTickerProviderSt
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
+  }
+
+  /// Sync tab controller index with provider state
+  void _syncTabWithProvider() {
+    final feedType = ref.read(feedProvider).feedType;
+    final expectedIndex = feedType == FeedType.forYou ? 0 : 1;
+    if (_tabController.index != expectedIndex) {
+      _tabController.animateTo(expectedIndex);
+    }
   }
 
   void _onTabChanged() {
@@ -142,6 +157,7 @@ class _FeedPageState extends ConsumerState<FeedPage> with SingleTickerProviderSt
       onRefresh: () => ref.read(feedProvider.notifier).refresh(),
       color: AppColors.primary,
       child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.zero,
         itemCount: feedState.posts.length + (feedState.isLoadingMore ? 1 : 0) + (!feedState.hasMore && feedState.posts.isNotEmpty ? 1 : 0),
         itemBuilder: (context, index) {
@@ -181,7 +197,7 @@ class _FeedPageState extends ConsumerState<FeedPage> with SingleTickerProviderSt
           final post = feedState.posts[index];
           return PostCard(
             post: post,
-            onTap: () => _navigateToPostDetail(post.id),
+            onTap: () => _navigateToPostDetail(post),
             onUserTap: () => _navigateToUserProfile(post.userId),
             onCommentTap: () => _navigateToComments(post.id),
             onShareTap: () => _sharePost(post.id),
@@ -192,42 +208,50 @@ class _FeedPageState extends ConsumerState<FeedPage> with SingleTickerProviderSt
   }
 
   Widget _buildErrorState(String message) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.wifi_off_rounded,
-              size: 64,
-              color: Colors.grey,
+    return RefreshIndicator(
+      onRefresh: () => ref.read(feedProvider.notifier).refresh(),
+      color: AppColors.primary,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.6,
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.wifi_off_rounded,
+                  size: 64,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Oops! Something went wrong',
+                  style: Theme.of(context).textTheme.titleLarge,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () => ref.read(feedProvider.notifier).refresh(),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Try Again'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Oops! Something went wrong',
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () => ref.read(feedProvider.notifier).refresh(),
-              icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -295,8 +319,13 @@ class _FeedPageState extends ConsumerState<FeedPage> with SingleTickerProviderSt
     );
   }
 
-  void _navigateToPostDetail(String postId) {
-    context.push(RouteNames.postDetailPath(postId));
+  void _navigateToPostDetail(PostModel post) {
+    // Only open full-screen reels for video posts
+    if (post.media?.isVideo ?? false) {
+      context.push(RouteNames.reelsPath(post.id));
+    }
+    // For image/text posts, don't navigate to full screen
+    // The post is already visible in the feed
   }
 
   void _navigateToUserProfile(String userId) {

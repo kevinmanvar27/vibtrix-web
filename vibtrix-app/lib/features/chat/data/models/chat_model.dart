@@ -116,6 +116,33 @@ class ChatModel {
     final other = getOtherParticipant(currentUserId);
     return other?.user?.profilePicture;
   }
+
+  /// Create a copy of this ChatModel with the given fields replaced
+  ChatModel copyWith({
+    String? id,
+    ChatType? type,
+    String? name,
+    String? imageUrl,
+    List<ChatParticipantModel>? participants,
+    MessageModel? lastMessage,
+    int? unreadCount,
+    bool? isMuted,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return ChatModel(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      name: name ?? this.name,
+      imageUrl: imageUrl ?? this.imageUrl,
+      participants: participants ?? this.participants,
+      lastMessage: lastMessage ?? this.lastMessage,
+      unreadCount: unreadCount ?? this.unreadCount,
+      isMuted: isMuted ?? this.isMuted,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }
 
 enum ChatType {

@@ -47,6 +47,12 @@ abstract class PostsRepository {
     int limit = 20,
   });
 
+  /// Get liked posts
+  Future<Result<PaginatedResponse<PostModel>>> getLikedPosts({
+    String? cursor,
+    int limit = 20,
+  });
+
   /// Share a post
   Future<Result<void>> sharePost(String postId);
 

@@ -62,9 +62,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with SingleTickerProv
     await ref.read(userProfileProvider(effectiveUserId).notifier).loadUser();
     // Invalidate and refresh user posts
     ref.invalidate(userPostsProvider(effectiveUserId));
-    // Refresh saved posts if viewing own profile
+    // Refresh saved and liked posts if viewing own profile
     if (isOwnProfile) {
       ref.invalidate(savedPostsProvider);
+      ref.invalidate(likedPostsProvider);
     }
   }
 
@@ -283,7 +284,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with SingleTickerProv
               ),
               IconButton(
                 icon: const Icon(Icons.menu),
-                onPressed: () => _showSettingsMenu(context),
+                onPressed: () => context.push('/settings'),
               ),
             ]
           : [
@@ -301,6 +302,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with SingleTickerProv
   }
 
   Widget _buildProfileHeader(UserProfileModel user, ThemeData theme, bool isDark) {
+    // Get the phone/whatsapp number to display
+    final phoneNumber = user.whatsappNumber ?? user.phone;
+    final showPhone = user.showWhatsappNumber == true && phoneNumber != null && phoneNumber.isNotEmpty;
+    
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -325,13 +330,18 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with SingleTickerProv
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _buildStatColumn('Posts', user.postsCount, theme),
-                    GestureDetector(
+                    InkWell(
                       onTap: () => _navigateToFollowers(),
-                      child: _buildStatColumn('Followers', user.followersCount, theme),
+                      child: SizedBox(
+                        width: 58,
+                          child: _buildStatColumn('Followers', user.followersCount, theme)
+                      ),
                     ),
-                    GestureDetector(
+                    InkWell(
                       onTap: () => _navigateToFollowing(),
-                      child: _buildStatColumn('Following', user.followingCount, theme),
+                      child: SizedBox(
+                          width: 58,
+                          child: _buildStatColumn('Following', user.followingCount, theme)),
                     ),
                   ],
                 ),
@@ -354,6 +364,27 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with SingleTickerProv
             Text(
               user.bio!,
               style: theme.textTheme.bodyMedium,
+            ),
+          ],
+          
+          // Phone number (if user has enabled showing it)
+          if (showPhone) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(
+                  Icons.phone_outlined,
+                  size: 16,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  phoneNumber!,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                  ),
+                ),
+              ],
             ),
           ],
           
@@ -485,23 +516,24 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with SingleTickerProv
   }
 
   Widget _buildLikedPostsGrid() {
-    // For own profile, show liked posts from feed (posts that are liked)
+    // For own profile, show liked posts
     if (!isOwnProfile) {
       return _buildEmptyPostsState('Liked posts are private', Icons.favorite_border);
     }
     
-    // Use feed posts and filter by liked
-    final feedState = ref.watch(feedProvider);
-    final likedPosts = feedState.posts.where((p) => p.isLiked).toList();
+    // Use likedPostsProvider from feed_provider
+    final likedPostsAsync = ref.watch(likedPostsProvider);
     
-    if (feedState.isLoading) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.primary));
-    }
-    
-    if (likedPosts.isEmpty) {
-      return _buildEmptyPostsState('No liked posts yet\nLike posts to see them here', Icons.favorite_border);
-    }
-    return _buildPostsGridView(likedPosts);
+    return likedPostsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+      error: (error, _) => _buildEmptyPostsState('Failed to load liked posts', Icons.error_outline),
+      data: (posts) {
+        if (posts.isEmpty) {
+          return _buildEmptyPostsState('No liked posts yet\nLike posts to see them here', Icons.favorite_border);
+        }
+        return _buildPostsGridView(posts);
+      },
+    );
   }
 
   Widget _buildSavedPostsGrid() {
@@ -526,7 +558,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with SingleTickerProv
   }
 
   Widget _buildPostsGridView(List<PostModel> posts) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return GridView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(1),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
@@ -541,6 +577,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with SingleTickerProv
           post.media?.thumbnailUrl,
           post.media?.url,
         );
+        final isTextOnly = post.media == null || post.media!.url.isEmpty;
         
         return GestureDetector(
           onTap: () {
@@ -549,62 +586,86 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with SingleTickerProv
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Show thumbnail or placeholder
-              thumbnailUrl.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: thumbnailUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: AppColors.darkMuted,
-                        child: const Center(
-                          child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2),
-                        ),
+              // Text-only posts show text preview
+              if (isTextOnly)
+                Container(
+                  color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.text_fields,
+                        color: theme.colorScheme.primary,
+                        size: 16,
                       ),
-                      errorWidget: (context, url, error) => Container(
-                        color: AppColors.darkMuted,
-                        child: const Icon(Icons.image_not_supported, color: Colors.grey),
-                      ),
-                    )
-                  : Container(
-                      color: AppColors.darkMuted,
-                      child: Center(
+                      const SizedBox(height: 4),
+                      Expanded(
                         child: Text(
-                          post.caption?.substring(0, post.caption!.length > 20 ? 20 : post.caption!.length) ?? '',
-                          style: const TextStyle(color: Colors.white, fontSize: 12),
-                          textAlign: TextAlign.center,
+                          post.caption ?? '',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontSize: 11,
+                            height: 1.2,
+                          ),
+                          maxLines: 5,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                    ],
+                  ),
+                )
+              // Show thumbnail or placeholder for media posts
+              else if (thumbnailUrl.isNotEmpty)
+                CachedNetworkImage(
+                  imageUrl: thumbnailUrl,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    color: AppColors.darkMuted,
+                    child: const Center(
+                      child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2),
                     ),
-              // Video indicator
-              if (post.media?.isVideo ?? false)
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: AppColors.darkMuted,
+                    child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                  ),
+                )
+              else
+                Container(
+                  color: AppColors.darkMuted,
+                  child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                ),
+              // Video indicator (only for media posts)
+              if (!isTextOnly && (post.media?.isVideo ?? false))
                 const Positioned(
                   top: 8,
                   right: 8,
                   child: Icon(Icons.play_arrow, color: Colors.white, size: 24),
                 ),
-              // Likes count overlay
-              Positioned(
-                bottom: 4,
-                left: 4,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.favorite, color: Colors.white, size: 12),
-                      const SizedBox(width: 2),
-                      Text(
-                        _formatCount(post.likesCount),
-                        style: const TextStyle(color: Colors.white, fontSize: 10),
-                      ),
-                    ],
+              // Likes count overlay (only for media posts)
+              if (!isTextOnly)
+                Positioned(
+                  bottom: 4,
+                  left: 4,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.favorite, color: Colors.white, size: 12),
+                        const SizedBox(width: 2),
+                        Text(
+                          _formatCount(post.likesCount),
+                          style: const TextStyle(color: Colors.white, fontSize: 10),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         );
@@ -692,55 +753,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with SingleTickerProv
       context,
       MaterialPageRoute(
         builder: (context) => const EditProfilePage(),
-      ),
-    );
-  }
-
-  void _showSettingsMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.settings_outlined),
-              title: const Text('Settings'),
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/settings');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.history),
-              title: const Text('Activity'),
-              onTap: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Activity coming soon!')),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.qr_code),
-              title: const Text('QR Code'),
-              onTap: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('QR Code coming soon!')),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.bookmark_border),
-              title: const Text('Saved'),
-              onTap: () {
-                Navigator.pop(context);
-                _tabController.animateTo(2);
-              },
-            ),
-          ],
-        ),
       ),
     );
   }

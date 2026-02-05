@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../router/route_names.dart';
 import '../theme/app_colors.dart';
+import 'offline_banner.dart';
 
 /// Main scaffold with bottom navigation bar
 /// 
@@ -73,7 +74,12 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     final isDark = theme.brightness == Brightness.dark;
     
     return Scaffold(
-      body: widget.child,
+      body: Column(
+        children: [
+          const OfflineBanner(),
+          Expanded(child: widget.child),
+        ],
+      ),
       
       // Floating action button for creating posts
       floatingActionButton: FloatingActionButton(
