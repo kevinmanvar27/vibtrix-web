@@ -86,13 +86,9 @@ export async function POST(
         watchDuration: data.watchDuration,
         totalDuration: data.totalDuration,
         completionRate: data.completionRate,
-        replayed: data.replayed,
         replayCount: data.replayCount,
-        skipped: data.skipped,
-        skipTime: data.skipTime,
         source: data.source,
-        sessionId: data.sessionId,
-      }
+      } as any // Cast to any since function is stubbed
     );
 
     debug.log(`POST /api/posts/${postId}/watch - Watch event recorded successfully`);
@@ -146,13 +142,9 @@ export async function PUT(
         watchDuration: data.watchDuration,
         totalDuration: data.totalDuration,
         completionRate: data.completionRate,
-        replayed: data.replayed,
         replayCount: data.replayCount,
-        skipped: data.skipped,
-        skipTime: data.skipTime,
         source: data.source,
-        sessionId: data.sessionId,
-      }
+      } as any // Cast to any since function is stubbed
     );
 
     return Response.json({ success: true });

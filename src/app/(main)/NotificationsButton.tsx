@@ -5,7 +5,7 @@ import apiClient from "@/lib/api-client";
 import { NotificationCountInfo } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
-import Link from "next/link";
+import OptimizedLink from "@/components/OptimizedLink";
 
 interface NotificationsButtonProps {
   initialState: NotificationCountInfo;
@@ -54,7 +54,7 @@ export default function NotificationsButton({
       title="Notifications"
       asChild
     >
-      <Link href="/notifications">
+      <OptimizedLink href="/notifications" prefetch={true}>
         <div className="relative">
           <Bell />
           {!!data.unreadCount && (
@@ -64,7 +64,7 @@ export default function NotificationsButton({
           )}
         </div>
         <span className="hidden lg:inline">Notifications</span>
-      </Link>
+      </OptimizedLink>
     </Button>
   );
 }

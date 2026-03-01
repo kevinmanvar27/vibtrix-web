@@ -100,9 +100,6 @@ function UserResult({ user }: { user: UserData }) {
           <UserAvatar
             avatarUrl={user.avatarUrl}
             className="flex-none"
-            showStatus={loggedInUser?.id === user.id || user.showOnlineStatus}
-            status={user.onlineStatus as any}
-            statusSize="sm"
           />
           <div>
             <p className="line-clamp-1 break-all font-semibold hover:underline">{user.displayName}</p>

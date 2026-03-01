@@ -70,21 +70,6 @@ export default function Notification({ notification }: NotificationProps) {
       icon: <Users className="size-7 text-primary" />,
       href: `/users/${notification.issuer.username}`,
     },
-    COMPETITION_UPDATE: {
-      message: `There's an update on a competition you're participating in`,
-      icon: <Trophy className="size-7 text-yellow-500" />,
-      href: `/competitions`,
-    },
-    NEW_MESSAGE: {
-      message: `${notification.issuer.displayName} sent you a message`,
-      icon: <Mail className="size-7 text-blue-500" />,
-      href: `/messages`,
-    },
-    SYSTEM_NOTIFICATION: {
-      message: `You have a new system notification`,
-      icon: <Bell className="size-7 text-gray-500" />,
-      href: `/notifications`,
-    },
   };
 
   const { message, icon, href } = notificationTypeMap[notification.type];

@@ -91,8 +91,7 @@ export default function RecentlyJoined() {
             <UserAvatar
               avatarUrl={user.avatarUrl}
               className="flex-none"
-              showStatus={true}
-              status={(user.onlineStatus as OnlineStatus) || OnlineStatus.OFFLINE}
+              showStatus={false}
               statusSize="sm"
             />
             <div className="min-w-0">

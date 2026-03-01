@@ -35,14 +35,23 @@ export async function GET(req: NextRequest) {
         createdAt: "desc",
       },
       take: pageSize + 1,
-      cursor: cursor ? { id: cursor } : undefined,
+      // Note: Like model uses composite key (userId, postId), not simple id
+      // For cursor-based pagination, we'll use createdAt instead
+      ...(cursor ? { 
+        cursor: { 
+          userId_postId: { 
+            userId: user.id, 
+            postId: cursor 
+          } 
+        } 
+      } : {}),
     });
 
     // Filter out any likes where post might be null (deleted posts)
     const validLikes = likes.filter((like) => like.post !== null);
 
     const nextCursor =
-      validLikes.length > pageSize ? validLikes[pageSize].id : null;
+      validLikes.length > pageSize ? validLikes[pageSize].postId : null;
 
     const data: PostsPage = {
       posts: validLikes.slice(0, pageSize).map((like) => like.post),

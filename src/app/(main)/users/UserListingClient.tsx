@@ -311,9 +311,6 @@ function UserCard({ user }: UserCardProps) {
               avatarUrl={user.avatarUrl}
               size={50}
               className="flex-none"
-              showStatus={loggedInUser?.id === user.id || user.showOnlineStatus}
-              status={user.onlineStatus as any}
-              statusSize="sm"
             />
           </Link>
         </UserTooltip>
@@ -324,15 +321,17 @@ function UserCard({ user }: UserCardProps) {
             <p className="text-sm text-muted-foreground truncate">@{user.username}</p>
           </Link>
 
-          {user.bio && (
-            <p className="text-sm mt-1 line-clamp-1 text-muted-foreground">{user.bio}</p>
+          {(user as any).bio && (
+            <p className="text-sm mt-1 line-clamp-1 text-muted-foreground">{(user as any).bio}</p>
           )}
         </div>
 
         <div className="hidden md:flex items-center gap-6">
-          <div className="text-center w-16">
-            <p className="font-semibold">{user._count.posts}</p>
-          </div>
+          {(user._count as any).posts !== undefined && (
+            <div className="text-center w-16">
+              <p className="font-semibold">{(user._count as any).posts}</p>
+            </div>
+          )}
           <div className="text-center w-16">
             <p className="font-semibold">{user._count.followers}</p>
           </div>

@@ -37,8 +37,8 @@ const createQueryClient = () => new QueryClient({
   defaultOptions: {
     queries: {
       // Increase stale time for faster navigation
-      staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh longer
-      gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
+      staleTime: 10 * 60 * 1000, // 10 minutes - data stays fresh longer
+      gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
       refetchOnWindowFocus: false,
       retry: 1,
       refetchOnMount: false, // Don't refetch on mount if data is fresh

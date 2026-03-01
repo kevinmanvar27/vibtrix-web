@@ -10,24 +10,29 @@ export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const clientIP = getClientIP(request);
 
-  // Apply rate limiting based on endpoint type
-  let rateLimitType: 'auth' | 'api' | 'upload' | 'admin' | 'default' = 'default';
+  // Skip rate limiting for page navigation (non-API routes) for instant navigation
+  const isPageNavigation = !pathname.startsWith('/api/');
+  
+  // Apply rate limiting based on endpoint type (skip for page navigation)
+  if (!isPageNavigation) {
+    let rateLimitType: 'auth' | 'api' | 'upload' | 'admin' | 'default' = 'default';
 
-  if (pathname.startsWith('/api/auth/')) {
-    rateLimitType = 'auth';
-  } else if (pathname.startsWith('/api/upload/')) {
-    rateLimitType = 'upload';
-  } else if (pathname.startsWith('/api/admin/')) {
-    rateLimitType = 'admin';
-  } else if (pathname.startsWith('/api/')) {
-    rateLimitType = 'api';
-  }
+    if (pathname.startsWith('/api/auth/')) {
+      rateLimitType = 'auth';
+    } else if (pathname.startsWith('/api/upload/')) {
+      rateLimitType = 'upload';
+    } else if (pathname.startsWith('/api/admin/')) {
+      rateLimitType = 'admin';
+    } else if (pathname.startsWith('/api/')) {
+      rateLimitType = 'api';
+    }
 
-  // Check rate limits (skip for media files)
-  if (!pathname.match(/\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$/i)) {
-    const rateLimitResult = applyRateLimit(request, rateLimitType);
-    if (!rateLimitResult.allowed && rateLimitResult.response) {
-      return rateLimitResult.response;
+    // Check rate limits (skip for media files)
+    if (!pathname.match(/\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$/i)) {
+      const rateLimitResult = applyRateLimit(request, rateLimitType);
+      if (!rateLimitResult.allowed && rateLimitResult.response) {
+        return rateLimitResult.response;
+      }
     }
   }
 

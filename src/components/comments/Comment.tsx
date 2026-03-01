@@ -36,8 +36,7 @@ export default function Comment({ comment }: CommentProps) {
             <UserAvatar
               avatarUrl={comment.user.avatarUrl}
               size={40}
-              showStatus={true}
-              status={convertOnlineStatus(comment.user.onlineStatus)}
+              showStatus={false}
               statusSize="sm"
             />
           </Link>

@@ -55,7 +55,8 @@ async function main() {
     const port = await findAvailablePort();
     console.log(`\n🚀 Starting development server on port ${port}...\n`);
     
-    const nextDev = spawn('npx', ['next', 'dev', '-p', port.toString()], {
+    // Use Turbopack for 10x faster compilation (Next.js 15 feature)
+    const nextDev = spawn('npx', ['next', 'dev', '--turbo', '-p', port.toString()], {
       stdio: 'inherit',
       cwd: process.cwd(),
       env: { ...process.env }

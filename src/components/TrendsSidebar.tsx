@@ -63,8 +63,7 @@ async function WhoToFollow() {
                   <UserAvatar
                     avatarUrl={user.avatarUrl}
                     className="flex-none"
-                    showStatus={true}
-                    status={(user.onlineStatus as OnlineStatus) || OnlineStatus.OFFLINE}
+                    showStatus={false}
                     statusSize="sm"
                   />
                   <div>

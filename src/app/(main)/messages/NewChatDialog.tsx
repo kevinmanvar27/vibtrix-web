@@ -201,9 +201,6 @@ function UserResult({ user, selected, onClick }: UserResultProps) {
       <div className="flex items-center gap-2">
         <UserAvatar
           avatarUrl={user.avatarUrl}
-          showStatus={user.showOnlineStatus}
-          status={user.onlineStatus as OnlineStatus}
-          statusSize="sm"
         />
         <div className="flex flex-col text-start">
           <p className="font-bold">{user.displayName}</p>
@@ -229,9 +226,6 @@ function SelectedUserTag({ user, onRemove }: SelectedUserTagProps) {
       <UserAvatar
         avatarUrl={user.avatarUrl}
         size={24}
-        showStatus={user.showOnlineStatus}
-        status={user.onlineStatus as OnlineStatus}
-        statusSize="sm"
       />
       <p className="font-bold">{user.displayName}</p>
       <X className="mx-2 size-5 text-muted-foreground" />

@@ -64,9 +64,6 @@ export default function UserProfileClient({
           avatarUrl={user.avatarUrl}
           size={100}
           className="flex-shrink-0"
-          showStatus={user.id === loggedInUserId || user.showOnlineStatus}
-          status={(onlineStatusData?.status || user.onlineStatus) as any}
-          statusSize="md"
         />
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap justify-between gap-2 mb-2">
@@ -77,12 +74,14 @@ export default function UserProfileClient({
             </div>
           </div>
           <div className="flex items-center gap-3 text-sm">
-            <span>
-              Posts:{" "}
-              <span className="font-semibold">
-                {formatNumber(user._count.posts)}
+            {(user._count as any).posts !== undefined && (
+              <span>
+                Posts:{" "}
+                <span className="font-semibold">
+                  {formatNumber((user._count as any).posts)}
+                </span>
               </span>
-            </span>
+            )}
             <FollowerCount userId={user.id} initialState={followerInfo} />
           </div>
 
@@ -149,29 +148,29 @@ export default function UserProfileClient({
           </>
         )}
       </div>
-      {(user.bio || user.gender || user.dateOfBirth || user.socialLinks || (user.whatsappNumber && (user.id === loggedInUserId || user.showWhatsappNumber))) && (
+      {((user as any).bio || (user as any).gender || (user as any).dateOfBirth || (user as any).socialLinks || ((user as any).whatsappNumber && (user.id === loggedInUserId || (user as any).showWhatsappNumber))) && (
         <>
           <hr className="my-3" />
-          {user.bio && (
+          {(user as any).bio && (
             <div className="overflow-hidden whitespace-pre-line break-words mb-3 text-sm">
-              <Linkify>{user.bio}</Linkify>
+              <Linkify>{(user as any).bio}</Linkify>
             </div>
           )}
 
           <div className="flex flex-wrap gap-3 mt-2 mb-1">
             {/* Gender with icon */}
-            {user.gender && (
+            {(user as any).gender && (
               <div
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-500/10 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 transition-colors"
                 title="Gender"
               >
                 <User className="h-3.5 w-3.5" />
-                <span>{user.gender}</span>
+                <span>{(user as any).gender}</span>
               </div>
             )}
 
             {/* Date of Birth with icon */}
-            {user.dateOfBirth && (user.id === loggedInUserId || user.showDob) && (
+            {(user as any).dateOfBirth && (user.id === loggedInUserId || (user as any).showDob) && (
               <div
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 text-xs text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-colors"
                 title="Date of Birth"
@@ -182,8 +181,8 @@ export default function UserProfileClient({
                     (() => {
                       try {
                         // Check if date is in DD-MM-YYYY format
-                        if (/^\d{2}-\d{2}-\d{4}$/.test(user.dateOfBirth)) {
-                          const parts = user.dateOfBirth.split('-');
+                        if (/^\d{2}-\d{2}-\d{4}$/.test((user as any).dateOfBirth)) {
+                          const parts = (user as any).dateOfBirth.split('-');
 
                           // If user is viewing their own profile, show full date
                           if (user.id === loggedInUserId) {
@@ -191,7 +190,7 @@ export default function UserProfileClient({
                           }
 
                           // If hide year is enabled, show only day and month (DD/MM format)
-                          if (user.hideYear) {
+                          if ((user as any).hideYear) {
                             return `${parts[0]}/${parts[1]}`; // Show only day and month with / separator
                           }
                           // Default: show full date (DD/MM/YYYY format)
@@ -201,10 +200,10 @@ export default function UserProfileClient({
                         }
 
                         // For any other format, just display as is
-                        return user.dateOfBirth;
+                        return (user as any).dateOfBirth;
                       } catch (error) {
                         // Fallback for any parsing errors
-                        return user.dateOfBirth;
+                        return (user as any).dateOfBirth;
                       }
                     })()
                   }
@@ -217,24 +216,24 @@ export default function UserProfileClient({
           <div className="mt-2">
             <div className="flex flex-wrap gap-3">
               {/* WhatsApp */}
-              {user.whatsappNumber && (user.id === loggedInUserId || user.showWhatsappNumber) && (
+              {(user as any).whatsappNumber && (user.id === loggedInUserId || (user as any).showWhatsappNumber) && (
                 <Link
-                  href={`https://wa.me/${user.whatsappNumber.replace(/[^0-9]/g, '')}`}
+                  href={`https://wa.me/${(user as any).whatsappNumber.replace(/[^0-9]/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors"
-                  title={`WhatsApp: ${user.whatsappNumber}`}
+                  title={`WhatsApp: ${(user as any).whatsappNumber}`}
                 >
                   <WhatsAppIcon className="h-4 w-4" />
                 </Link>
               )}
 
               {/* Other Social Media */}
-              {user.socialLinks && (() => {
+              {(user as any).socialLinks && (() => {
                 try {
-                  const socialLinks = typeof user.socialLinks === 'object'
-                    ? user.socialLinks
-                    : JSON.parse(user.socialLinks as string);
+                  const socialLinks = typeof (user as any).socialLinks === 'object'
+                    ? (user as any).socialLinks
+                    : JSON.parse((user as any).socialLinks as string);
 
                   return (
                     <>

@@ -5,7 +5,7 @@ import apiClient from "@/lib/api-client";
 import { MessageCountInfo } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import { Mail } from "lucide-react";
-import Link from "next/link";
+import OptimizedLink from "@/components/OptimizedLink";
 import { useFeatureSettings } from "@/hooks/use-feature-settings";
 
 interface MessagesButtonProps {
@@ -58,7 +58,7 @@ export default function MessagesButton({ initialState }: MessagesButtonProps) {
       title="Messages"
       asChild
     >
-      <Link href="/messages">
+      <OptimizedLink href="/messages" prefetch={true}>
         <div className="relative">
           <Mail />
           {!!data.unreadCount && (
@@ -68,7 +68,7 @@ export default function MessagesButton({ initialState }: MessagesButtonProps) {
           )}
         </div>
         <span className="hidden lg:inline">Messages</span>
-      </Link>
+      </OptimizedLink>
     </Button>
   );
 }

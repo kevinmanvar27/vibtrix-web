@@ -66,7 +66,7 @@ export async function GET(
       where: { followerId: userId },
       take: PAGE_SIZE + 1, // Fetch one extra to check if there are more
       skip,
-      orderBy: { createdAt: "desc" },
+      // Note: Follow model doesn't have createdAt field, so we can't order by it
       include: {
         following: {
           select: {
@@ -120,7 +120,8 @@ export async function GET(
       followingCount: follow.following._count.following,
       isFollowedByMe: follow.following.followers.length > 0,
       isFollowingMe: follow.following.following.length > 0,
-      followedAt: follow.createdAt,
+      // Note: Follow model doesn't have createdAt field
+      followedAt: null,
     }));
 
     debug.log(`GET /api/users/${userId}/following/list - Found ${transformedFollowing.length} following`);

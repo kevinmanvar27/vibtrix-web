@@ -55,8 +55,7 @@ export default function Post({ post, competitionId }: PostProps) {
               <Link href={`/users/${post.user.username}`}>
                 <UserAvatar
                   avatarUrl={post.user.avatarUrl}
-                  showStatus={true}
-                  status={(post.user.onlineStatus as OnlineStatus) || OnlineStatus.OFFLINE}
+                  showStatus={false}
                   statusSize="sm"
                 />
               </Link>

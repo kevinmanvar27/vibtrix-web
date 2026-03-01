@@ -21,7 +21,7 @@ export interface WatchEventData {
   skippedInFirst2s?: boolean;
   pauseCount?: number;
   deviceType?: string;
-  source?: 'feed' | 'explore' | 'profile' | 'share';
+  source?: 'feed' | 'explore' | 'profile' | 'share' | 'search' | 'direct';
 }
 
 export interface PostScore {

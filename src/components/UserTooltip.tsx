@@ -43,9 +43,6 @@ export default function UserTooltip({ children, user }: UserTooltipProps) {
                 <UserAvatar
                   size={70}
                   avatarUrl={user.avatarUrl}
-                  showStatus={loggedInUser?.id === user.id || user.showOnlineStatus}
-                  status={(onlineStatusData?.status || user.onlineStatus) as OnlineStatus || OnlineStatus.OFFLINE}
-                  statusSize="md"
                 />
               </Link>
               {isLoggedIn && loggedInUser?.id !== user.id && (
@@ -60,9 +57,9 @@ export default function UserTooltip({ children, user }: UserTooltipProps) {
                 <div className="text-muted-foreground">@{user.username}</div>
               </Link>
             </div>
-            {user.bio && (
+            {(user as any).bio && (
               <div className="line-clamp-4 whitespace-pre-line">
-                {formatTextWithLinks(user.bio)}
+                {formatTextWithLinks((user as any).bio)}
               </div>
             )}
             <FollowerCount userId={user.id} initialState={followerState} />

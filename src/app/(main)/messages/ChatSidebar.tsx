@@ -318,9 +318,6 @@ function ChatPreview({ chat, currentUserId, isSelected, onClick }: ChatPreviewPr
         ) : (
           <UserAvatar
             avatarUrl={otherParticipant?.avatarUrl}
-            showStatus={otherParticipant?.showOnlineStatus}
-            status={otherParticipant?.onlineStatus as OnlineStatus}
-            statusSize="sm"
           />
         )}
 

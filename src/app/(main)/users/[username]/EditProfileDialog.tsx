@@ -193,8 +193,8 @@ export default function EditProfileDialog({
         dateInput.addEventListener('click', clickHandler);
 
         // Set initial value if available
-        if (user.dateOfBirth) {
-          const formattedDate = formatDateForInput(user.dateOfBirth);
+        if ((user as any).dateOfBirth) {
+          const formattedDate = formatDateForInput((user as any).dateOfBirth);
           if (formattedDate) {
             dateInput.value = formattedDate;
           }
@@ -205,12 +205,12 @@ export default function EditProfileDialog({
         };
       }
     }
-  }, [open, user.dateOfBirth]);
+  }, [open, (user as any).dateOfBirth]);
   // Parse social links from JSON if available
   const parseSocialLinks = () => {
-    if (!user.socialLinks) return {};
+    if (!(user as any).socialLinks) return {};
     try {
-      return typeof user.socialLinks === 'object' ? user.socialLinks : JSON.parse(user.socialLinks as string);
+      return typeof (user as any).socialLinks === 'object' ? (user as any).socialLinks : JSON.parse((user as any).socialLinks as string);
     } catch (e) {
       debug.error('Error parsing social links:', e);
       return {};
@@ -224,11 +224,11 @@ export default function EditProfileDialog({
     defaultValues: {
       displayName: user.displayName,
       username: user.username,
-      bio: user.bio || "",
-      gender: user.gender || "",
-      whatsappNumber: user.whatsappNumber || "",
-      dateOfBirth: formatDateForInput(user.dateOfBirth),
-      upiId: user.upiId || "",
+      bio: (user as any).bio || "",
+      gender: (user as any).gender || "",
+      whatsappNumber: (user as any).whatsappNumber || "",
+      dateOfBirth: formatDateForInput((user as any).dateOfBirth),
+      upiId: (user as any).upiId || "",
       socialLinks: {
         instagram: socialLinks?.instagram || "",
         facebook: socialLinks?.facebook || "",
@@ -240,14 +240,14 @@ export default function EditProfileDialog({
       },
 
       // Modeling feature fields
-      interestedInModeling: user.interestedInModeling || false,
-      photoshootPricePerDay: user.photoshootPricePerDay || undefined,
-      videoAdsParticipation: user.videoAdsParticipation || false,
+      interestedInModeling: (user as any).interestedInModeling || false,
+      photoshootPricePerDay: (user as any).photoshootPricePerDay || undefined,
+      videoAdsParticipation: (user as any).videoAdsParticipation || false,
 
       // Brand Ambassadorship feature fields
-      interestedInBrandAmbassadorship: user.interestedInBrandAmbassadorship || false,
-      brandAmbassadorshipPricing: user.brandAmbassadorshipPricing || "",
-      brandPreferences: user.brandPreferences || "",
+      interestedInBrandAmbassadorship: (user as any).interestedInBrandAmbassadorship || false,
+      brandAmbassadorshipPricing: (user as any).brandAmbassadorshipPricing || "",
+      brandPreferences: (user as any).brandPreferences || "",
     },
   });
 

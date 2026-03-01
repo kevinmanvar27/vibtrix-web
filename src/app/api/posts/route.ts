@@ -92,24 +92,7 @@ export async function POST(req: NextRequest) {
       debug.error(`Failed to initialize trust score for user ${user.id}:`, err);
     });
 
-    // Create initial post metrics for distribution tracking (async, non-blocking)
-    prisma.postMetrics.create({
-      data: {
-        postId: newPost.id,
-        viralScore: 0,
-        distributionPhase: 'TEST',
-        totalViews: 0,
-        uniqueViews: 0,
-        avgWatchTime: 0,
-        completionRate: 0,
-        replayRate: 0,
-        saveRate: 0,
-        shareRate: 0,
-        skipRate: 0,
-      },
-    }).catch(err => {
-      debug.error(`Failed to create post metrics for ${newPost.id}:`, err);
-    });
+    // NOTE: PostMetrics model not yet implemented - skipping metrics initialization
 
     return Response.json(newPost, { status: 201 });
   } catch (error) {

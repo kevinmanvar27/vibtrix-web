@@ -17,12 +17,12 @@ export default function ReactQueryProvider({
     return new QueryClient({
       defaultOptions: {
         queries: {
-          staleTime: 2 * 60 * 1000, // 2 minutes (reduced from 5 minutes)
-          gcTime: 10 * 60 * 1000, // 10 minutes (increased from 5 minutes)
+          staleTime: 10 * 60 * 1000, // 10 minutes - keep data fresh longer for instant navigation
+          gcTime: 20 * 60 * 1000, // 20 minutes - keep cache longer
           refetchOnWindowFocus: false,
           retry: 1,
-          refetchOnMount: true, // Changed to true to ensure fresh data on navigation
-          refetchOnReconnect: true, // Changed to true to ensure fresh data on reconnect
+          refetchOnMount: false, // CRITICAL: Don't refetch on navigation - use cached data
+          refetchOnReconnect: false, // Don't refetch on reconnect
           // Improve performance by using structural sharing
           structuralSharing: true,
           // Add a default select function to transform data

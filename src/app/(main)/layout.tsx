@@ -11,6 +11,7 @@ import GuestSessionProvider from "@/components/GuestSessionProvider";
 import Footer from "@/components/Footer";
 import { seedStaticPages } from "@/lib/seed-static-pages";
 import MobileNavBarWrapper from "@/components/MobileNavBarWrapper";
+import AggressivePrefetch from "@/components/AggressivePrefetch";
 import { Suspense } from "react";
 
 // Loading skeleton for MenuBar
@@ -43,6 +44,8 @@ export default async function Layout({
 
   const MainContent = (
     <div className="relative min-h-screen">
+      {/* AGGRESSIVE PREFETCHING: Load all routes in background for instant navigation */}
+      <AggressivePrefetch />
       <div className="flex min-h-screen flex-col pb-14 sm:pb-0">
         <Suspense fallback={<div className="h-16 bg-card shadow-sm border-b border-border/30" />}>
           <Navbar />

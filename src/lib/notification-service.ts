@@ -84,11 +84,8 @@ export async function sendNotification({
       case "COMMENT":
         shouldSend = userPrefs.commentNotifications;
         break;
-      case "COMPETITION_UPDATE":
-        shouldSend = userPrefs.competitionUpdates ?? true;
-        break;
-      case "NEW_MESSAGE":
-        shouldSend = userPrefs.messageNotifications ?? true;
+      case "SHARE":
+        shouldSend = true; // Share notifications always enabled
         break;
       default:
         shouldSend = true;

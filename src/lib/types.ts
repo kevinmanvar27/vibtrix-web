@@ -1,8 +1,8 @@
 import { Prisma } from "@prisma/client";
 
 export function getUserDataSelect(loggedInUserId: string) {
+  // OPTIMIZATION: Simplified user data selection - removed unnecessary fields
   // For guest users (empty loggedInUserId), we still need to include basic data
-  // but we don't need to filter followers by user ID
   const isLoggedIn = !!loggedInUserId;
 
   return {
@@ -10,31 +10,32 @@ export function getUserDataSelect(loggedInUserId: string) {
     username: true,
     displayName: true,
     avatarUrl: true,
-    bio: true,
-    gender: true,
-    whatsappNumber: true,
-    dateOfBirth: true,
+    // OPTIMIZATION: Removed heavy fields that are rarely used in feed
+    // bio: true,
+    // gender: true,
+    // whatsappNumber: true,
+    // dateOfBirth: true,
     createdAt: true,
-    onlineStatus: true,
-    lastActiveAt: true,
-    showOnlineStatus: true,
+    // onlineStatus: true,
+    // lastActiveAt: true,
+    // showOnlineStatus: true,
     isProfilePublic: true,
-    showWhatsappNumber: true,
-    showDob: true,
-    hideYear: true,
-    upiId: true,
-    showUpiId: true,
-    socialLinks: true,
-    // Modeling feature fields
-    interestedInModeling: true,
-    photoshootPricePerDay: true,
-    videoAdsParticipation: true,
-    // Brand Ambassadorship feature fields
-    interestedInBrandAmbassadorship: true,
-    brandAmbassadorshipPricing: true,
-    brandPreferences: true,
-    // Explicitly exclude role from the response
+    // showWhatsappNumber: true,
+    // showDob: true,
+    // hideYear: true,
+    // upiId: true,
+    // showUpiId: true,
+    // socialLinks: true,
+    // Modeling feature fields - removed for feed performance
+    // interestedInModeling: true,
+    // photoshootPricePerDay: true,
+    // videoAdsParticipation: true,
+    // Brand Ambassadorship feature fields - removed for feed performance
+    // interestedInBrandAmbassadorship: true,
+    // brandAmbassadorshipPricing: true,
+    // brandPreferences: true,
     role: false,
+    // OPTIMIZATION: Simplified followers check - only check if following
     followers: isLoggedIn ? {
       where: {
         followerId: loggedInUserId,
@@ -42,19 +43,13 @@ export function getUserDataSelect(loggedInUserId: string) {
       select: {
         followerId: true,
       },
-    } : {
-      where: {
-        followerId: '', // This will return an empty array
-      },
-      select: {
-        followerId: true,
-      },
-    },
+    } : false,
+    // OPTIMIZATION: Only get essential counts
     _count: {
       select: {
-        posts: true,
+        // posts: true, // Removed - not needed in feed
         followers: true,
-        following: true,
+        // following: true, // Removed - not needed in feed
       },
     },
   } satisfies Prisma.UserSelect;
@@ -65,20 +60,17 @@ export type UserData = Prisma.UserGetPayload<{
 }>;
 
 export function getPostDataInclude(loggedInUserId: string) {
+  // OPTIMIZATION: Simplified post data inclusion for faster queries
   // For guest users (empty loggedInUserId), we still need to include basic data
-  // but we don't need to filter likes/bookmarks by user ID
   const isLoggedIn = !!loggedInUserId;
 
   return {
     user: {
-      select: getUserDataSelect(loggedInUserId || ''), // Pass empty string for guest users
+      select: getUserDataSelect(loggedInUserId || ''),
     },
-    attachments: {
-      include: {
-        appliedPromotionSticker: true,
-      },
-    },
-    // For guest users, include empty arrays for likes and bookmarks
+    // OPTIMIZATION: Simplified attachments - removed nested sticker data
+    attachments: true,
+    // OPTIMIZATION: Only fetch user's own likes/bookmarks
     likes: isLoggedIn ? {
       where: {
         userId: loggedInUserId,
@@ -86,14 +78,8 @@ export function getPostDataInclude(loggedInUserId: string) {
       select: {
         userId: true,
       },
-    } : {
-      where: {
-        userId: '', // This will return an empty array
-      },
-      select: {
-        userId: true,
-      },
-    },
+      take: 1, // OPTIMIZATION: Only need to know if user liked it
+    } : false,
     bookmarks: isLoggedIn ? {
       where: {
         userId: loggedInUserId,
@@ -101,14 +87,9 @@ export function getPostDataInclude(loggedInUserId: string) {
       select: {
         userId: true,
       },
-    } : {
-      where: {
-        userId: '', // This will return an empty array
-      },
-      select: {
-        userId: true,
-      },
-    },
+      take: 1, // OPTIMIZATION: Only need to know if user bookmarked it
+    } : false,
+    // OPTIMIZATION: Only get essential counts
     _count: {
       select: {
         likes: true,

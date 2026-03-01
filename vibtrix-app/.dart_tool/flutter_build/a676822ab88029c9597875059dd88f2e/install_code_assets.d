@@ -1,1 +1,0 @@
- /Applications/XAMPP/xamppfiles/htdocs/vibtrix-web/vibtrix-app/.dart_tool/flutter_build/a676822ab88029c9597875059dd88f2e/native_assets.json: 

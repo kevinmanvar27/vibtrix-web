@@ -29,25 +29,26 @@ export async function GET(req: NextRequest) {
     // For guest users, we'll still show search results
     // but with limited functionality
 
+    // Note: Using 'contains' instead of 'search' since fulltext indexes are not configured
     const posts = await prisma.post.findMany({
       where: {
         OR: [
           {
             content: {
-              search: searchQuery,
+              contains: q,
             },
           },
           {
             user: {
               displayName: {
-                search: searchQuery,
+                contains: q,
               },
             },
           },
           {
             user: {
               username: {
-                search: searchQuery,
+                contains: q,
               },
             },
           },

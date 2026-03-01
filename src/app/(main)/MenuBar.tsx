@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import prisma from "@/lib/prisma";
 import { getFeatureSettings } from "@/lib/get-feature-settings";
 import { Bookmark, Home, Trophy } from "lucide-react";
-import Link from "next/link";
+import OptimizedLink from "@/components/OptimizedLink";
 import MessagesButtonWrapper from "./MessagesButtonWrapper";
 import NotificationsButtonWrapper from "./NotificationsButtonWrapper";
 import RequireAuth from "@/components/RequireAuth";
@@ -61,10 +61,10 @@ export default async function MenuBar({ className }: MenuBarProps) {
         title="Home"
         asChild
       >
-        <Link href="/" prefetch={true}>
+        <OptimizedLink href="/" prefetch={true}>
           <Home />
           <span className="hidden lg:inline">Home</span>
-        </Link>
+        </OptimizedLink>
       </Button>
 
       {/* Wrap interactive elements with RequireAuth */}
@@ -84,10 +84,10 @@ export default async function MenuBar({ className }: MenuBarProps) {
         title="Competitions"
         asChild
       >
-        <Link href="/competitions" prefetch={true}>
+        <OptimizedLink href="/competitions" prefetch={true}>
           <Trophy />
           <span className="hidden lg:inline">Competitions</span>
-        </Link>
+        </OptimizedLink>
       </Button>
 
       {bookmarksEnabled && (
@@ -98,10 +98,10 @@ export default async function MenuBar({ className }: MenuBarProps) {
             title="Bookmarks"
             asChild
           >
-            <Link href="/bookmarks" prefetch={true}>
+            <OptimizedLink href="/bookmarks" prefetch={true}>
               <Bookmark />
               <span className="hidden lg:inline">Bookmarks</span>
-            </Link>
+            </OptimizedLink>
           </Button>
         </RequireAuth>
       )}

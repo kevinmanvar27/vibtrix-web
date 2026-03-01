@@ -83,14 +83,14 @@ export default function RecentlyJoinedSidebar() {
         {users.map((user) => (
           <UserTooltip key={user.id} user={user}>
             <Link 
+              key={user.id}
               href={`/users/${user.username}`}
               className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
             >
               <UserAvatar
                 avatarUrl={user.avatarUrl}
                 className="flex-none"
-                showStatus={true}
-                status={(user.onlineStatus as OnlineStatus) || OnlineStatus.OFFLINE}
+                showStatus={false}
                 statusSize="sm"
               />
               <div className="min-w-0">

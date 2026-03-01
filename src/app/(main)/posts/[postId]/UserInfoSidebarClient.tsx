@@ -32,9 +32,6 @@ export default function UserInfoSidebarClient({
             <UserAvatar
               avatarUrl={user.avatarUrl}
               className="flex-none"
-              showStatus={user.showOnlineStatus}
-              status={user.onlineStatus as any}
-              statusSize="sm"
             />
             <div>
               <p className="line-clamp-1 break-all font-semibold hover:underline">
@@ -46,9 +43,11 @@ export default function UserInfoSidebarClient({
             </div>
           </Link>
         </UserTooltip>
-        <div className="line-clamp-6 whitespace-pre-line break-words text-muted-foreground">
-          <Linkify>{user.bio}</Linkify>
-        </div>
+        {(user as any).bio && (
+          <div className="line-clamp-6 whitespace-pre-line break-words text-muted-foreground">
+            <Linkify>{(user as any).bio}</Linkify>
+          </div>
+        )}
         <div className="mt-4">
           <LoginButton />
         </div>
@@ -67,9 +66,6 @@ export default function UserInfoSidebarClient({
           <UserAvatar
             avatarUrl={user.avatarUrl}
             className="flex-none"
-            showStatus={loggedInUser?.id === user.id || user.showOnlineStatus}
-            status={user.onlineStatus as any}
-            statusSize="sm"
           />
           <div>
             <p className="line-clamp-1 break-all font-semibold hover:underline">
@@ -81,9 +77,11 @@ export default function UserInfoSidebarClient({
           </div>
         </Link>
       </UserTooltip>
-      <div className="line-clamp-6 whitespace-pre-line break-words text-muted-foreground">
-        <Linkify>{user.bio}</Linkify>
-      </div>
+      {(user as any).bio && (
+        <div className="line-clamp-6 whitespace-pre-line break-words text-muted-foreground">
+          <Linkify>{(user as any).bio}</Linkify>
+        </div>
+      )}
       {isLoggedIn && user.id !== loggedInUser.id && (
         <FollowButton
           userId={user.id}
