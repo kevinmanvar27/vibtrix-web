@@ -315,6 +315,7 @@ export function CompetitionDefaultFeedStickerForm({
                   fill
                   sizes="128px"
                   className="object-contain"
+                  unoptimized={sticker.imageUrl?.startsWith('/uploads/')}
                 />
               </div>
               <div className="flex-1 space-y-3">

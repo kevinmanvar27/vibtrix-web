@@ -367,6 +367,7 @@ export default function PromotionStickersSection({ competitionId, isNewCompetiti
                   alt={title || "Sticker preview"}
                   fill
                   className="object-contain"
+                  unoptimized={imageUrl?.startsWith('/uploads/')}
                 />
                 <Button
                   type="button"
@@ -441,6 +442,7 @@ export default function PromotionStickersSection({ competitionId, isNewCompetiti
                         alt={sticker.title}
                         fill
                         className="object-contain"
+                        unoptimized={sticker.imageUrl?.startsWith('/uploads/')}
                       />
                     </div>
                   </TableCell>

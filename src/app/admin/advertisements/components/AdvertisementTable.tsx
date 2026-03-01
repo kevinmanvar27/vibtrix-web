@@ -193,6 +193,7 @@ export default function AdvertisementTable({
                           alt={ad.title}
                           fill
                           className="object-contain"
+                          unoptimized={ad.media.url?.startsWith('/uploads/')}
                         />
                       </div>
                     ) : ad.media && ad.adType === "VIDEO" ? (

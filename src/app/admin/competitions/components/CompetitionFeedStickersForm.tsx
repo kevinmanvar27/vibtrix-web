@@ -306,6 +306,7 @@ export function CompetitionFeedStickersForm({
                           alt={sticker.title}
                           fill
                           className="object-contain"
+                          unoptimized={sticker.imageUrl?.startsWith('/uploads/')}
                         />
                       </div>
                     </TableCell>

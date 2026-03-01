@@ -190,6 +190,7 @@ export default function StickerSelector({
                         alt={getDefaultStickerForPosition(position)!.name}
                         fill
                         className="object-contain"
+                        unoptimized={getDefaultStickerForPosition(position)!.imageUrl?.startsWith('/uploads/')}
                       />
                     </div>
                     <Button
@@ -222,6 +223,7 @@ export default function StickerSelector({
                             alt={sticker.name}
                             fill
                             className="object-contain"
+                            unoptimized={sticker.imageUrl?.startsWith('/uploads/')}
                           />
                         </div>
                         <Button

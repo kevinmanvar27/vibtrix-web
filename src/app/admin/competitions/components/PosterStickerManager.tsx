@@ -172,6 +172,7 @@ export default function PosterStickerManager({
                           alt={newStickerName || "Sticker preview"}
                           fill
                           className="object-contain p-1"
+                          unoptimized={newStickerUrl?.startsWith('/uploads/')}
                         />
                         <Button
                           type="button"
@@ -269,6 +270,7 @@ export default function PosterStickerManager({
                               alt={sticker.name}
                               fill
                               className="object-contain p-1"
+                              unoptimized={sticker.imageUrl?.startsWith('/uploads/')}
                             />
                           </div>
                         </div>

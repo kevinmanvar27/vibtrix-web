@@ -330,6 +330,7 @@ export default function SettingsForm({ settings, section }: SettingsFormProps) {
                         alt="Site Logo"
                         fill
                         className="object-contain"
+                        unoptimized={form.watch('logoUrl')?.startsWith('/uploads/')}
                       />
                     </div>
                   )}
@@ -437,6 +438,7 @@ export default function SettingsForm({ settings, section }: SettingsFormProps) {
                         alt="Site Favicon"
                         fill
                         className="object-contain"
+                        unoptimized={form.watch('faviconUrl')?.startsWith('/uploads/')}
                       />
                     </div>
                   )}

@@ -111,6 +111,7 @@ export default async function AdvertisementPage({
                       alt={advertisement.title}
                       fill
                       className="object-contain"
+                      unoptimized={advertisement.media.url?.startsWith('/uploads/')}
                     />
                   </div>
                 ) : (

@@ -189,6 +189,7 @@ export default function StickerUploader({
                     alt={name || "Sticker preview"}
                     fill
                     className="object-contain"
+                    unoptimized={imageUrl?.startsWith('/uploads/')}
                   />
                   <Button
                     type="button"

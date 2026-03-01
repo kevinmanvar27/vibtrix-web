@@ -290,6 +290,7 @@ export function DefaultFeedStickerForm({}: DefaultFeedStickerFormProps) {
                 fill
                 sizes="128px"
                 className="object-contain"
+                unoptimized={imageUrl?.startsWith('/uploads/')}
               />
               <Button
                 type="button"
@@ -407,6 +408,7 @@ export function DefaultFeedStickerForm({}: DefaultFeedStickerFormProps) {
                   fill
                   sizes="160px"
                   className="object-contain p-2"
+                  unoptimized={sticker.imageUrl?.startsWith('/uploads/')}
                 />
               </div>
             </div>

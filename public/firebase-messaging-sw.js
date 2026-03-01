@@ -67,8 +67,6 @@ try {
         const notificationTitle = payload.notification.title;
         const notificationOptions = {
           body: payload.notification.body,
-          icon: "/favicon.ico",
-          badge: "/favicon.ico",
           data: payload.data,
         };
 

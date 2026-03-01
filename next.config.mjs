@@ -64,6 +64,8 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // Disable image optimization for local uploads directory
+    unoptimized: process.env.NODE_ENV === 'development',
     remotePatterns: [
       {
         protocol: "https",

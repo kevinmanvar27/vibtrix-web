@@ -193,6 +193,7 @@ export default function CompetitionAdvertisementTable({
                           className="object-contain object-center"
                           sizes="128px"
                           style={{ objectFit: 'contain' }}
+                          unoptimized={ad.media.url?.startsWith('/uploads/')}
                         />
                       </div>
                     ) : (
@@ -293,6 +294,7 @@ export default function CompetitionAdvertisementTable({
                   fill
                   className="object-contain object-center"
                   style={{ objectFit: 'contain' }}
+                  unoptimized={videoPreview?.url?.startsWith('/uploads/')}
                 />
               </div>
             ) : (

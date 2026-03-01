@@ -81,6 +81,7 @@ export default function StickerUsageView({ usage }: StickerUsageViewProps) {
                     alt="Image with sticker"
                     fill
                     className="object-contain"
+                    unoptimized={media.url?.startsWith('/uploads/')}
                   />
                 </div>
               ) : media.type === "VIDEO" ? (

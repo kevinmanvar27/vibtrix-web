@@ -167,6 +167,7 @@ export default function MediaUploader({
                 alt="Advertisement image"
                 fill
                 className="object-contain rounded-md"
+                unoptimized={mediaUrl?.startsWith('/uploads/')}
               />
             </div>
           ) : (

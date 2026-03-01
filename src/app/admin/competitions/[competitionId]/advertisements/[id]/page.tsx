@@ -156,6 +156,7 @@ export default async function CompetitionAdvertisementPage({
                     fill
                     className="object-contain"
                     priority
+                    unoptimized={advertisement.media.url?.startsWith('/uploads/')}
                   />
                 </div>
               ) : (

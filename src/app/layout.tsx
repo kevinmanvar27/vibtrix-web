@@ -107,8 +107,8 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
         <meta name="apple-mobile-web-app-title" content="Vibtrix" />
 
-        {/* Prevent browser from requesting any favicon by using empty data URI */}
-        <link rel="icon" href="data:," />
+        {/* Use favicon from settings if available */}
+        {settings.faviconUrl && <link rel="icon" href={settings.faviconUrl} />}
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
         {/* Add Google Analytics if enabled */}

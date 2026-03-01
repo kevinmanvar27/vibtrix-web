@@ -358,6 +358,7 @@ export function FeedStickersForm({}: FeedStickersFormProps) {
                   fill
                   sizes="128px"
                   className="object-contain"
+                  unoptimized={imageUrl?.startsWith('/uploads/')}
                 />
                 <Button
                   type="button"
@@ -445,6 +446,7 @@ export function FeedStickersForm({}: FeedStickersFormProps) {
                           alt={sticker.title}
                           fill
                           className="object-contain p-1"
+                          unoptimized={sticker.imageUrl?.startsWith('/uploads/')}
                         />
                       </div>
                     </TableCell>
@@ -590,6 +592,7 @@ export function FeedStickersForm({}: FeedStickersFormProps) {
                   alt={selectedSticker.title}
                   fill
                   className="object-contain p-1"
+                  unoptimized={selectedSticker.imageUrl?.startsWith('/uploads/')}
                 />
               </div>
               <div>
