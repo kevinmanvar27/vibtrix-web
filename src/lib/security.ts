@@ -31,7 +31,9 @@ const SECURITY_CONFIG = {
   ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || '',
 };
 
-// Rate limiting store
+// Standalone rate limiting store — used as a fallback by DistributedRateLimit
+// when Redis is not configured. The primary middleware rate limiting uses a
+// separate store in rate-limit.ts. These are intentionally independent.
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
 /**

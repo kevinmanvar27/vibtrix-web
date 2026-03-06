@@ -177,132 +177,133 @@ async function apiRequest<T>(
       // Clear the timeout
       clearTimeout(timeoutId);
 
-    // Handle non-OK responses
-    if (!response.ok) {
-      let errorMessage = `HTTP Error: ${response.status} ${response.statusText}`;
-      let errorDetails = null;
+      // Handle non-OK responses
+      if (!response.ok) {
+        let errorMessage = `HTTP Error: ${response.status} ${response.statusText}`;
+        let errorDetails = null;
 
-      // Create a clone of the response to read the body multiple times if needed
-      const responseClone = response.clone();
+        // Create a clone of the response to read the body multiple times if needed
+        const responseClone = response.clone();
 
-      try {
-        // Try to parse error details from response
-        const contentType = response.headers.get('content-type');
+        try {
+          // Try to parse error details from response
+          const contentType = response.headers.get('content-type');
 
-        if (contentType && contentType.includes('application/json')) {
-          const errorData = await response.json();
-          errorDetails = errorData;
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await response.json();
+            errorDetails = errorData;
 
-          // Special case for rate limiting errors
-          if (response.status === 429) {
-            const retryAfter = response.headers.get('retry-after') || '60';
-            errorMessage = errorData.error || `Too many requests. Please wait ${retryAfter} seconds before trying again.`;
-            debug.log(`Rate limit hit for ${fullUrl}, retry after ${retryAfter} seconds`);
-          }
+            // Special case for rate limiting errors
+            if (response.status === 429) {
+              const retryAfter = response.headers.get('retry-after') || '60';
+              errorMessage = errorData.error || `Too many requests. Please wait ${retryAfter} seconds before trying again.`;
+              debug.log(`Rate limit hit for ${fullUrl}, retry after ${retryAfter} seconds`);
+            }
 
-          // Special case for private profiles - return the data instead of throwing an error
-          if (response.status === 403 && errorData.error === "This user's profile is private") {
-            debug.log(`Private profile detected: ${fullUrl}`);
-            return {
-              data: errorData as T,
-              status: response.status,
-              statusText: response.statusText,
-              headers: response.headers,
-            };
-          }
-
-          // Special case for 400 status with valid response data (like "Competition not completed yet")
-          if (response.status === 400 && errorData && typeof errorData === 'object') {
-            // For 400 errors with structured data, return the data instead of throwing
-            // This allows the frontend to handle expected 400 responses gracefully
-            debug.log('400 status with structured data, returning response instead of throwing');
-            return {
-              data: errorData as T,
-              status: response.status,
-              statusText: response.statusText,
-              headers: response.headers,
-            };
-          }
-
-          // Special case for unauthorized errors on public endpoints
-          // Return empty data for these endpoints instead of throwing an error
-          if (response.status === 401) {
-            // Check if this is a public request (using the header we set)
-            const isPublicRequest = mergedOptions.headers &&
-                                   'X-Public-Request' in mergedOptions.headers;
-
-            if (isPublicRequest) {
-              debug.log(`Guest access to ${fullUrl} - returning empty data`);
+            // Special case for private profiles - return the data instead of throwing an error
+            if (response.status === 403 && errorData.error === "This user's profile is private") {
+              debug.log(`Private profile detected: ${fullUrl}`);
               return {
-                data: {
-                  posts: [],
-                  users: [],
-                  competitions: [],
-                  hashtags: [],
-                  nextCursor: null,
-                  message: "Please log in to view more content"
-                } as unknown as T,
-                status: 200, // Override with 200 status
-                statusText: 'OK',
+                data: errorData as T,
+                status: response.status,
+                statusText: response.statusText,
                 headers: response.headers,
               };
             }
-          }
 
-          if (errorData.error) {
-            errorMessage = errorData.error;
-            if (errorData.details) {
-              errorMessage += `: ${errorData.details}`;
+            // Special case for 400 status with valid response data (like "Competition not completed yet")
+            if (response.status === 400 && errorData && typeof errorData === 'object') {
+              // For 400 errors with structured data, return the data instead of throwing
+              // This allows the frontend to handle expected 400 responses gracefully
+              debug.log('400 status with structured data, returning response instead of throwing');
+              return {
+                data: errorData as T,
+                status: response.status,
+                statusText: response.statusText,
+                headers: response.headers,
+              };
+            }
+
+            // Special case for unauthorized errors on public endpoints
+            // Return empty data for these endpoints instead of throwing an error
+            if (response.status === 401) {
+              // Check if this is a public request (using the header we set)
+              const isPublicRequest = mergedOptions.headers &&
+                'X-Public-Request' in mergedOptions.headers;
+
+              if (isPublicRequest) {
+                debug.log(`Guest access to ${fullUrl} - returning empty data`);
+                return {
+                  data: {
+                    posts: [],
+                    users: [],
+                    competitions: [],
+                    hashtags: [],
+                    nextCursor: null,
+                    _isGuestFallback: true,
+                    message: "Please log in to view more content"
+                  } as unknown as T,
+                  status: response.status,
+                  statusText: response.statusText,
+                  headers: response.headers,
+                };
+              }
+            }
+
+            if (errorData.error) {
+              errorMessage = errorData.error;
+              if (errorData.details) {
+                errorMessage += `: ${errorData.details}`;
+              }
+            }
+          } else {
+            // For non-JSON responses, try to get the text
+            const textResponse = await responseClone.text();
+            if (textResponse) {
+              errorDetails = { responseText: textResponse };
+              debug.error('Non-JSON error response:', textResponse);
             }
           }
-        } else {
-          // For non-JSON responses, try to get the text
-          const textResponse = await responseClone.text();
-          if (textResponse) {
-            errorDetails = { responseText: textResponse };
-            debug.error('Non-JSON error response:', textResponse);
+        } catch (e) {
+          // If we can't parse the response, log the error and use the status text
+          debug.error('Failed to parse error response:', e);
+          try {
+            // Try to get the response text as a fallback
+            const textResponse = await responseClone.text();
+            if (textResponse) {
+              errorDetails = { responseText: textResponse };
+              debug.error('Error response text:', textResponse);
+            }
+          } catch (textError) {
+            debug.error('Failed to get error response text:', textError);
           }
         }
-      } catch (e) {
-        // If we can't parse the response, log the error and use the status text
-        debug.error('Failed to parse error response:', e);
-        try {
-          // Try to get the response text as a fallback
-          const textResponse = await responseClone.text();
-          if (textResponse) {
-            errorDetails = { responseText: textResponse };
-            debug.error('Error response text:', textResponse);
-          }
-        } catch (textError) {
-          debug.error('Failed to get error response text:', textError);
-        }
+
+        // Create an enhanced error object with additional properties
+        const error = new Error(errorMessage);
+        (error as any).status = response.status;
+        (error as any).statusText = response.statusText;
+        (error as any).details = errorDetails;
+        (error as any).url = fullUrl;
+        (error as any).method = mergedOptions.method || 'GET';
+        (error as any).isAuthError = response.status === 401;
+        (error as any).isRateLimited = response.status === 429;
+        (error as any).response = { headers: response.headers };
+        debug.error(`API Error: ${mergedOptions.method || 'GET'} ${fullUrl}`, error);
+        throw error;
       }
 
-      // Create an enhanced error object with additional properties
-      const error = new Error(errorMessage);
-      (error as any).status = response.status;
-      (error as any).statusText = response.statusText;
-      (error as any).details = errorDetails;
-      (error as any).url = fullUrl;
-      (error as any).method = mergedOptions.method || 'GET';
-      (error as any).isAuthError = response.status === 401;
-      (error as any).isRateLimited = response.status === 429;
-      (error as any).response = { headers: response.headers };
-      debug.error(`API Error: ${mergedOptions.method || 'GET'} ${fullUrl}`, error);
-      throw error;
-    }
+      // Parse the response
+      let data: T;
+      const contentType = response.headers.get('content-type');
 
-    // Parse the response
-    let data: T;
-    const contentType = response.headers.get('content-type');
-
-    if (contentType && contentType.includes('application/json')) {
-      const text = await response.text();
-      data = parseJsonWithDates(text);
-    } else {
-      // Handle non-JSON responses
-      data = await response.text() as unknown as T;
-    }
+      if (contentType && contentType.includes('application/json')) {
+        const text = await response.text();
+        data = parseJsonWithDates(text);
+      } else {
+        // Handle non-JSON responses
+        data = await response.text() as unknown as T;
+      }
 
       return {
         data,
@@ -392,15 +393,15 @@ const isPublicEndpoint = (url: string): boolean => {
   return publicEndpoints.some(endpoint =>
     url.includes(endpoint) || url.endsWith(endpoint) || url.includes(`${endpoint}?`)
   ) ||
-  // Also check for dynamic routes like /api/posts/[postId]/likes
-  !!url.match(/\/api\/posts\/[\w-]+\/likes/) ||
-  !!url.match(/\/api\/posts\/[\w-]+\/view/) ||
-  !!url.match(/\/api\/users\/[\w-]+\/followers/) ||
-  !!url.match(/\/api\/users\/[\w-]+\/posts/) ||
-  !!url.match(/\/api\/users\/[\w-]+\/follow-request/) ||
-  // Add chat-related dynamic routes
-  !!url.match(/\/api\/chats\/[\w-]+/) ||
-  !!url.match(/\/api\/chats\/[\w-]+\/messages/);
+    // Also check for dynamic routes like /api/posts/[postId]/likes
+    !!url.match(/\/api\/posts\/[\w-]+\/likes/) ||
+    !!url.match(/\/api\/posts\/[\w-]+\/view/) ||
+    !!url.match(/\/api\/users\/[\w-]+\/followers/) ||
+    !!url.match(/\/api\/users\/[\w-]+\/posts/) ||
+    !!url.match(/\/api\/users\/[\w-]+\/follow-request/) ||
+    // Add chat-related dynamic routes
+    !!url.match(/\/api\/chats\/[\w-]+/) ||
+    !!url.match(/\/api\/chats\/[\w-]+\/messages/);
 };
 
 // Helper function to create a mock response for unauthorized requests
@@ -414,6 +415,7 @@ const createMockResponse = <T>(url: string): ApiResponse<T> => {
     competitions: [],
     hashtags: [],
     nextCursor: null,
+    _isGuestFallback: true,
     message: "Please log in to view this content"
   };
 
@@ -422,6 +424,7 @@ const createMockResponse = <T>(url: string): ApiResponse<T> => {
     defaultResponse = {
       notifications: [],
       nextCursor: null,
+      _isGuestFallback: true,
       message: "Please log in to view your notifications"
     };
   }
@@ -431,24 +434,26 @@ const createMockResponse = <T>(url: string): ApiResponse<T> => {
     defaultResponse = {
       chats: [],
       nextCursor: null,
+      _isGuestFallback: true,
       message: "Please log in to view your chats"
     };
   }
 
   // Special case for messages endpoint
-  if (url.includes('/api/messages') || url.includes('/api/chats') && url.includes('/messages')) {
+  if (url.includes('/api/messages') || (url.includes('/api/chats') && url.includes('/messages'))) {
     defaultResponse = {
       messages: [],
       nextCursor: null,
+      _isGuestFallback: true,
       message: "Please log in to view your messages"
     };
   }
 
-  // Return a mock response
+  // Return a mock response — preserve 401 status instead of masking as 200
   return {
     data: defaultResponse as T,
-    status: 200,
-    statusText: 'OK',
+    status: 401,
+    statusText: 'Unauthorized',
     headers: new Headers(),
   };
 };
