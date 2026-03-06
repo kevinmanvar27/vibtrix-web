@@ -400,9 +400,9 @@ export default function UploadPostModal({
                             <CustomImage
                               src={previewUrl}
                               alt="Attachment preview"
-                              width={300}
-                              height={300}
-                              className="max-h-full max-w-full object-contain transition-transform duration-500 hover:scale-105"
+                              fill
+                              sizes="(max-width: 768px) 100vw, 600px"
+                              className="object-contain transition-transform duration-500 hover:scale-105"
                             />
                           ) : (
                             <div className="flex items-center justify-center h-full w-full bg-muted/50">

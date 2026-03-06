@@ -64,6 +64,13 @@ const RATE_LIMIT_CONFIGS = {
     maxRequests: 1000, // 1000 requests per window (increased for social media usage)
     message: 'Too many requests. Please try again later.',
   },
+  
+  // Page navigation - moderate limits to prevent scraping/abuse
+  page: {
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    maxRequests: 500, // 500 page views per 15 minutes
+    message: 'Too many page requests. Please slow down.',
+  },
 } as const;
 
 type RateLimitType = keyof typeof RATE_LIMIT_CONFIGS;

@@ -66,7 +66,18 @@ export function useEditPostMutation() {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: editPost,
+    mutationFn: async (variables: { id: string; content: string; mediaIds: string[] }) => {
+      // Create a completely fresh plain object
+      const payload = {
+        id: variables.id,
+        content: variables.content,
+        mediaIds: [...variables.mediaIds],
+      };
+      
+      debug.log("Edit mutation payload:", payload);
+      
+      return await editPost(payload);
+    },
     onSuccess: async (updatedPost) => {
       const queryFilter: QueryFilters = { queryKey: ["post-feed"] };
 

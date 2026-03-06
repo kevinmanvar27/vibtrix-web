@@ -390,9 +390,9 @@ function AttachmentPreview({
           <CustomImage
             src={src}
             alt="Attachment preview"
-            width={300}
-            height={300}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <video controls className="h-full w-full object-cover" onError={() => setError(true)}>

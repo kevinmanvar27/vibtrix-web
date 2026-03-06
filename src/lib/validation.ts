@@ -9,7 +9,12 @@ export const signUpSchema = z.object({
     /^[a-zA-Z0-9_-]+$/,
     "Only letters, numbers, - and _ allowed",
   ),
-  password: requiredString.min(8, "Must be at least 8 characters"),
+  password: requiredString
+    .min(8, "Must be at least 8 characters")
+    .regex(/[a-z]/, "Must contain at least one lowercase letter")
+    .regex(/[A-Z]/, "Must contain at least one uppercase letter")
+    .regex(/\d/, "Must contain at least one number")
+    .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, "Must contain at least one special character"),
 });
 
 export type SignUpValues = z.infer<typeof signUpSchema>;
@@ -23,8 +28,14 @@ export type LoginValues = z.infer<typeof loginSchema>;
 
 export const createPostSchema = z.object({
   content: z.string().trim().default(""),
-  mediaIds: z.array(z.string()).max(5, "Cannot have more than 5 attachments"),
-});
+  mediaIds: z.array(z.string()).max(5, "Cannot have more than 5 attachments").default([]),
+}).refine(
+  (data) => data.content.length > 0 || data.mediaIds.length > 0,
+  {
+    message: "Post must have either content or media attachments",
+    path: ["content"],
+  }
+);
 
 // Define a schema for social media links
 const socialLinksSchema = z.object({
@@ -96,4 +107,145 @@ export type UpdateUserProfileValues = z.infer<typeof updateUserProfileSchema>;
 
 export const createCommentSchema = z.object({
   content: requiredString,
+});
+
+// Additional validation schemas for various API endpoints
+export const competitionParticipationSchema = z.object({
+  competitionId: requiredString,
+  entryData: z.object({
+    title: z.string().min(3, "Title must be at least 3 characters"),
+    description: z.string().optional(),
+    mediaUrls: z.array(z.string().url()).optional(),
+  }),
+});
+
+export const paymentVerificationSchema = z.object({
+  razorpay_payment_id: requiredString,
+  razorpay_order_id: requiredString,
+  razorpay_signature: requiredString,
+});
+
+export const createCompetitionSchema = z.object({
+  title: z.string().min(5, "Title must be at least 5 characters").max(200, "Title is too long"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  rules: z.string().optional(),
+  prizePool: z.coerce.number().positive("Prize pool must be positive"),
+  startDate: z.string(),
+  endDate: z.string(),
+  entryFee: z.coerce.number().nonnegative("Entry fee cannot be negative").optional(),
+  maxParticipants: z.coerce.number().int().positive("Max participants must be positive").optional(),
+});
+
+export const messageSchema = z.object({
+  content: requiredString.max(5000, "Message too long (max 5000 characters)"),
+  recipientId: requiredString,
+  mediaUrl: z.string().url().optional(),
+});
+
+export const reportContentSchema = z.object({
+  contentType: z.enum(["post", "comment", "user"]),
+  contentId: requiredString,
+  reason: z.enum(["spam", "harassment", "hate_speech", "nsfw", "violence", "other"]),
+  description: z.string().max(1000, "Description too long (max 1000 characters)").optional(),
+});
+
+export const notificationPreferenceSchema = z.object({
+  emailNotifications: z.boolean().optional(),
+  pushNotifications: z.boolean().optional(),
+  smsNotifications: z.boolean().optional(),
+  followNotifications: z.boolean().optional(),
+  likeNotifications: z.boolean().optional(),
+  commentNotifications: z.boolean().optional(),
+  competitionNotifications: z.boolean().optional(),
+});
+
+export const forgotPasswordSchema = z.object({
+  email: requiredString.email("Invalid email address"),
+});
+
+export const resetPasswordSchema = z.object({
+  token: requiredString,
+  newPassword: requiredString
+    .min(8, "Must be at least 8 characters")
+    .regex(/[a-z]/, "Must contain at least one lowercase letter")
+    .regex(/[A-Z]/, "Must contain at least one uppercase letter")
+    .regex(/\d/, "Must contain at least one number")
+    .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, "Must contain at least one special character"),
+});
+
+export const verifyOtpSchema = z.object({
+  email: requiredString.email("Invalid email address"),
+  otp: requiredString.length(6, "OTP must be 6 digits"),
+});
+
+export const createChatSchema = z.object({
+  participantIds: z.array(z.string()).min(2, "Chat must have at least 2 participants"),
+  name: z.string().optional(),
+  isGroup: z.boolean().default(false),
+});
+
+export const sendMessageSchema = z.object({
+  chatId: requiredString,
+  content: z.string().trim().max(5000, "Message too long"),
+  mediaUrl: z.string().url().optional(),
+  messageType: z.enum(["text", "image", "video", "file"]).default("text"),
+});
+
+export const bookmarkPostSchema = z.object({
+  postId: requiredString,
+});
+
+export const likePostSchema = z.object({
+  postId: requiredString,
+});
+
+export const followUserSchema = z.object({
+  userId: requiredString,
+});
+
+export const uploadMediaSchema = z.object({
+  mediaType: z.enum(["image", "video"]),
+  mediaId: requiredString,
+});
+
+export const updateSettingsSchema = z.object({
+  theme: z.enum(["light", "dark", "system"]).optional(),
+  language: z.string().optional(),
+  privacy: z.object({
+    isProfilePublic: z.boolean().optional(),
+    showOnlineStatus: z.boolean().optional(),
+    showWhatsappNumber: z.boolean().optional(),
+    showDob: z.boolean().optional(),
+    showFullDob: z.boolean().optional(),
+    showUpiId: z.boolean().optional(),
+  }).optional(),
+});
+
+export const adminLoginSchema = z.object({
+  usernameOrEmail: requiredString,
+  password: requiredString,
+});
+
+export const createAdvertisementSchema = z.object({
+  title: z.string().min(3, "Title must be at least 3 characters").max(200),
+  imageUrl: z.string().url("Must be a valid URL"),
+  targetUrl: z.string().url("Must be a valid URL").optional(),
+  startDate: z.string(),
+  endDate: z.string(),
+  budget: z.coerce.number().positive("Budget must be positive"),
+  targetType: z.enum(["impression", "click"]).default("impression"),
+});
+
+export const feedbackSchema = z.object({
+  category: z.enum(["bug", "feature", "general"]),
+  subject: z.string().min(5, "Subject must be at least 5 characters").max(200),
+  description: z.string().min(10, "Description must be at least 10 characters").max(2000),
+  priority: z.enum(["low", "medium", "high"]).default("medium"),
+});
+
+export const searchSchema = z.object({
+  query: z.string().trim().min(1, "Search query is required").max(500),
+  type: z.enum(["users", "posts", "competitions", "all"]).default("all"),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  cursor: z.string().optional(),
 });

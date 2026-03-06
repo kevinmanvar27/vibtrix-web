@@ -9,9 +9,10 @@ const adapter = new PrismaAdapter(prisma.session, prisma.user);
 
 export const lucia = new Lucia(adapter, {
   sessionCookie: {
-    expires: false,
+    expires: true, // Enable session expiration for security
     attributes: {
       secure: process.env.NODE_ENV === "production",
+      sameSite: 'strict', // Prevent CSRF
     },
   },
   getUserAttributes(databaseUserAttributes) {
@@ -86,7 +87,7 @@ export const validateRequest = cache(
     { user: User; session: Session } | { user: null; session: null }
   > => {
     debug.log("validateRequest - Starting validation");
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const sessionCookie = cookieStore.get(lucia.sessionCookieName);
     const sessionId = sessionCookie?.value ?? null;
 
@@ -106,7 +107,7 @@ export const validateRequest = cache(
       if (result.session && result.session.fresh) {
         debug.log("validateRequest - Session is fresh, creating new session cookie");
         const sessionCookie = lucia.createSessionCookie(result.session.id);
-        cookies().set(
+        (await cookies()).set(
           sessionCookie.name,
           sessionCookie.value,
           sessionCookie.attributes,
@@ -116,7 +117,7 @@ export const validateRequest = cache(
       if (!result.session) {
         debug.log("validateRequest - No valid session, creating blank session cookie");
         const sessionCookie = lucia.createBlankSessionCookie();
-        cookies().set(
+        (await cookies()).set(
           sessionCookie.name,
           sessionCookie.value,
           sessionCookie.attributes,

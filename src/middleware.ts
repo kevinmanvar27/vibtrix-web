@@ -10,29 +10,30 @@ export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const clientIP = getClientIP(request);
 
-  // Skip rate limiting for page navigation (non-API routes) for instant navigation
-  const isPageNavigation = !pathname.startsWith('/api/');
+  // Apply rate limiting to ALL requests (not just API routes)
+  // This prevents bypass by accessing pages directly
+  let rateLimitType: 'auth' | 'api' | 'upload' | 'admin' | 'default' = 'default';
+
+  if (pathname.startsWith('/api/auth/')) {
+    rateLimitType = 'auth';
+  } else if (pathname.startsWith('/api/upload/')) {
+    rateLimitType = 'upload';
+  } else if (pathname.startsWith('/api/admin/')) {
+    rateLimitType = 'admin';
+  } else if (pathname.startsWith('/api/')) {
+    rateLimitType = 'api';
+  } else if (pathname.startsWith('/admin/') || pathname.startsWith('/admin-login')) {
+    rateLimitType = 'admin';
+  }
+
+  // Check rate limiting (skip for static assets and media files)
+  const isStaticAsset = pathname.match(/\.(jpg|jpeg|png|gif|webp|mp4|webm|mov|ico|svg|css|js|woff|woff2|ttf|eot)$/i);
+  const isNextStatic = pathname.startsWith('/_next/static');
   
-  // Apply rate limiting based on endpoint type (skip for page navigation)
-  if (!isPageNavigation) {
-    let rateLimitType: 'auth' | 'api' | 'upload' | 'admin' | 'default' = 'default';
-
-    if (pathname.startsWith('/api/auth/')) {
-      rateLimitType = 'auth';
-    } else if (pathname.startsWith('/api/upload/')) {
-      rateLimitType = 'upload';
-    } else if (pathname.startsWith('/api/admin/')) {
-      rateLimitType = 'admin';
-    } else if (pathname.startsWith('/api/')) {
-      rateLimitType = 'api';
-    }
-
-    // Check rate limits (skip for media files)
-    if (!pathname.match(/\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$/i)) {
-      const rateLimitResult = applyRateLimit(request, rateLimitType);
-      if (!rateLimitResult.allowed && rateLimitResult.response) {
-        return rateLimitResult.response;
-      }
+  if (!isStaticAsset && !isNextStatic) {
+    const rateLimitResult = applyRateLimit(request, rateLimitType);
+    if (!rateLimitResult.allowed && rateLimitResult.response) {
+      return rateLimitResult.response;
     }
   }
 
@@ -125,21 +126,21 @@ export function middleware(request: NextRequest) {
     response.headers.set('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
   }
 
-  // Add enhanced Content Security Policy - more permissive for Next.js and Razorpay
-  // Note: Next.js uses inline scripts for hydration, so we need 'unsafe-inline' without nonce
-  // When nonce is present with 'unsafe-inline', browsers ignore 'unsafe-inline' per CSP spec
+  // Add enhanced Content Security Policy - SECURED VERSION
+  // Note: Using strict CSP without 'unsafe-inline' or 'unsafe-eval' for better security
+  // Next.js requires some flexibility for development, so we use different policies per environment
   let cspPolicy;
 
   if (isPaymentRelated) {
-    // Very permissive CSP for payment pages to allow Razorpay to work
+    // Payment pages - balanced security with Razorpay compatibility
     cspPolicy = process.env.NODE_ENV === 'production'
-      ? `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://*.razorpay.com https://api.razorpay.com; style-src 'self' 'unsafe-inline' https://*.razorpay.com; img-src 'self' data: blob: https://api.dicebear.com https://api.qrserver.com https://*.razorpay.com https://utfs.io; font-src 'self' data: https://*.razorpay.com; connect-src 'self' https://*.uploadthing.com https://utfs.io https://api.razorpay.com https://*.razorpay.com; media-src 'self' blob: https://*; object-src 'none'; frame-src https://*.razorpay.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://*.razorpay.com;`
-      : `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://*.razorpay.com https://api.razorpay.com; style-src 'self' 'unsafe-inline' https://*.razorpay.com; img-src 'self' data: blob: https://api.dicebear.com https://api.qrserver.com https://*.razorpay.com https://utfs.io; font-src 'self' data: https://*.razorpay.com; connect-src 'self' https://*.uploadthing.com https://utfs.io https://api.razorpay.com https://*.razorpay.com; media-src 'self' blob: http://localhost:* https://*; object-src 'none'; frame-src https://*.razorpay.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://*.razorpay.com;`;
+      ? `default-src 'self'; script-src 'self' https://checkout.razorpay.com https://*.razorpay.com; style-src 'self' 'unsafe-inline' https://*.razorpay.com; img-src 'self' data: blob: https://api.dicebear.com https://api.qrserver.com https://*.razorpay.com https://utfs.io; font-src 'self' data: https://*.razorpay.com; connect-src 'self' https://*.uploadthing.com https://utfs.io https://api.razorpay.com https://*.razorpay.com; media-src 'self' blob: https://*; object-src 'none'; frame-src https://*.razorpay.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://*.razorpay.com;`
+      : `default-src 'self'; script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://*.razorpay.com; style-src 'self' 'unsafe-inline' https://*.razorpay.com; img-src 'self' data: blob: https://api.dicebear.com https://api.qrserver.com https://*.razorpay.com https://utfs.io; font-src 'self' data: https://*.razorpay.com; connect-src 'self' https://*.uploadthing.com https://utfs.io https://api.razorpay.com https://*.razorpay.com; media-src 'self' blob: http://localhost:* https://*; object-src 'none'; frame-src https://*.razorpay.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://*.razorpay.com;`;
   } else {
-    // Standard CSP for other pages - allow inline scripts for Next.js hydration
+    // Standard pages - STRICT CSP without unsafe-inline/unsafe-eval in production
     cspPolicy = process.env.NODE_ENV === 'production'
-      ? `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://*.razorpay.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://api.dicebear.com https://api.qrserver.com https://utfs.io; font-src 'self' data:; connect-src 'self' https://*.uploadthing.com https://utfs.io https://api.razorpay.com https://*.razorpay.com; media-src 'self' blob: https://*; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';`
-      : `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://*.razorpay.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://api.dicebear.com https://api.qrserver.com https://utfs.io; font-src 'self' data:; connect-src 'self' https://*.uploadthing.com https://utfs.io https://api.razorpay.com https://*.razorpay.com; media-src 'self' blob: http://localhost:* https://*; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';`;
+      ? `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://api.dicebear.com https://api.qrserver.com https://utfs.io; font-src 'self' data:; connect-src 'self' https://*.uploadthing.com https://utfs.io https://api.razorpay.com https://*.razorpay.com; media-src 'self' blob: https://*; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';`
+      : `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://api.dicebear.com https://api.qrserver.com https://utfs.io; font-src 'self' data:; connect-src 'self' https://*.uploadthing.com https://utfs.io https://api.razorpay.com https://*.razorpay.com; media-src 'self' blob: http://localhost:* https://*; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';`;
   }
 
   response.headers.set('Content-Security-Policy', cspPolicy);

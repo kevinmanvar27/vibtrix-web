@@ -1,8 +1,7 @@
-import avatarPlaceholder from "@/assets/avatar-placeholder.png";
 import { OnlineStatus } from "@/lib/types/onlineStatus";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
 import StatusIndicator from "./StatusIndicator";
+import ImageWithFallback from "./ImageWithFallback";
 
 interface UserAvatarProps {
   avatarUrl: string | null | undefined;
@@ -11,6 +10,7 @@ interface UserAvatarProps {
   showStatus?: boolean;
   status?: OnlineStatus;
   statusSize?: 'sm' | 'md' | 'lg';
+  displayName?: string;
 }
 
 export default function UserAvatar({
@@ -20,16 +20,19 @@ export default function UserAvatar({
   showStatus = false,
   status = OnlineStatus.OFFLINE,
   statusSize = 'md',
+  displayName,
 }: UserAvatarProps) {
   const avatarSize = size ?? 48;
 
   return (
     <div className="relative inline-block">
-      <Image
-        src={avatarUrl || avatarPlaceholder}
+      <ImageWithFallback
+        src={avatarUrl}
         alt="User avatar"
         width={avatarSize}
         height={avatarSize}
+        fallbackType="avatar"
+        fallbackText={displayName}
         className={cn(
           "aspect-square h-fit flex-none rounded-full bg-secondary object-cover",
           className,

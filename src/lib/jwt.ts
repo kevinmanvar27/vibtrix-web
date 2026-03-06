@@ -9,8 +9,22 @@ import { generateSecureToken, SECURITY_CONFIG } from "./security";
 
 // Validate JWT secret exists and is strong enough
 const JWT_SECRET_STRING = process.env.JWT_SECRET;
-if (!JWT_SECRET_STRING || JWT_SECRET_STRING.length < 32) {
-  throw new Error("JWT_SECRET must be at least 32 characters long");
+
+if (!JWT_SECRET_STRING) {
+  throw new Error(
+    "JWT_SECRET environment variable is not set. " +
+    "Please generate a secure random string using: " +
+    "node -e \"const crypto = require('crypto'); console.log(crypto.randomBytes(64).toString('hex'));\""
+  );
+}
+
+if (JWT_SECRET_STRING.length < 32) {
+  throw new Error(
+    `JWT_SECRET is too short (${JWT_SECRET_STRING.length} characters). ` +
+    "It must be at least 32 characters long for security. " +
+    "Generate a secure random string using: " +
+    "node -e \"const crypto = require('crypto'); console.log(crypto.randomBytes(64).toString('hex'));\""
+  );
 }
 
 const JWT_SECRET = new TextEncoder().encode(JWT_SECRET_STRING);

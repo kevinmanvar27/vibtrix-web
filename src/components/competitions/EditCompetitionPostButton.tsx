@@ -173,30 +173,27 @@ export default function EditCompetitionPostButton({
                 {mediaAttachments.map((attachment) => (
                   <div
                     key={attachment.file.name}
-                    className="group relative aspect-video w-full overflow-hidden rounded-xl border border-border"
+                    className="group relative mx-auto size-fit"
                   >
                     {attachment.url ? (
                       attachment.file.type.startsWith("image/") ? (
-                        <div className="flex items-center justify-center h-full w-full">
-                          <Image
-                            src={attachment.url}
-                            alt="Attachment"
-                            width={500}
-                            height={300}
-                            className="max-h-full max-w-full object-contain"
-                          />
-                        </div>
+                        <Image
+                          src={attachment.url}
+                          alt="Attachment"
+                          width={500}
+                          height={500}
+                          unoptimized={true}
+                          className="size-fit max-h-[20rem] rounded-2xl"
+                        />
                       ) : (
-                        <div className="flex items-center justify-center h-full w-full">
-                          <video
-                            src={attachment.url}
-                            className="max-h-full max-w-full object-contain"
-                            controls
-                          />
-                        </div>
+                        <video
+                          src={attachment.url}
+                          className="size-fit max-h-[20rem] rounded-2xl"
+                          controls
+                        />
                       )
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-muted">
+                      <div className="flex h-64 w-full items-center justify-center bg-muted rounded-2xl">
                         <Loader2 className="size-8 animate-spin text-muted-foreground" />
                       </div>
                     )}

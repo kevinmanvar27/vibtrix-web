@@ -52,6 +52,14 @@ export async function POST(req: NextRequest) {
 
     const { content, mediaIds } = validationResult.data;
 
+    // Ensure at least content or media is provided
+    if (!content.trim() && mediaIds.length === 0) {
+      return Response.json(
+        { error: "Post must have either content or media attachments" },
+        { status: 400 }
+      );
+    }
+
     // Verify all media IDs exist
     if (mediaIds.length > 0) {
       const mediaCount = await prisma.media.count({

@@ -1,39 +1,11 @@
 import { validateRequest } from "@/auth";
-import { Suspense } from "react";
-import dynamic from "next/dynamic";
+import { Suspense, lazy } from "react";
 
-// Dynamic imports with loading states
-const PostEditorWrapper = dynamic(
-  () => import("@/components/posts/editor/PostEditorWrapper"),
-  { 
-    loading: () => <div className="h-32 bg-card rounded-2xl animate-pulse" />,
-    ssr: false 
-  }
-);
-
-const GuestPostEditor = dynamic(
-  () => import("@/components/posts/editor/GuestPostEditor"),
-  { 
-    loading: () => <div className="h-24 bg-card rounded-2xl animate-pulse" />,
-    ssr: false 
-  }
-);
-
-const TrendsSidebar = dynamic(
-  () => import("@/components/TrendsSidebar"),
-  { 
-    loading: () => <div className="hidden lg:block w-80 h-96 bg-card rounded-2xl animate-pulse" />,
-    ssr: false 
-  }
-);
-
-const HomeTabs = dynamic(
-  () => import("./HomeTabs"),
-  { 
-    loading: () => <div className="h-12 bg-card rounded-lg animate-pulse mb-4" />,
-    ssr: false 
-  }
-);
+// Lazy load components (proper way for Server Components in Next.js 15)
+const PostEditorWrapper = lazy(() => import("@/components/posts/editor/PostEditorWrapper"));
+const GuestPostEditor = lazy(() => import("@/components/posts/editor/GuestPostEditor"));
+const TrendsSidebar = lazy(() => import("@/components/TrendsSidebar"));
+const HomeTabs = lazy(() => import("./HomeTabs"));
 
 export default async function Home() {
   const { user } = await validateRequest();

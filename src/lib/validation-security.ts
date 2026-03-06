@@ -137,8 +137,14 @@ export const secureLoginSchema = z.object({
 
 export const secureCreatePostSchema = z.object({
   content: contentSchema.optional().default(""),
-  mediaIds: z.array(z.string().uuid("Invalid media ID")).max(5, "Cannot have more than 5 attachments"),
-});
+  mediaIds: z.array(z.string().uuid("Invalid media ID")).max(5, "Cannot have more than 5 attachments").default([]),
+}).refine(
+  (data) => data.content.length > 0 || data.mediaIds.length > 0,
+  {
+    message: "Post must have either content or media attachments",
+    path: ["content"],
+  }
+);
 
 export const secureUpdateUserProfileSchema = z.object({
   displayName: createSecureString(1, 50, "Display name required", "Display name too long"),

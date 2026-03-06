@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
+import { useToast } from "../ui/use-toast";
 import { useEditPostMutation } from "./mutations";
 import useMediaUpload from "../posts/editor/useMediaUpload";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -20,6 +21,7 @@ import { ImageIcon, Loader2, X } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import CustomVideoPlayer from "@/components/ui/CustomVideoPlayer";
+import "../posts/editor/styles.css";
 
 import debug from "@/lib/debug";
 
@@ -35,6 +37,7 @@ export default function EditPostDialog({
   onClose,
 }: EditPostDialogProps) {
   const { user } = useSession();
+  const { toast } = useToast();
   const mutation = useEditPostMutation();
 
   const {
@@ -82,6 +85,13 @@ export default function EditPostDialog({
     immediatelyRender: false, // Fix for SSR hydration mismatches
   });
 
+  // Update editor content when post changes or dialog opens
+  useEffect(() => {
+    if (editor && open) {
+      editor.commands.setContent(post.content);
+    }
+  }, [editor, open, post.content]);
+
   const input =
     editor?.getText({
       blockSeparator: "\n",
@@ -98,20 +108,36 @@ export default function EditPostDialog({
   }
 
   function onSubmit() {
-    mutation.mutate(
-      {
-        id: post.id,
-        content: input,
-        mediaIds: attachments.map((a) => a.mediaId).filter(Boolean) as string[],
+    // Validate that we have either content or media
+    const hasContent = input.trim().length > 0;
+    const hasMedia = attachments.length > 0;
+
+    if (!hasContent && !hasMedia) {
+      toast({
+        variant: "destructive",
+        description: "Post must have either text content or media attachments.",
+      });
+      return;
+    }
+
+    // Ensure we're passing plain objects only
+    const submitData = {
+      id: post.id,
+      content: input.trim(),
+      mediaIds: attachments
+        .map((a) => a.mediaId)
+        .filter((id): id is string => typeof id === "string" && id.length > 0),
+    };
+
+    debug.log("Submitting edit with data:", submitData);
+
+    mutation.mutate(submitData, {
+      onSuccess: () => {
+        onClose();
+        resetMediaUploads();
+        editor?.commands.clearContent();
       },
-      {
-        onSuccess: () => {
-          onClose();
-          resetMediaUploads();
-          editor?.commands.clearContent();
-        },
-      },
-    );
+    });
   }
 
   function onPaste(e: ClipboardEvent<HTMLInputElement>) {
@@ -130,11 +156,13 @@ export default function EditPostDialog({
         <div className="flex flex-col gap-5">
           <div className="flex gap-5">
             <div className="w-full">
-              <EditorContent
-                editor={editor}
-                className="max-h-[20rem] w-full overflow-y-auto rounded-2xl bg-background px-5 py-3"
-                onPaste={onPaste}
-              />
+              <div className="tiptap-editor-content">
+                <EditorContent
+                  editor={editor}
+                  className="min-h-[100px] max-h-[20rem] w-full overflow-y-auto rounded-2xl bg-background px-5 py-3 border border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
+                  onPaste={onPaste}
+                />
+              </div>
             </div>
           </div>
           {!!attachments.length && (
@@ -241,32 +269,29 @@ function AttachmentPreviews({
       {attachments.map((attachment) => (
         <div
           key={attachment.file.name}
-          className="group relative aspect-video w-full overflow-hidden rounded-2xl border border-border"
+          className="group relative mx-auto size-fit"
         >
           {attachment.url ? (
             attachment.file.type.startsWith("image/") ? (
-              <div className="flex items-center justify-center h-full w-full">
-                <Image
-                  src={attachment.url}
-                  alt="Attachment"
-                  width={500}
-                  height={300}
-                  className="max-h-full max-w-full object-contain"
-                />
-              </div>
+              <Image
+                src={attachment.url}
+                alt="Attachment"
+                width={500}
+                height={500}
+                unoptimized={true}
+                className="size-fit max-h-[20rem] rounded-2xl"
+              />
             ) : (
-              <div className="flex items-center justify-center h-full w-full">
-                <CustomVideoPlayer
-                  src={attachment.url}
-                  className="max-h-full max-w-full object-contain"
-                  autoPlay={false}
-                  muted={true}
-                  loop={true}
-                />
-              </div>
+              <CustomVideoPlayer
+                src={attachment.url}
+                className="size-fit max-h-[20rem] rounded-2xl"
+                autoPlay={false}
+                muted={true}
+                loop={true}
+              />
             )
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-muted">
+            <div className="flex h-64 w-full items-center justify-center bg-muted rounded-2xl">
               <Loader2 className="size-8 animate-spin text-muted-foreground" />
             </div>
           )}

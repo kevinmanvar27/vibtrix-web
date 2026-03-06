@@ -17,7 +17,7 @@ export function useClientOnlyFollowerInfo(userId: string, initialState: { follow
 
     const fetchFollowerInfo = async () => {
       try {
-        const response = await fetch(`/api/users/${userId}/follower-info`);
+        const response = await fetch(`/api/users/${userId}/followers`);
         if (response.ok) {
           const data = await response.json();
           setFollowerInfo({

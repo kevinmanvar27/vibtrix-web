@@ -31,16 +31,16 @@ interface SendEmailOptions {
  */
 export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
   try {
-    // Log SMTP configuration only in development (without password)
+    // Log email configuration only in development (without password)
     if (!isProduction) {
-      console.log("=== Email Configuration ===");
-      console.log("SMTP_HOST:", process.env.SMTP_HOST || "smtp.gmail.com (default)");
-      console.log("SMTP_PORT:", process.env.SMTP_PORT || "587 (default)");
-      console.log("SMTP_USER:", process.env.SMTP_USER ? `${process.env.SMTP_USER.substring(0, 5)}...` : "NOT SET");
-      console.log("SMTP_PASS:", process.env.SMTP_PASS ? "SET (hidden)" : "NOT SET");
-      console.log("EMAIL_FROM:", process.env.EMAIL_FROM || "Vibtrix <noreply@vibtrix.com> (default)");
-      console.log("Sending to:", options.to);
-      console.log("Subject:", options.subject);
+      debug.log("=== Email Configuration ===");
+      debug.log("SMTP_HOST:", process.env.SMTP_HOST || "smtp.gmail.com (default)");
+      debug.log("SMTP_PORT:", process.env.SMTP_PORT || "587 (default)");
+      debug.log("SMTP_USER:", process.env.SMTP_USER ? `${process.env.SMTP_USER.substring(0, 5)}...` : "NOT SET");
+      debug.log("SMTP_PASS:", process.env.SMTP_PASS ? "SET (hidden)" : "NOT SET");
+      debug.log("EMAIL_FROM:", process.env.EMAIL_FROM || "Vibtrix <noreply@vibtrix.com> (default)");
+      debug.log("Sending to:", options.to);
+      debug.log("Subject:", options.subject);
     }
     
     const transporter = createTransporter();

@@ -133,16 +133,22 @@ if (typeof window === 'undefined') {
               .then(reconnected => {
                 if (!reconnected) {
                   debug.error('Background database reconnection failed');
+                } else {
+                  debug.log('Background database reconnection successful');
                 }
               })
               .catch(error => {
                 debug.error('Error during background database reconnection:', error);
               });
           }, 5000); // Wait 5 seconds before trying again
+        } else {
+          debug.log('Database connection established successfully');
         }
       })
       .catch(error => {
         debug.error('Unexpected error during database connection testing:', error);
+        // Log additional context for debugging
+        debug.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
       });
   } catch (error) {
     debug.error('Error initializing Prisma client:', error);

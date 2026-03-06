@@ -1,17 +1,9 @@
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import dynamic from "next/dynamic";
+import GoogleSignInButton from "./google/GoogleSignInButton";
+import LoginForm from "./LoginForm";
 import { getSiteSettings } from "./getSiteSettings";
-
-// Use dynamic imports with no SSR to avoid server/client mismatch
-const GoogleSignInButton = dynamic(() => import("./google/GoogleSignInButton"), {
-  ssr: false,
-});
-
-const LoginForm = dynamic(() => import("./LoginForm"), {
-  ssr: false,
-});
 
 export const metadata: Metadata = {
   title: "Login",

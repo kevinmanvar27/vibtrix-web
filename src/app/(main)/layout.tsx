@@ -13,6 +13,7 @@ import { seedStaticPages } from "@/lib/seed-static-pages";
 import MobileNavBarWrapper from "@/components/MobileNavBarWrapper";
 import AggressivePrefetch from "@/components/AggressivePrefetch";
 import { Suspense } from "react";
+import debug from "@/lib/debug";
 
 // Loading skeleton for MenuBar
 function MenuBarSkeleton() {
@@ -38,7 +39,10 @@ export default async function Layout({
   ]);
 
   // Seed static pages in background - don't block render
-  seedStaticPages().catch(() => {});
+  seedStaticPages().catch(error => {
+    // Log error but don't block rendering
+    debug.error('Failed to seed static pages:', error);
+  });
 
   const isLoggedIn = !!session.user;
 

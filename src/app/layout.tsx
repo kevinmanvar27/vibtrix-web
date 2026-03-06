@@ -7,7 +7,7 @@ import { getSiteSettings } from "./(main)/getSiteSettings";
 import PerformanceMonitor from "@/components/PerformanceMonitor";
 import configureDebugUtility from "@/lib/debug-config";
 import ClientProviders from "@/components/ClientProviders";
-import dynamic from "next/dynamic";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { ensureAdminUser } from "@/lib/ensure-admin-user";
 
 const geistSans = localFont({
@@ -23,11 +23,6 @@ const geistMono = localFont({
   display: "swap", // Prevent font from blocking rendering
   preload: false, // Disable preloading to prevent unused preload warning
   fallback: ['Menlo', 'Monaco', 'Courier New', 'monospace'],
-});
-
-// Dynamically import the Google Analytics component to avoid SSR issues
-const GoogleAnalytics = dynamic(() => import("@/components/GoogleAnalytics"), {
-  ssr: false,
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -47,7 +42,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       locale: "en_US",
-      url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001',
+      url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
       title: "Vibtrix - Social Media Platform for Video Competitions",
       description: "Vibtrix is a social media platform where users can participate in video competitions, share content, and connect with others.",
       siteName: "Vibtrix",

@@ -13,13 +13,27 @@ import debug from "@/lib/debug";
 
 export function useSubmitPostMutation() {
   const { toast } = useToast();
-
   const queryClient = useQueryClient();
-
   const { user } = useSession();
 
   const mutation = useMutation({
-    mutationFn: submitPost,
+    mutationFn: async (variables: { content: string; mediaIds: string[] }) => {
+      // Create a completely fresh plain object
+      const payload = {
+        content: variables.content,
+        mediaIds: [...variables.mediaIds],
+      };
+      
+      debug.log("Mutation payload:", payload);
+      debug.log("Payload type check:", {
+        isPlainObject: Object.getPrototypeOf(payload) === Object.prototype,
+        contentType: typeof payload.content,
+        mediaIdsType: typeof payload.mediaIds,
+        mediaIdsIsArray: Array.isArray(payload.mediaIds),
+      });
+      
+      return await submitPost(payload);
+    },
     onSuccess: async (newPost) => {
       const queryFilter = {
         queryKey: ["post-feed"],
@@ -66,10 +80,11 @@ export function useSubmitPostMutation() {
       });
     },
     onError(error) {
-      debug.error(error);
+      debug.error("Post submission error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to post. Please try again.";
       toast({
         variant: "destructive",
-        description: "Failed to post. Please try again.",
+        description: errorMessage,
       });
     },
   });

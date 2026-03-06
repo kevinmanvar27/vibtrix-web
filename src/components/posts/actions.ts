@@ -101,12 +101,22 @@ export async function editPost(input: {
   content: string;
   mediaIds: string[];
 }) {
-  const { user } = await validateRequest();
+  try {
+    const { user } = await validateRequest();
 
-  if (!user) throw new Error("Unauthorized");
+    if (!user) throw new Error("Unauthorized");
 
-  const { id, content, mediaIds } = input;
-  const validatedData = createPostSchema.parse({ content, mediaIds });
+    const { id, content, mediaIds } = input;
+    
+    // Validate input
+    const validationResult = createPostSchema.safeParse({ content, mediaIds });
+    
+    if (!validationResult.success) {
+      debug.error('editPost: Validation failed:', validationResult.error.flatten());
+      throw new Error(`Validation failed: ${validationResult.error.errors[0]?.message || 'Invalid input'}`);
+    }
+
+    const validatedData = validationResult.data;
 
   const post = await prisma.post.findUnique({
     where: { id },
@@ -144,5 +154,12 @@ export async function editPost(input: {
     include: getPostDataInclude(user.id),
   });
 
-  return updatedPost;
+  debug.log(`editPost: Post updated successfully with id ${updatedPost.id}`);
+
+  // Serialize the post data to ensure it's JSON-serializable for Server Actions
+  return JSON.parse(JSON.stringify(updatedPost));
+  } catch (error) {
+    debug.error('editPost: Error updating post:', error);
+    throw error;
+  }
 }

@@ -8,6 +8,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import { Button } from "@/components/ui/button";
+import DOMPurify from "isomorphic-dompurify";
 import {
   Bold,
   Italic,
@@ -180,7 +181,7 @@ export default function PageEditor({ content, onChange }: PageEditorProps) {
             {htmlContent && (
               <div className="border rounded-md p-4">
                 <h3 className="text-sm font-medium mb-2">Preview:</h3>
-                <div className="html-preview border p-2 rounded-md" dangerouslySetInnerHTML={{ __html: htmlContent }} />
+                <div className="html-preview border p-2 rounded-md" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent) }} />
               </div>
             )}
           </div>

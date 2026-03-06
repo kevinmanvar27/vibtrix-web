@@ -10,6 +10,7 @@ import { generateAuthTokens } from "@/lib/jwt";
 import { applyRateLimit } from "@/lib/rate-limit";
 import { trackLoginAttempt } from "@/lib/auth-security";
 import { signUpSchema } from "@/lib/validation";
+import { validatePasswordStrength } from "@/lib/security";
 import debug from "@/lib/debug";
 
 /**
@@ -46,6 +47,19 @@ export async function POST(req: NextRequest) {
     }
 
     const { username, email, password } = validation.data;
+
+    // Validate password strength using comprehensive security check
+    const passwordValidation = validatePasswordStrength(password);
+    if (!passwordValidation.isValid) {
+      debug.log("POST /api/auth/signup - Weak password:", passwordValidation.errors);
+      return Response.json(
+        { 
+          error: "Weak password",
+          details: passwordValidation.errors 
+        },
+        { status: 400 }
+      );
+    }
 
     // Check if username already exists
     // Note: MySQL with default collation is case-insensitive by default
@@ -135,14 +149,13 @@ export async function POST(req: NextRequest) {
     }, { status: 201 });
 
   } catch (error) {
-    // Log detailed error for debugging
-    console.error("POST /api/auth/signup - Error details:", {
+    // Log detailed error for debugging using debug module
+    debug.error("POST /api/auth/signup - Error details:", {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
       name: error instanceof Error ? error.name : undefined,
       error: error
     });
-    debug.error("POST /api/auth/signup - Error:", error);
     
     // Return more specific error in development
     const errorMessage = process.env.NODE_ENV === 'development' && error instanceof Error

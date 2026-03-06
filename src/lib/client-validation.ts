@@ -55,8 +55,14 @@ export type UpdateUserProfileValues = z.infer<typeof updateUserProfileSchema>;
 // Create post schema
 export const createPostSchema = z.object({
   content: z.string().trim().default(""),
-  mediaIds: z.array(z.string()).max(5, "Cannot have more than 5 attachments"),
-});
+  mediaIds: z.array(z.string()).max(5, "Cannot have more than 5 attachments").default([]),
+}).refine(
+  (data) => data.content.length > 0 || data.mediaIds.length > 0,
+  {
+    message: "Post must have either content or media attachments",
+    path: ["content"],
+  }
+);
 
 // Create comment schema
 export const createCommentSchema = z.object({

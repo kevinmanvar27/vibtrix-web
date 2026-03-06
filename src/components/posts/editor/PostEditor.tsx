@@ -3,9 +3,6 @@
 import { useSession } from "@/app/(main)/SessionProvider";
 import LoadingButton from "@/components/LoadingButton";
 import { Button } from "@/components/ui/button";
-import UserAvatar from "@/components/UserAvatar";
-import { cn } from "@/lib/utils";
-import { OnlineStatus } from "@/lib/types/onlineStatus";
 import TipTapWrapper from "@/components/ui/tiptap-wrapper";
 import CustomVideoPlayer from "@/components/ui/CustomVideoPlayer";
 
@@ -33,23 +30,41 @@ export default function PostEditor() {
   } = useMediaUpload();
 
   const [postContent, setPostContent] = useState("");
+  const [editorKey, setEditorKey] = useState(0); // Key to force re-render editor
 
-  function onSubmit() {
+  async function onSubmit() {
     if (!user) return; // Don't submit if user is not logged in
 
-    mutation.mutate(
-      {
-        content: postContent,
-        mediaIds: attachments.map((a) => a.mediaId).filter(Boolean) as string[],
-      },
-      {
-        onSuccess: () => {
-          setPostContent("");
-          resetMediaUploads();
-        },
-      },
-    );
+    // Validate that we have either content or media
+    const hasContent = postContent.trim().length > 0;
+    const hasMedia = attachments.length > 0;
+
+    if (!hasContent && !hasMedia) {
+      return; // Don't submit if there's no content and no media
+    }
+
+    // Ensure we're passing plain objects only - create a completely new plain object
+    const submitData: { content: string; mediaIds: string[] } = {
+      content: postContent.trim(),
+      mediaIds: attachments
+        .map((a) => a.mediaId)
+        .filter((id): id is string => typeof id === "string" && id.length > 0),
+    };
+
+    debug.log("Submitting post with data:", submitData);
+
+    mutation.mutate(submitData);
   }
+
+  // Handle successful post submission
+  useEffect(() => {
+    if (mutation.isSuccess) {
+      setPostContent("");
+      setEditorKey((prev) => prev + 1); // Force re-render editor to clear content
+      resetMediaUploads();
+      mutation.reset(); // Reset mutation state
+    }
+  }, [mutation.isSuccess, resetMediaUploads, mutation]);
 
   function onPaste(e: ClipboardEvent<HTMLInputElement>) {
     const files = Array.from(e.clipboardData.items)
@@ -71,22 +86,14 @@ export default function PostEditor() {
 
   return (
     <div className="flex flex-col gap-5 rounded-2xl bg-card p-5 shadow-sm">
-      <div className="flex gap-5">
-        <UserAvatar
-          avatarUrl={user.avatarUrl}
-          className="hidden sm:inline"
-          showStatus={true}
-          status={(user.onlineStatus as OnlineStatus) || OnlineStatus.OFFLINE}
-          statusSize="sm"
+      <div className="w-full">
+        <TipTapWrapper
+          key={editorKey}
+          content=""
+          placeholder="What's on your mind today?"
+          onChange={setPostContent}
+          className="max-h-[20rem] w-full overflow-y-auto rounded-2xl bg-background px-5 py-3"
         />
-        <div className="w-full">
-          <TipTapWrapper
-            content=""
-            placeholder="What's on your mind today?"
-            onChange={setPostContent}
-            className="max-h-[20rem] w-full overflow-y-auto rounded-2xl bg-background px-5 py-3"
-          />
-        </div>
       </div>
       {!!attachments.length && (
         <AttachmentPreviews
@@ -108,7 +115,7 @@ export default function PostEditor() {
         <LoadingButton
           onClick={onSubmit}
           loading={mutation.isPending}
-          disabled={(attachments.length === 0) || isUploading}
+          disabled={(!postContent.trim() && attachments.length === 0) || isUploading}
           className="min-w-20"
         >
           Post
@@ -226,13 +233,13 @@ function AttachmentPreview({
     <div
       className={cn("relative mx-auto size-fit", isUploading && "opacity-50")}
     >
-      {error ? (
-        <div className="flex items-center justify-center h-64 w-full bg-red-50 dark:bg-red-900/20 rounded-2xl">
+      {error || !src ? (
+        <div className="flex items-center justify-center h-32 w-full bg-red-50 dark:bg-red-900/20 rounded-2xl">
           <div className="text-center p-4">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mx-auto text-red-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mx-auto text-red-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            <p className="text-sm text-red-600 dark:text-red-400">Failed to load preview</p>
+            <p className="text-xs text-red-600 dark:text-red-400">Failed to load preview</p>
           </div>
         </div>
       ) : file.type.startsWith("image") ? (

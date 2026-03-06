@@ -14,9 +14,9 @@ const getBaseUrl = (): string => {
   if (typeof window !== 'undefined') {
     return window.location.origin;
   }
-  // In development on the server, use the port from the environment or default to 3001
+  // In development on the server, use the port from the environment or default to 3000
   if (process.env.NODE_ENV === 'development') {
-    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
   }
   // In production on the server, use an empty string (relative URLs)
   return '';
