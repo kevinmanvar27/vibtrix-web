@@ -253,7 +253,7 @@ export default function ChatChannel({ open, openSidebar, chatId }: ChatChannelPr
     : "";
 
   return (
-    <div className={cn("flex h-full w-full flex-col", !open && "hidden")}>
+    <div className={cn("flex h-full w-full flex-col", !open && "hidden md:flex")}>
       {!isLoggedIn || authError ? (
         <div className="flex flex-col h-full items-center justify-center p-4">
           <p className="text-center text-sm text-muted-foreground mb-4">

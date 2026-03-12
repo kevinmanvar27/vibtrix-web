@@ -155,6 +155,7 @@ export async function PUT(req: NextRequest) {
     // Only include fields that are provided
     if (data.displayName !== undefined) updateData.displayName = data.displayName;
     if (data.username !== undefined) updateData.username = data.username;
+    if (data.email !== undefined) updateData.email = data.email;
     if (data.bio !== undefined) updateData.bio = data.bio;
     if (data.gender !== undefined) updateData.gender = data.gender;
     if (data.whatsappNumber !== undefined) updateData.whatsappNumber = data.whatsappNumber;

@@ -56,7 +56,13 @@ async function main() {
     console.log(`\n🚀 Starting development server on port ${port}...\n`);
     
     // Use Turbopack for 10x faster compilation (Next.js 15 feature)
-    const nextDev = spawn('npx', ['next', 'dev', '--turbo', '-p', port.toString()], {
+    // Directly use Next.js CLI from node_modules/.bin
+    const isWindows = process.platform === 'win32';
+    const command = isWindows ? 'node.exe' : 'node';
+    const nextCliPath = require.resolve('next/dist/bin/next');
+    const args = ['dev', '--turbo', '-p', port.toString()];
+    
+    const nextDev = spawn(command, [nextCliPath, ...args], {
       stdio: 'inherit',
       cwd: process.cwd(),
       env: { ...process.env }

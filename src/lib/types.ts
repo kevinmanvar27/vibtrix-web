@@ -10,30 +10,12 @@ export function getUserDataSelect(loggedInUserId: string) {
     username: true,
     displayName: true,
     avatarUrl: true,
-    // OPTIMIZATION: Removed heavy fields that are rarely used in feed
-    // bio: true,
-    // gender: true,
-    // whatsappNumber: true,
-    // dateOfBirth: true,
-    createdAt: true,
-    // onlineStatus: true,
-    // lastActiveAt: true,
-    // showOnlineStatus: true,
+    bio: true,
+    email: true,
+    whatsappNumber: true,
+    showWhatsappNumber: true,
     isProfilePublic: true,
-    // showWhatsappNumber: true,
-    // showDob: true,
-    // hideYear: true,
-    // upiId: true,
-    // showUpiId: true,
-    // socialLinks: true,
-    // Modeling feature fields - removed for feed performance
-    // interestedInModeling: true,
-    // photoshootPricePerDay: true,
-    // videoAdsParticipation: true,
-    // Brand Ambassadorship feature fields - removed for feed performance
-    // interestedInBrandAmbassadorship: true,
-    // brandAmbassadorshipPricing: true,
-    // brandPreferences: true,
+    createdAt: true,
     role: false,
     // OPTIMIZATION: Simplified followers check - only check if following
     followers: isLoggedIn ? {
@@ -44,12 +26,22 @@ export function getUserDataSelect(loggedInUserId: string) {
         followerId: true,
       },
     } : false,
-    // OPTIMIZATION: Only get essential counts
+    // Check if logged-in user has a pending follow request to this user
+    receivedFollowRequests: isLoggedIn ? {
+      where: {
+        requesterId: loggedInUserId,
+        status: "PENDING",
+      },
+      select: {
+        requesterId: true,
+      },
+    } : false,
+    // Counts needed for profile screen
     _count: {
       select: {
-        // posts: true, // Removed - not needed in feed
+        posts: true,
         followers: true,
-        // following: true, // Removed - not needed in feed
+        following: true,
       },
     },
   } satisfies Prisma.UserSelect;
@@ -128,6 +120,7 @@ export interface CommentsPage {
 export const notificationsInclude = {
   issuer: {
     select: {
+      id: true,
       username: true,
       displayName: true,
       avatarUrl: true,

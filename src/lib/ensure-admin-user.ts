@@ -4,19 +4,12 @@ import { randomUUID } from 'crypto';
 import prisma from './prisma';
 import debug from './debug';
 
-// Module-level flag to prevent running on every page render.
-// This check only needs to run once per server process lifetime.
-let hasChecked = false;
-
 /**
  * Ensures that the admin user exists in the database
  * This function is called during application startup
  * It checks if the admin user exists, and creates it if it doesn't
  */
 export async function ensureAdminUser() {
-  // Skip if already checked during this process lifetime
-  if (hasChecked) return;
-  hasChecked = true;
   try {
     debug.log('Checking for admin user...');
     

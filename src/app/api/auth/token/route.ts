@@ -28,7 +28,16 @@ export async function POST(req: NextRequest) {
 
     // Get and validate credentials from request body
     const body = await req.json();
-    const { username, password } = sanitizeUserInput(body);
+    const { username, password, deviceId, deviceType, deviceName, deviceModel, osVersion, deviceBrand } = sanitizeUserInput(body);
+
+    debug.log("POST /api/auth/token - Device info from request:", {
+      deviceId,
+      deviceType,
+      deviceName,
+      deviceModel,
+      osVersion,
+      deviceBrand
+    });
 
     // Validate input using secure schema
     const validation = secureLoginSchema.safeParse({ username, password });
@@ -60,11 +69,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Find user by username
-    // Note: MySQL with default collation is case-insensitive by default
+    // Find user by username, email, or phone number
     const user = await prisma.user.findFirst({
       where: {
-        username: username,
+        OR: [
+          { username: username },
+          { email: username },
+          { whatsappNumber: username },
+        ],
       },
     });
 
@@ -96,7 +108,14 @@ export async function POST(req: NextRequest) {
 
     if (!validPassword) {
       debug.log(`POST /api/auth/token - Invalid password for user: ${username}`);
-      await trackLoginAttempt(req, username, false, user.id);
+      await trackLoginAttempt(req, username, false, user.id, {
+        deviceId,
+        deviceType,
+        deviceName,
+        deviceModel,
+        osVersion,
+        deviceBrand,
+      });
       return Response.json(
         { error: "Invalid username or password" },
         { status: 401 }
@@ -116,7 +135,14 @@ export async function POST(req: NextRequest) {
     });
 
     // Track successful login activity
-    await trackLoginAttempt(req, username, true, user.id);
+    await trackLoginAttempt(req, username, true, user.id, {
+      deviceId,
+      deviceType,
+      deviceName,
+      deviceModel,
+      osVersion,
+      deviceBrand,
+    });
 
     // Return tokens and basic user info
     return Response.json({
@@ -128,6 +154,16 @@ export async function POST(req: NextRequest) {
         displayName: user.displayName,
         avatarUrl: user.avatarUrl,
         role: user.role,
+        email: user.email,
+        whatsappNumber: user.whatsappNumber,
+        bio: user.bio,
+        gender: user.gender,
+        isProfilePublic: user.isProfilePublic,
+        showOnlineStatus: user.showOnlineStatus,
+        showWhatsappNumber: user.showWhatsappNumber,
+        onlineStatus: user.onlineStatus,
+        createdAt: user.createdAt,
+        isActive: user.isActive,
       },
     });
   } catch (error) {

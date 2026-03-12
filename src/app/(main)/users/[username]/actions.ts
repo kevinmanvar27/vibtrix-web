@@ -31,9 +31,26 @@ export async function updateUserProfile(values: UpdateUserProfileValues) {
     }
   }
 
+  // Handle socialLinks - ensure it's properly formatted for Prisma
+  // Prisma expects JSON fields to be passed as complete objects, not nested updates
+  const data: any = { ...validatedValues };
+  
+  // If socialLinks is provided, make sure it's a proper object
+  if (data.socialLinks !== undefined) {
+    // Ensure socialLinks is an object, not a string
+    if (typeof data.socialLinks === 'string') {
+      try {
+        data.socialLinks = JSON.parse(data.socialLinks);
+      } catch (e) {
+        // If parsing fails, use empty object
+        data.socialLinks = {};
+      }
+    }
+  }
+
   const updatedUser = await prisma.user.update({
     where: { id: user.id },
-    data: validatedValues,
+    data,
     select: getUserDataSelect(user.id),
   });
 

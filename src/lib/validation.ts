@@ -49,12 +49,13 @@ const socialLinksSchema = z.object({
 }).optional();
 
 export const updateUserProfileSchema = z.object({
-  displayName: requiredString,
-  username: requiredString.regex(
+  displayName: z.string().trim().min(1, "Display name cannot be empty").optional(),
+  username: z.string().trim().min(1, "Username cannot be empty").regex(
     /^[a-zA-Z0-9_-]+$/,
     "Only letters, numbers, - and _ allowed",
-  ),
-  bio: z.string().max(1000, "Must be at most 1000 characters"),
+  ).optional(),
+  email: z.string().email("Invalid email address").optional(),
+  bio: z.string().max(1000, "Must be at most 1000 characters").optional(),
   gender: z.string().optional(),
   whatsappNumber: z.string().optional().refine(
     (val) => {

@@ -2,6 +2,7 @@ import { validateRequest } from "@/auth";
 import prisma from "@/lib/prisma";
 import { AdvertisementStatus } from "@prisma/client";
 import { NextRequest } from "next/server";
+import { handleDatabaseError } from "@/lib/database-error-handler";
 
 import debug from "@/lib/debug";
 
@@ -121,7 +122,18 @@ export async function GET(req: NextRequest) {
 
     return Response.json({ advertisements });
   } catch (error) {
-    debug.error("Error fetching advertisements:", error);
+    const errorResult = handleDatabaseError(error, "fetching advertisements");
+    
+    // Return a graceful response even if database fails
+    if ('success' in errorResult && !errorResult.success) {
+      debug.warn(`Returning graceful fallback for advertisements: ${errorResult.error}`);
+      return Response.json({
+        advertisements: [],
+        message: "Unable to load advertisements at this time",
+      });
+    }
+    
+    // Fallback for unexpected errors
     return Response.json(
       { error: "Internal server error", message: error instanceof Error ? error.message : String(error) },
       { status: 500 }

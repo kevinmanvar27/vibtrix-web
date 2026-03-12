@@ -50,6 +50,7 @@ export async function adminLogin(formData: FormData): Promise<AdminLoginResponse
     // Find user by username or email
     // Note: MySQL with default collation (utf8mb4_unicode_ci) is case-insensitive by default
     // so we don't need the mode: "insensitive" option that was PostgreSQL-specific
+    debug.log(`Searching for user with username/email: ${usernameOrEmail}`);
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
@@ -64,25 +65,26 @@ export async function adminLogin(formData: FormData): Promise<AdminLoginResponse
     });
 
     if (!existingUser) {
-      debug.log(`User not found: ${usernameOrEmail}`);
+      debug.log(`❌ User not found: ${usernameOrEmail}`);
       return {
         success: false,
         error: "Invalid credentials"
       };
     }
+
+    debug.log(`✅ User found: ${existingUser.username} (${existingUser.email}), isAdmin: ${existingUser.isAdmin}, role: ${existingUser.role}`);
 
     if (!existingUser.passwordHash) {
-      debug.log(`User found but has no password hash: ${existingUser.username}`);
+      debug.log(`❌ User found but has no password hash: ${existingUser.username}`);
       return {
         success: false,
         error: "Invalid credentials"
       };
     }
-
-    debug.log(`User found: ${existingUser.username} (${existingUser.email});, isAdmin: ${existingUser.isAdmin}, role: ${existingUser.role}`);
 
     // Check if user is an admin
     if (!existingUser.isAdmin) {
+      debug.log(`❌ User is not an admin: ${existingUser.username}`);
       return {
         success: false,
         error: "You do not have admin privileges"
@@ -124,7 +126,8 @@ export async function adminLogin(formData: FormData): Promise<AdminLoginResponse
       debug.log('Session created:', session.id);
 
       const sessionCookie = lucia.createSessionCookie(session.id);
-      cookies().set(
+      const cookieStore = await cookies();
+      cookieStore.set(
         sessionCookie.name,
         sessionCookie.value,
         sessionCookie.attributes,

@@ -1,7 +1,7 @@
 import { validateRequest } from "@/auth";
 import prisma from "@/lib/prisma";
 import { NextRequest } from "next/server";
-
+import { getAuthenticatedUser } from "@/lib/api-auth";
 import debug from "@/lib/debug";
 
 // PATCH endpoint to accept or reject a follow request
@@ -11,7 +11,7 @@ export async function PATCH(
 ) {
   try {
     const { requestId } = await params;
-    const { user: loggedInUser } = await validateRequest();
+    const loggedInUser = await getAuthenticatedUser(req);
 
     if (!loggedInUser) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
@@ -90,12 +90,12 @@ export async function PATCH(
 
 // DELETE endpoint to delete a follow request (for cleanup)
 export async function DELETE(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ requestId: string }> },
 ) {
   try {
     const { requestId } = await params;
-    const { user: loggedInUser } = await validateRequest();
+    const loggedInUser = await getAuthenticatedUser(req);
 
     if (!loggedInUser) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });

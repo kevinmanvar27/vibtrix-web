@@ -13,9 +13,8 @@ import UserAvatar from "@/components/UserAvatar";
 import useDebounce from "@/hooks/useDebounce";
 import apiClient from "@/lib/api-client";
 import { UserData } from "@/lib/types";
-import { OnlineStatus } from "@/lib/types/onlineStatus";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Check, Loader2, SearchIcon, X } from "lucide-react";
+import { Check, Loader2, Lock, SearchIcon, X } from "lucide-react";
 import { useState } from "react";
 import { useSession } from "../SessionProvider";
 
@@ -67,8 +66,6 @@ export default function NewChatDialog({
 
       try {
         debug.log('Creating chat with participants:', selectedUsers.map(u => u.id));
-        debug.log('Current user:', loggedInUser);
-        debug.log('Is group chat:', isGroupChat);
 
         const response = await apiClient.post('/api/chats', {
           participantIds: selectedUsers.map((u) => u.id),
@@ -76,22 +73,27 @@ export default function NewChatDialog({
           isGroupChat,
         });
 
-        debug.log('Chat created successfully:', response.data);
+        debug.log('Chat created/requested successfully:', response.data);
         return response.data;
-      } catch (error) {
-        debug.error("Error creating chat:", error);
-        // Log more details about the error
-        if (error && typeof error === 'object' && 'response' in error) {
-          const axiosError = error as any;
-          debug.error("Error response data:", axiosError.response?.data);
-          debug.error("Error response status:", axiosError.response?.status);
+      } catch (error: any) {
+        // Handle 202 "requiresRequest" as a success (message request sent)
+        if (error?.response?.status === 202) {
+          return error.response.data;
         }
+        debug.error("Error creating chat:", error);
         throw error;
       }
     },
     onSuccess: (data) => {
-      debug.log('Chat creation successful, data:', data);
-      onChatCreated();
+      if (data?.requiresRequest) {
+        toast({
+          title: "Message request sent",
+          description: "Your message request has been sent. You'll be notified when it's accepted.",
+        });
+        onOpenChange(false);
+      } else {
+        onChatCreated();
+      }
     },
     onError(error) {
       debug.error("Error starting chat", error);
@@ -178,7 +180,9 @@ export default function NewChatDialog({
             loading={mutation.isPending}
             onClick={() => mutation.mutate()}
           >
-            Start chat
+            {selectedUsers.length === 1 && !selectedUsers[0].isProfilePublic
+              ? "Send message request"
+              : "Start chat"}
           </LoadingButton>
         </DialogFooter>
       </DialogContent>
@@ -199,11 +203,14 @@ function UserResult({ user, selected, onClick }: UserResultProps) {
       onClick={onClick}
     >
       <div className="flex items-center gap-2">
-        <UserAvatar
-          avatarUrl={user.avatarUrl}
-        />
+        <UserAvatar avatarUrl={user.avatarUrl} />
         <div className="flex flex-col text-start">
-          <p className="font-bold">{user.displayName}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="font-bold">{user.displayName}</p>
+            {!user.isProfilePublic && (
+              <Lock className="size-3 text-muted-foreground" />
+            )}
+          </div>
           <p className="text-muted-foreground">@{user.username}</p>
         </div>
       </div>
@@ -223,10 +230,7 @@ function SelectedUserTag({ user, onRemove }: SelectedUserTagProps) {
       onClick={onRemove}
       className="flex items-center gap-2 rounded-full border p-1 hover:bg-muted/50"
     >
-      <UserAvatar
-        avatarUrl={user.avatarUrl}
-        size={24}
-      />
+      <UserAvatar avatarUrl={user.avatarUrl} size={24} />
       <p className="font-bold">{user.displayName}</p>
       <X className="mx-2 size-5 text-muted-foreground" />
     </button>

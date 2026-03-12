@@ -1,3 +1,5 @@
+# Build
+.next/
 # Dependencies
 node_modules/
 .pnp
@@ -16,16 +18,14 @@ coverage/
 *.tsbuildinfo
 next-env.d.ts
 
-# Environment files - catch all env files to prevent accidental commits
+# Environment files
 .env
-.env.*
 .env.local
 .env.development
 .env.development.local
 .env.test.local
 .env.production
 .env.production.local
-.env.secure
 
 # Debug
 npm-debug.log*

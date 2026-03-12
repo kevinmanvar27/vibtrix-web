@@ -183,6 +183,63 @@ export async function POST(request: NextRequest) {
       participantIds.push(user.id);
     }
 
+    // For direct messages (not group chats), check if recipient has a private profile
+    if (!isGroupChat && participantIds.length === 2) {
+      const otherUserId = participantIds.find((id: string) => id !== user.id);
+      if (otherUserId) {
+        const otherUser = await prisma.user.findUnique({
+          where: { id: otherUserId },
+          select: { isProfilePublic: true },
+        });
+
+        if (otherUser && !otherUser.isProfilePublic) {
+          // Check if already following (followers bypass the request)
+          const isFollowing = await prisma.follow.findUnique({
+            where: {
+              followerId_followingId: {
+                followerId: user.id,
+                followingId: otherUserId,
+              },
+            },
+          });
+
+          if (!isFollowing) {
+            // Check if a message request already exists
+            const existingRequest = await prisma.messageRequest.findUnique({
+              where: {
+                senderId_recipientId: {
+                  senderId: user.id,
+                  recipientId: otherUserId,
+                },
+              },
+            });
+
+            if (existingRequest) {
+              // Return existing request info
+              return Response.json(
+                { messageRequest: existingRequest, requiresRequest: true },
+                { status: 202 }
+              );
+            }
+
+            // Create a message request
+            const messageRequest = await prisma.messageRequest.create({
+              data: {
+                senderId: user.id,
+                recipientId: otherUserId,
+                status: "PENDING",
+              },
+            });
+
+            return Response.json(
+              { messageRequest, requiresRequest: true },
+              { status: 202 }
+            );
+          }
+        }
+      }
+    }
+
     // For direct messages (not group chats), check if a chat already exists
     if (!isGroupChat && participantIds.length === 2) {
       // Get all chats where the current user is a participant

@@ -33,8 +33,10 @@ export default function AdminLoginClientForm() {
     try {
       // Log the start of the login attempt
       debug.log("Starting login attempt...");
-
+      
       const formData = new FormData(event.currentTarget);
+      const usernameOrEmail = formData.get("usernameOrEmail") as string;
+      debug.log(`Login attempt for: ${usernameOrEmail}`);
       debug.log("Form data created, calling adminLogin...");
 
       // Add a timeout to detect if the server action is hanging
@@ -58,7 +60,6 @@ export default function AdminLoginClientForm() {
       }
     } catch (error) {
       // Log detailed error information
-      debug.error("Error during login:", error);
       debug.error("Error during login:", error);
 
       // Provide more detailed error message to the user

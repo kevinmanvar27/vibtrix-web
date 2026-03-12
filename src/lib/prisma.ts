@@ -122,44 +122,19 @@ if (typeof window === 'undefined') {
     // Note: Prisma Client doesn't support $on('error') event listener
     // Errors are thrown directly and should be caught in application code
 
-    // Test the connection with retry logic
-    testDatabaseConnection(prisma)
-      .then(success => {
-        if (!success) {
-          debug.warn('Application starting with unreliable database connection - some features may not work correctly');
-          // Attempt to reconnect in the background
-          setTimeout(() => {
-            testDatabaseConnection(prisma)
-              .then(reconnected => {
-                if (!reconnected) {
-                  debug.error('Background database reconnection failed');
-                } else {
-                  debug.log('Background database reconnection successful');
-                }
-              })
-              .catch(error => {
-                debug.error('Error during background database reconnection:', error);
-              });
-          }, 5000); // Wait 5 seconds before trying again
-        } else {
-          debug.log('Database connection established successfully');
-        }
-      })
-      .catch(error => {
-        debug.error('Unexpected error during database connection testing:', error);
-        // Log additional context for debugging
-        debug.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
-      });
+    // DISABLED: Automatic database connection test - causes issues with named pipes on Windows
+    // Database errors will be handled gracefully by individual API routes
+    debug.log('Prisma client initialized (connection test disabled for stability)');
+
+    // Save the client in the global object
+    if (process.env.NODE_ENV !== "production") {
+      globalForPrisma.prisma = prisma;
+    }
   } catch (error) {
     debug.error('Error initializing Prisma client:', error);
     // Create a fallback client that will throw clear errors
     prisma = prismaClientSingleton();
     debug.warn('Using fallback Prisma client - database operations may fail');
-  }
-
-  // Save the client in the global object
-  if (process.env.NODE_ENV !== "production") {
-    globalForPrisma.prisma = prisma;
   }
 } else {
   // In browser environments, create a mock client

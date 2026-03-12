@@ -3,16 +3,19 @@ import { PrismaClient } from "@prisma/client";
 import { NextRequest } from "next/server";
 
 import debug from "@/lib/debug";
+import { getAuthenticatedUser } from "@/lib/api-auth";
 
 // Create a new instance of PrismaClient
 const prisma = new PrismaClient();
 
 /**
  * GET endpoint to retrieve login activity for the current user
+ * Supports both JWT (mobile) and session (web) authentication
  */
 export async function GET(request: NextRequest) {
   try {
-    const { user } = await validateRequest();
+    // Support both JWT and session authentication
+    const user = await getAuthenticatedUser(request);
 
     if (!user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
@@ -53,13 +56,15 @@ export async function GET(request: NextRequest) {
 
 /**
  * Admin endpoint to retrieve login activity for any user
+ * Supports both JWT (mobile) and session (web) authentication
  */
 export async function POST(request: NextRequest) {
   try {
-    const { user } = await validateRequest();
+    // Support both JWT and session authentication
+    const user = await getAuthenticatedUser(request);
 
     // Check if user is authenticated and has admin privileges
-    if (!user || !["ADMIN", "MANAGER", "SUPER_ADMIN"].includes(user.role)) {
+    if (!user || !["ADMIN", "MANAGER", "SUPER_ADMIN"].includes(user.role || "")) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 

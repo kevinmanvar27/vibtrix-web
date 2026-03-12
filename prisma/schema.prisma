@@ -1,5 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -8,78 +8,77 @@ datasource db {
 }
 
 model User {
-  id                     String                       @id
-  username               String                       @unique
-  displayName            String
-  email                  String?                      @unique
-  emailVerified          Boolean                      @default(false)
-  passwordHash           String?
-  googleId               String?                      @unique
-  appleId                String?                      @unique
-  avatarUrl              String?                      @db.Text
-  bio                    String?                      @db.Text
-  createdAt              DateTime                     @default(now())
-  isActive               Boolean                      @default(true)
-  isAdmin                Boolean                      @default(false)
-  onlineStatus           OnlineStatus                 @default(OFFLINE)
-  lastActiveAt           DateTime?
-  showOnlineStatus       Boolean                      @default(true)
-  isProfilePublic        Boolean                      @default(true)
-  role                   UserRole                     @default(USER)
-  roleId                 String?
-  dateOfBirth            String?
-  gender                 String?
-  showDob                Boolean                      @default(false)
-  showFullDob            Boolean                      @default(false)
-  showWhatsappNumber     Boolean                      @default(false)
-  whatsappNumber         String?
-  hideYear               Boolean                      @default(true)
-  isManagementUser       Boolean                      @default(false)
-  showUpiId              Boolean                      @default(false)
-  socialLinks            Json?
-  upiId                  String?
-
-  // Modeling feature fields
-  interestedInModeling   Boolean                      @default(false)
-  photoshootPricePerDay  Float?
-  videoAdsParticipation  Boolean                      @default(false)
-
-  // Brand Ambassadorship feature fields
-  interestedInBrandAmbassadorship Boolean              @default(false)
+  id                              String                       @id
+  username                        String                       @unique
+  displayName                     String
+  email                           String?                      @unique
+  emailVerified                   Boolean                      @default(false)
+  passwordHash                    String?
+  googleId                        String?                      @unique
+  appleId                         String?                      @unique
+  avatarUrl                       String?                      @db.Text
+  bio                             String?                      @db.Text
+  createdAt                       DateTime                     @default(now())
+  isActive                        Boolean                      @default(true)
+  isAdmin                         Boolean                      @default(false)
+  onlineStatus                    OnlineStatus                 @default(OFFLINE)
+  lastActiveAt                    DateTime?
+  showOnlineStatus                Boolean                      @default(true)
+  isProfilePublic                 Boolean                      @default(true)
+  role                            UserRole                     @default(USER)
+  roleId                          String?
+  dateOfBirth                     String?
+  gender                          String?
+  showDob                         Boolean                      @default(false)
+  showFullDob                     Boolean                      @default(false)
+  showWhatsappNumber              Boolean                      @default(false)
+  whatsappNumber                  String?
+  hideYear                        Boolean                      @default(true)
+  isManagementUser                Boolean                      @default(false)
+  showUpiId                       Boolean                      @default(false)
+  socialLinks                     String?                      @db.LongText
+  upiId                           String?
+  interestedInModeling            Boolean                      @default(false)
+  photoshootPricePerDay           Float?
+  videoAdsParticipation           Boolean                      @default(false)
+  interestedInBrandAmbassadorship Boolean                      @default(false)
   brandAmbassadorshipPricing      String?
-  brandPreferences                String?              @db.Text
-  bookmarks              Bookmark[]
-  participatedChats      ChatParticipant[]
-  comments               Comment[]
-  competitions           CompetitionParticipant[]
-  deviceTokens           DeviceToken[]
-  receivedFollowRequests FollowRequest[]              @relation("ReceivedFollowRequests")
-  sentFollowRequests     FollowRequest[]              @relation("SentFollowRequests")
-  following              Follow[]                     @relation("Following")
-  followers              Follow[]                     @relation("Followers")
-  likes                  Like[]
-  receivedMessages       Message[]                    @relation("Recipient")
-  sentMessages           Message[]                    @relation("Sender")
-  issuedNotifications    Notification[]               @relation("Issuer")
-  receivedNotifications  Notification[]               @relation("Recipient")
-  payments               Payment[]
-  post_reports           post_reports[]
-  reportedByUsers        user_reports[]               @relation("ReportedUser")
-  userReportsSubmitted   user_reports[]               @relation("Reporter")
-  commentReportsSubmitted comment_reports[]
-  posts                  Post[]
-  receivedPrizes         PrizePayment[]
-  sessions               Session[]
-  blockedBy              UserBlock[]                  @relation("Blocked")
-  blockedUsers           UserBlock[]                  @relation("Blocker")
-  loginActivities        UserLoginActivity[]
-  notificationPrefs      UserNotificationPreferences?
-  permissions            UserPermission[]
-  customRole             Role?                        @relation(fields: [roleId], references: [id])
-  passwordResetTokens    PasswordResetToken[]
-  emailVerificationTokens EmailVerificationToken[]
-  shares                 Share[]
+  brandPreferences                String?                      @db.Text
+  bookmarks                       Bookmark[]
+  participatedChats               ChatParticipant[]
+  commentReportsSubmitted         comment_reports[]
+  comments                        Comment[]
+  competitions                    CompetitionParticipant[]
+  deviceTokens                    DeviceToken[]
+  emailVerificationTokens         EmailVerificationToken[]
+  receivedFollowRequests          FollowRequest[]              @relation("ReceivedFollowRequests")
+  sentFollowRequests              FollowRequest[]              @relation("SentFollowRequests")
+  following                       Follow[]                     @relation("Following")
+  followers                       Follow[]                     @relation("Followers")
+  likes                           Like[]
+  receivedMessages                Message[]                    @relation("Recipient")
+  sentMessages                    Message[]                    @relation("Sender")
+  issuedNotifications             Notification[]               @relation("Issuer")
+  receivedNotifications           Notification[]               @relation("Recipient")
+  passwordResetTokens             PasswordResetToken[]
+  payments                        Payment[]
+  post_reports                    post_reports[]
+  posts                           Post[]
+  receivedPrizes                  PrizePayment[]
+  sessions                        Session[]
+  shares                          Share[]
+  blockedBy                       UserBlock[]                  @relation("Blocked")
+  blockedUsers                    UserBlock[]                  @relation("Blocker")
+  loginActivities                 UserLoginActivity[]
+  notificationPrefs               UserNotificationPreferences?
+  permissions                     UserPermission[]
+  userReportsSubmitted            user_reports[]               @relation("Reporter")
+  reportedByUsers                 user_reports[]               @relation("ReportedUser")
+  customRole                      Role?                        @relation(fields: [roleId], references: [id])
+  receivedMessageRequests         MessageRequest[]             @relation("ReceivedMessageRequests")
+  sentMessageRequests             MessageRequest[]             @relation("SentMessageRequests")
 
+  @@index([roleId], map: "users_roleId_fkey")
   @@map("users")
 }
 
@@ -132,8 +131,8 @@ model Post {
   attachments         Media[]
   post_reports        post_reports[]
   views               PostView[]
-  shares              Share[]
   user                User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shares              Share[]
 
   @@index([userId])
   @@index([createdAt])
@@ -161,6 +160,7 @@ model Media {
   post                      Post?             @relation(fields: [postId], references: [id])
 
   @@index([postId])
+  @@index([appliedPromotionStickerId], map: "post_media_appliedPromotionStickerId_fkey")
   @@map("post_media")
 }
 
@@ -169,13 +169,13 @@ model Comment {
   content   String            @db.Text
   userId    String
   postId    String
-  parentId  String?           // For nested replies - null means top-level comment
+  parentId  String?
   createdAt DateTime          @default(now())
-  post      Post              @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reports   comment_reports[]
   parent    Comment?          @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies   Comment[]         @relation("CommentReplies")
-  reports   comment_reports[]
+  post      Post              @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([parentId])
   @@index([postId])
@@ -222,6 +222,7 @@ model Notification {
 
   @@index([recipientId])
   @@index([issuerId])
+  @@index([postId], map: "notifications_postId_fkey")
   @@map("notifications")
 }
 
@@ -246,8 +247,8 @@ model Competition {
   showFeedStickers   Boolean                  @default(true)
   requiredGender     String?
   completionReason   String?                  @db.Text
-  DefaultStickers    DefaultStickers[]
-  OptionalStickers   OptionalStickers[]
+  defaultstickers    defaultstickers[]
+  optionalstickers   optionalstickers[]
   advertisements     Advertisement[]
   participants       CompetitionParticipant[]
   prizes             CompetitionPrize[]
@@ -285,8 +286,8 @@ model CompetitionSticker {
   position         StickerPosition
   isDefault        Boolean            @default(false)
   createdAt        DateTime           @default(now())
-  DefaultStickers  DefaultStickers[]
-  OptionalStickers OptionalStickers[]
+  defaultstickers  defaultstickers[]
+  optionalstickers optionalstickers[]
 
   @@map("competition_stickers")
 }
@@ -354,8 +355,6 @@ model SiteSettings {
   modelingMinFollowers                Int      @default(1000)
   modelingPhotoshootLabel             String?  @default("Photoshoot Price Per Day")
   modelingVideoAdsLabel               String?  @default("Video Ads Note")
-
-  // Mobile app configuration
   maintenanceMode                     Boolean  @default(false)
   maintenanceMessage                  String?  @db.Text
   minAppVersionIOS                    String?  @default("1.0.0")
@@ -393,6 +392,7 @@ model Chat {
   updatedAt     DateTime          @updatedAt
   participants  ChatParticipant[]
   messages      Message[]
+  messageRequests MessageRequest[]
 
   @@map("chats")
 }
@@ -428,7 +428,26 @@ model Message {
 
   @@index([chatId])
   @@index([senderId])
+  @@index([recipientId], map: "messages_recipientId_fkey")
   @@map("messages")
+}
+
+model MessageRequest {
+  id          String        @id @default(cuid())
+  senderId    String
+  recipientId String
+  status      RequestStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  chatId      String?       // Set when accepted
+  chat        Chat?         @relation(fields: [chatId], references: [id], onDelete: SetNull)
+  recipient   User          @relation("ReceivedMessageRequests", fields: [recipientId], references: [id], onDelete: Cascade)
+  sender      User          @relation("SentMessageRequests", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, recipientId])
+  @@index([recipientId])
+  @@index([chatId])
+  @@map("message_requests")
 }
 
 model UserBlock {
@@ -482,28 +501,6 @@ model CompetitionRoundEntry {
   @@index([roundId])
   @@index([postId])
   @@map("competition_round_entries")
-}
-
-model DefaultStickers {
-  A                    String
-  B                    String
-  competitions         Competition        @relation(fields: [A], references: [id], onDelete: Cascade)
-  competition_stickers CompetitionSticker @relation(fields: [B], references: [id], onDelete: Cascade)
-
-  @@id([A, B])
-  @@index([B], map: "_DefaultStickers_B_index")
-  @@map("_DefaultStickers")
-}
-
-model OptionalStickers {
-  A                    String
-  B                    String
-  competitions         Competition        @relation(fields: [A], references: [id], onDelete: Cascade)
-  competition_stickers CompetitionSticker @relation(fields: [B], references: [id], onDelete: Cascade)
-
-  @@id([A, B])
-  @@index([B], map: "_OptionalStickers_B_index")
-  @@map("_OptionalStickers")
 }
 
 model Role {
@@ -735,8 +732,8 @@ model user_reports {
   reviewedAt  DateTime?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime
-  user        User         @relation("ReportedUser", fields: [userId], references: [id], onDelete: Cascade)
   reporter    User         @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  user        User         @relation("ReportedUser", fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, reporterId])
   @@index([reporterId])
@@ -785,6 +782,81 @@ model DeviceToken {
   @@map("device_tokens")
 }
 
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  otp       String?
+  email     String?
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  otp       String
+  email     String
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([userId])
+  @@map("email_verification_tokens")
+}
+
+model RefreshToken {
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  isRevoked Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Share {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  platform  String?
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId])
+  @@map("shares")
+}
+
+model defaultstickers {
+  A                    String
+  B                    String
+  competitions         Competition        @relation(fields: [A], references: [id], onDelete: Cascade, map: "_DefaultStickers_A_fkey")
+  competition_stickers CompetitionSticker @relation(fields: [B], references: [id], onDelete: Cascade, map: "_DefaultStickers_B_fkey")
+
+  @@id([A, B])
+  @@index([B], map: "_DefaultStickers_B_index")
+  @@map("_defaultstickers")
+}
+
+model optionalstickers {
+  A                    String
+  B                    String
+  competitions         Competition        @relation(fields: [A], references: [id], onDelete: Cascade, map: "_OptionalStickers_A_fkey")
+  competition_stickers CompetitionSticker @relation(fields: [B], references: [id], onDelete: Cascade, map: "_OptionalStickers_B_fkey")
+
+  @@id([A, B])
+  @@index([B], map: "_OptionalStickers_B_index")
+  @@map("_optionalstickers")
+}
+
 enum UserRole {
   USER
   ADMIN
@@ -811,6 +883,8 @@ enum NotificationType {
   FOLLOW_REQUEST
   FOLLOW_REQUEST_ACCEPTED
   MUTUAL_FOLLOW
+  MESSAGE_REQUEST
+  MESSAGE_REQUEST_ACCEPTED
 }
 
 enum CompetitionMediaType {
@@ -875,61 +949,4 @@ enum ReportStatus {
   REVIEWED
   RESOLVED
   DISMISSED
-}
-
-// Password Reset Token model for forgot/reset password functionality
-model PasswordResetToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  otp       String?  // 6-digit OTP for email verification
-  email     String?  // Store email for OTP-based reset
-  userId    String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@map("password_reset_tokens")
-}
-
-// Email Verification Token model for OTP-based email verification
-model EmailVerificationToken {
-  id        String   @id @default(cuid())
-  otp       String   // 6-digit OTP
-  email     String
-  userId    String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([email])
-  @@index([userId])
-  @@map("email_verification_tokens")
-}
-
-// Refresh Token model for JWT authentication
-model RefreshToken {
-  id        String   @id
-  userId    String
-  expiresAt DateTime
-  isRevoked Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  @@index([userId])
-  @@map("refresh_tokens")
-}
-
-// Share model for tracking post shares
-model Share {
-  id        String   @id @default(cuid())
-  postId    String
-  userId    String
-  platform  String?  // Optional: track which platform (whatsapp, twitter, etc.)
-  createdAt DateTime @default(now())
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([postId, userId])
-  @@index([userId])
-  @@map("shares")
 }

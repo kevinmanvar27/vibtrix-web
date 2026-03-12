@@ -1,13 +1,13 @@
 import { validateRequest } from "@/auth";
 import prisma from "@/lib/prisma";
 import { NextRequest } from "next/server";
-
+import { getAuthenticatedUser } from "@/lib/api-auth";
 import debug from "@/lib/debug";
 
 // GET endpoint to list follow requests for the current user
 export async function GET(req: NextRequest) {
   try {
-    const { user: loggedInUser } = await validateRequest();
+    const loggedInUser = await getAuthenticatedUser(req);
 
     if (!loggedInUser) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });

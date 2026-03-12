@@ -16,7 +16,8 @@ export async function GET(request: Request) {
 
   // Store the 'from' parameter in a cookie so we can redirect back to it after authentication
   if (fromParam) {
-    cookies().set("oauth_origin", fromParam, {
+    const cookieStore = await cookies();
+    cookieStore.set("oauth_origin", fromParam, {
       path: "/",
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
@@ -30,7 +31,8 @@ export async function GET(request: Request) {
     scopes: ["profile", "email"],
   });
 
-  cookies().set("state", state, {
+  const cookieStore = await cookies();
+  cookieStore.set("state", state, {
     path: "/",
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,
@@ -38,7 +40,7 @@ export async function GET(request: Request) {
     sameSite: "lax",
   });
 
-  cookies().set("code_verifier", codeVerifier, {
+  cookieStore.set("code_verifier", codeVerifier, {
     path: "/",
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,

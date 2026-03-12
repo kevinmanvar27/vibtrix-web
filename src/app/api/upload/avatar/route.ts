@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
     const file = formData.get('file');
 
     if (!file || !(file instanceof Blob)) {
+      debug.error('No valid file provided in form data');
       return Response.json({ error: "No valid file provided" }, { status: 400 });
     }
 
@@ -110,6 +111,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Update user record with new avatar URL
+    debug.log(`Updating user ${user.id} with new avatar URL: ${fileUrl}`);
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -117,13 +119,14 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    debug.log(`Avatar updated successfully for user ${user.id}`);
     return Response.json({
       avatarUrl: fileUrl
     });
   } catch (error) {
     debug.error('Avatar upload error:', error);
     return Response.json(
-      { error: "Failed to upload avatar" },
+      { error: "Failed to upload avatar", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

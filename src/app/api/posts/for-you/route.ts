@@ -5,6 +5,7 @@ import { NextRequest } from "next/server";
 import { validateAuthRequest } from "@/lib/jwt-middleware";
 import { generatePersonalizedFeed } from "@/lib/algorithm/ranking-engine";
 import { unstable_cache } from "next/cache";
+import { handleDatabaseError } from "@/lib/database-error-handler";
 
 import debug from "@/lib/debug";
 
@@ -70,6 +71,19 @@ export async function GET(req: NextRequest) {
       // Fall back to chronological/random feed
       return await getChronologicalFeed(req, user, cursor, pageSize, showStickeredMedia, random);
     } catch (queryError) {
+      const errorResult = handleDatabaseError(queryError, "fetching posts");
+      
+      // Return a graceful response even if database fails
+      if ('success' in errorResult && !errorResult.success) {
+        debug.warn(`Returning graceful fallback for posts: ${errorResult.error}`);
+        return Response.json({
+          posts: [],
+          nextCursor: null,
+          message: "Unable to load posts at this time",
+        });
+      }
+      
+      // Fallback for unexpected errors
       debug.error('Error querying posts:', queryError);
       return Response.json({
         error: "Failed to fetch posts",
@@ -77,6 +91,17 @@ export async function GET(req: NextRequest) {
       }, { status: 500 });
     }
   } catch (error) {
+    const errorResult = handleDatabaseError(error, "processing for-you feed");
+    
+    if ('success' in errorResult && !errorResult.success) {
+      debug.warn(`Returning graceful fallback: ${errorResult.error}`);
+      return Response.json({
+        posts: [],
+        nextCursor: null,
+        message: "Unable to load posts at this time",
+      });
+    }
+    
     debug.error('Unhandled error in for-you posts API:', error);
     return Response.json({
       error: "Internal server error",

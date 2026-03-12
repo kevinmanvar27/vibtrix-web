@@ -2,6 +2,7 @@ import { validateRequest } from "@/auth";
 import prisma from "@/lib/prisma";
 import { getUserDataSelect } from "@/lib/types";
 import { NextRequest } from "next/server";
+import { handleDatabaseError } from "@/lib/database-error-handler";
 
 import debug from "@/lib/debug";
 
@@ -105,7 +106,26 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    debug.error("Error fetching recently joined users:", error);
+    const errorResult = handleDatabaseError(error, "fetching recently joined users");
+    
+    // Return a graceful response even if database fails
+    if ('success' in errorResult && !errorResult.success) {
+      debug.warn(`Returning graceful fallback for recently joined users: ${errorResult.error}`);
+      return Response.json({
+        users: [],
+        pagination: {
+          totalCount: 0,
+          totalPages: 0,
+          currentPage: 1,
+          limit: 6,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        },
+        message: "Unable to load users at this time",
+      });
+    }
+    
+    // Fallback for unexpected errors
     return Response.json(
       { error: "Failed to fetch recently joined users" },
       { status: 500 }

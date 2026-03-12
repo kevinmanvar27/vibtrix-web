@@ -359,15 +359,9 @@ Email: copyright@vibtrix.com</p>
   },
 ];
 
-// Module-level flag to prevent running on every page render
-let hasSeeded = false;
-
 export async function seedStaticPages() {
-  // Skip if already seeded during this process lifetime
-  if (hasSeeded) return;
-  hasSeeded = true;
-
   debug.log("Checking for default static pages...");
+
   try {
     // Seed default static pages - Prisma will throw if table doesn't exist
     for (const page of DEFAULT_STATIC_PAGES) {

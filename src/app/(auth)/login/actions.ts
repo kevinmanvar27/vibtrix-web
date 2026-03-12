@@ -41,9 +41,14 @@ export async function login(
     const request = createNextRequest();
 
     // Note: MySQL with default collation (utf8mb4_unicode_ci) is case-insensitive by default
+    // Support login with username, email, or phone number
     const existingUser = await prisma.user.findFirst({
       where: {
-        username: username,
+        OR: [
+          { username: username },
+          { email: username },
+          { whatsappNumber: username },
+        ],
       },
     });
 

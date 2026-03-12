@@ -50,9 +50,9 @@ export default function LoginForm() {
           name="username"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Username</FormLabel>
+              <FormLabel>Username / Email / Phone</FormLabel>
               <FormControl>
-                <Input placeholder="Username" {...field} />
+                <Input placeholder="Enter username, email or phone number" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

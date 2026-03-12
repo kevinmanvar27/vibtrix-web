@@ -30,6 +30,9 @@ export async function POST(req: NextRequest) {
     // Parse and validate request body
     const body = await req.json();
     
+    // Extract device info if provided
+    const { deviceId, deviceType, deviceName, deviceModel, osVersion, deviceBrand } = body;
+    
     // Validate input using existing schema
     const validation = signUpSchema.safeParse(body);
     if (!validation.success) {
@@ -130,7 +133,13 @@ export async function POST(req: NextRequest) {
     const tokens = await generateAuthTokens(user.id, user.role);
 
     // Track successful registration
-    await trackLoginAttempt(req, username, true, user.id);
+    await trackLoginAttempt(req, username, true, user.id, {
+      deviceId,
+      deviceType,
+      deviceName,
+      deviceModel,
+      osVersion,
+    });
 
     debug.log(`POST /api/auth/signup - User registered successfully: ${user.id}`);
 

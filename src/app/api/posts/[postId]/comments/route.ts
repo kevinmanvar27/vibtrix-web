@@ -103,11 +103,23 @@ export async function POST(
     // Check if post exists
     const post = await prisma.post.findUnique({
       where: { id: postId },
-      select: { id: true, userId: true },
+      select: { 
+        id: true, 
+        userId: true,
+        allowComments: true,
+      },
     });
 
     if (!post) {
       return Response.json({ error: "Post not found" }, { status: 404 });
+    }
+
+    // Check if comments are allowed on this post
+    if (!post.allowComments) {
+      return Response.json(
+        { error: "Comments are disabled for this post" },
+        { status: 403 }
+      );
     }
 
     // Create comment and notification in a transaction

@@ -5,6 +5,7 @@ import LoadingButton from "@/components/LoadingButton";
 import { Button } from "@/components/ui/button";
 import TipTapWrapper from "@/components/ui/tiptap-wrapper";
 import CustomVideoPlayer from "@/components/ui/CustomVideoPlayer";
+import { cn } from "@/lib/utils";
 
 import { ImageIcon, Loader2, X } from "lucide-react";
 import Image from "next/image";

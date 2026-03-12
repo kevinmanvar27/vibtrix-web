@@ -196,17 +196,79 @@ export async function trackLoginAttempt(
   req: NextRequest,
   username: string,
   success: boolean,
-  userId: string
+  userId: string,
+  deviceInfo?: {
+    deviceId?: string;
+    deviceType?: string;
+    deviceName?: string;
+    deviceModel?: string;
+    osVersion?: string;
+    deviceBrand?: string;
+  }
 ): Promise<void> {
   try {
+    debug.log('📱 [trackLoginAttempt] Device info received:', JSON.stringify(deviceInfo));
+    
+    const UAParser = require('ua-parser-js');
+    
     const clientIP = getClientIP(req);
     const userAgent = req.headers.get('user-agent') || 'Unknown';
+    
+    debug.log('📱 [trackLoginAttempt] User-Agent:', userAgent);
+    
+    // Parse user agent to extract device info
+    const parser = new UAParser(userAgent);
+    const uaResult = parser.getResult();
+    
+    // Get geolocation from IP (temporarily disabled due to geoip-lite path issues)
+    let locationData = null;
+    // TODO: Fix geoip-lite installation and re-enable location detection
+    
+    // Determine device type - prioritize device info from request body (mobile app)
+    let deviceType = 'desktop';
+    if (deviceInfo?.deviceType) {
+      // Use device type from mobile app
+      deviceType = deviceInfo.deviceType.toLowerCase();
+    } else if (uaResult.device.type === 'mobile') {
+      deviceType = 'mobile';
+    } else if (uaResult.device.type === 'tablet') {
+      deviceType = 'tablet';
+    } else if (userAgent.toLowerCase().includes('mobile')) {
+      deviceType = 'mobile';
+    }
+    
+    // Determine browser and OS - prioritize device info from mobile app
+    // For mobile app: browser = "Vibtrix App", OS = from deviceInfo
+    // For web: browser = parsed from UA, OS = parsed from UA
+    const browser = deviceInfo?.deviceType ? 'Vibtrix App' : (uaResult.browser.name || null);
+    const os = deviceInfo?.osVersion || 
+               (uaResult.os.name ? `${uaResult.os.name} ${uaResult.os.version || ''}`.trim() : null);
+    const deviceBrand = deviceInfo?.deviceBrand || uaResult.device.vendor || null;
+    const deviceModel = deviceInfo?.deviceModel || uaResult.device.model || null;
+    
+    debug.log('📱 [trackLoginAttempt] Final values:', {
+      browser,
+      os,
+      deviceType,
+      deviceBrand,
+      deviceModel,
+      location: locationData ? `${locationData.city || ''}, ${locationData.country || ''}`.trim() : null
+    });
     
     await prisma.userLoginActivity.create({
       data: {
         userId,
         ipAddress: clientIP,
         userAgent,
+        browser,
+        operatingSystem: os,
+        deviceType,
+        deviceBrand,
+        deviceModel,
+        location: locationData ? `${locationData.city || ''}, ${locationData.country || ''}`.trim().replace(/^,\s*/, '') : null,
+        city: locationData?.city || null,
+        region: locationData?.region || null,
+        country: locationData?.country || null,
         status: success ? 'SUCCESS' : 'FAILED',
         loginAt: new Date(),
       },

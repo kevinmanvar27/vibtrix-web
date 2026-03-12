@@ -12,7 +12,8 @@ import { LogIn } from "lucide-react";
 import debug from "@/lib/debug";
 
 export default function Chat() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // On mobile: sidebar is a drawer (toggled). On desktop: always visible via CSS.
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const { getSelectedChat } = useChatSelection();
   const { isLoggedIn } = useSession();

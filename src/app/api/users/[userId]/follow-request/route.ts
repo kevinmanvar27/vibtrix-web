@@ -1,17 +1,16 @@
-import { validateRequest } from "@/auth";
 import prisma from "@/lib/prisma";
 import { NextRequest } from "next/server";
-
+import { getAuthenticatedUser } from "@/lib/api-auth";
 import debug from "@/lib/debug";
 
 // GET endpoint to check follow request status
 export async function GET(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
     const { userId } = await params;
-    const { user: loggedInUser } = await validateRequest();
+    const loggedInUser = await getAuthenticatedUser(req);
 
     if (!loggedInUser) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
@@ -38,12 +37,12 @@ export async function GET(
 
 // POST endpoint to send a follow request
 export async function POST(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
     const { userId } = await params;
-    const { user: loggedInUser } = await validateRequest();
+    const loggedInUser = await getAuthenticatedUser(req);
 
     if (!loggedInUser) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
@@ -61,7 +60,6 @@ export async function POST(
 
     // If the profile is public, directly follow instead of creating a request
     if (userToFollow.isProfilePublic) {
-      // Check if a notification already exists
       const existingNotification = await prisma.notification.findFirst({
         where: {
           issuerId: loggedInUser.id,
@@ -84,7 +82,6 @@ export async function POST(
           },
           update: {},
         }),
-        // Only create notification if it doesn't exist
         ...(!existingNotification ? [
           prisma.notification.create({
             data: {
@@ -99,8 +96,7 @@ export async function POST(
       return Response.json({ status: "FOLLOWED" });
     }
 
-    // Create or update follow request
-    // Check if a notification already exists
+    // Private profile — create follow request
     const existingNotification = await prisma.notification.findFirst({
       where: {
         issuerId: loggedInUser.id,
@@ -126,7 +122,6 @@ export async function POST(
           status: "PENDING",
         },
       }),
-      // Only create notification if it doesn't exist
       ...(!existingNotification ? [
         prisma.notification.create({
           data: {
@@ -147,12 +142,12 @@ export async function POST(
 
 // DELETE endpoint to cancel a follow request
 export async function DELETE(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
     const { userId } = await params;
-    const { user: loggedInUser } = await validateRequest();
+    const loggedInUser = await getAuthenticatedUser(req);
 
     if (!loggedInUser) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });

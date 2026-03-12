@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
-import { validateRequest } from "@/auth";
+import { getAuthenticatedUser } from "@/lib/api-auth";
 
 import debug from "@/lib/debug";
 
@@ -8,8 +8,8 @@ export async function POST(req: NextRequest) {
   try {
     debug.log("API: Clearing login activities");
 
-    // Validate the user is authenticated
-    const { user } = await validateRequest();
+    // Validate the user is authenticated (supports JWT and session)
+    const user = await getAuthenticatedUser(req);
 
     if (!user) {
       debug.log("API: User not authenticated");
