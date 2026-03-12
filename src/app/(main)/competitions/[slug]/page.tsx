@@ -73,17 +73,13 @@ async function getCompetition(id: string, userId: string) {
             createdAt: true,
           },
         },
-        DefaultStickers: {
+        defaultstickers: {
           select: {
-            A: true,
-            B: true,
             competition_stickers: true,
           },
         },
-        OptionalStickers: {
+        optionalstickers: {
           select: {
-            A: true,
-            B: true,
             competition_stickers: true,
           },
         },
@@ -629,10 +625,10 @@ export default async function CompetitionDetailsPage({ params }: CompetitionDeta
 
 
         {/* Competition Stickers - Only shown when competition has stickers */}
-        {(competition.DefaultStickers || competition.OptionalStickers) && (
+        {(competition.defaultstickers?.length > 0 || competition.optionalstickers?.length > 0) && (
           <CompetitionStickers
-            defaultStickers={competition.DefaultStickers}
-            optionalStickers={competition.OptionalStickers}
+            defaultStickers={competition.defaultstickers}
+            optionalStickers={competition.optionalstickers}
           />
         )}
 

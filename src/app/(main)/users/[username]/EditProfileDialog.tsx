@@ -34,7 +34,7 @@ import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import YouTubeIcon from "@/components/icons/YouTubeIcon";
 import { useFeatureSettings } from "@/hooks/use-feature-settings";
 import Image, { StaticImageData } from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import Resizer from "react-image-file-resizer";
 import { useUpdateProfileMutation } from "./mutations";
@@ -170,42 +170,6 @@ export default function EditProfileDialog({
 
   // Reference to the date input for DOB
   const dobDateInputRef = useRef<HTMLInputElement>(null);
-
-  // Initialize date input when dialog opens
-  useEffect(() => {
-    if (open) {
-      // Add click handler to date input to ensure it opens the date picker
-      const dateInput = dobDateInputRef.current;
-      if (dateInput) {
-        // Force the date input to be clickable
-        const clickHandler = () => {
-          try {
-            // Try to open the date picker programmatically
-            if (typeof dateInput.showPicker === 'function') {
-              dateInput.showPicker();
-            }
-          } catch (error) {
-            // Fallback for browsers that don't support showPicker
-            debug.log('Date picker showPicker not supported');
-          }
-        };
-
-        dateInput.addEventListener('click', clickHandler);
-
-        // Set initial value if available
-        if ((user as any).dateOfBirth) {
-          const formattedDate = formatDateForInput((user as any).dateOfBirth);
-          if (formattedDate) {
-            dateInput.value = formattedDate;
-          }
-        }
-
-        return () => {
-          dateInput.removeEventListener('click', clickHandler);
-        };
-      }
-    }
-  }, [open, (user as any).dateOfBirth]);
   // Parse social links from JSON if available
   const parseSocialLinks = () => {
     if (!(user as any).socialLinks) return {};
@@ -227,7 +191,7 @@ export default function EditProfileDialog({
       bio: (user as any).bio || "",
       gender: (user as any).gender || "",
       whatsappNumber: (user as any).whatsappNumber || "",
-      dateOfBirth: formatDateForInput((user as any).dateOfBirth),
+      dateOfBirth: (user as any).dateOfBirth || "",
       upiId: (user as any).upiId || "",
       socialLinks: {
         instagram: socialLinks?.instagram || "",
@@ -523,63 +487,32 @@ export default function EditProfileDialog({
                     </FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input
+                        <input
                           type="date"
                           id="dob-date-input"
                           ref={dobDateInputRef}
-                          placeholder="Select date"
-                          value={field.value ? formatDateForInput(field.value) : ''}
-                          onClick={(e) => {
-                            try {
-                              // Try to open the date picker programmatically
-                              const input = e.currentTarget as HTMLInputElement;
-                              if (typeof input.showPicker === 'function') {
-                                input.showPicker();
-                              }
-                            } catch (error) {
-                              debug.log('Date picker showPicker not supported');
-                            }
-                          }}
+                          // Display value is always in YYYY-MM-DD (what <input type="date"> requires)
+                          value={formatDateForInput(field.value)}
                           onChange={(e) => {
-                            const value = e.target.value;
-
+                            const value = e.target.value; // YYYY-MM-DD from browser
                             if (!value) {
-                              field.onChange(undefined);
+                              field.onChange("");
                               return;
                             }
-
-                            // Convert from YYYY-MM-DD to DD-MM-YYYY for storage
+                            // Store in DD-MM-YYYY format to match the rest of the app
                             if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
                               const [year, month, day] = value.split('-');
-                              const formattedValue = `${day}-${month}-${year}`;
-                              field.onChange(formattedValue);
+                              field.onChange(`${day}-${month}-${year}`);
                             } else {
                               field.onChange(value);
                             }
                           }}
-                          max={new Date().toISOString().split('T')[0]} // Prevent future dates
-                          className="w-full pl-8 cursor-pointer focus:border-primary focus:ring-2 focus:ring-primary focus:ring-opacity-50"
+                          onBlur={field.onBlur}
+                          name={field.name}
+                          max={new Date().toISOString().split('T')[0]}
+                          className="flex h-10 w-full rounded-md border border-input bg-background pl-8 pr-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
                         />
-                        <Calendar className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <div
-                          className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer"
-                          onClick={() => {
-                            try {
-                              // Try to open the date picker programmatically
-                              if (dobDateInputRef.current && typeof dobDateInputRef.current.showPicker === 'function') {
-                                dobDateInputRef.current.showPicker();
-                              } else if (dobDateInputRef.current) {
-                                // Fallback: focus and click the input
-                                dobDateInputRef.current.focus();
-                                dobDateInputRef.current.click();
-                              }
-                            } catch (error) {
-                              debug.log('Date picker interaction failed:', error);
-                            }
-                          }}
-                        >
-                          <Calendar className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
-                        </div>
+                        <Calendar className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                       </div>
                     </FormControl>
                     <FormMessage />

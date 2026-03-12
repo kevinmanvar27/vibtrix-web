@@ -1,4 +1,5 @@
 import { validateRequest } from "@/auth";
+import { getAuthenticatedUser } from "@/lib/api-auth";
 import prisma from "@/lib/prisma";
 import { NextRequest } from "next/server";
 
@@ -10,7 +11,7 @@ export async function GET(
 ) {
   try {
     const { competitionId } = await params;
-    const { user } = await validateRequest();
+    const user = await getAuthenticatedUser(req);
 
     if (!user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
@@ -25,12 +26,12 @@ export async function GET(
             startDate: 'asc',
           },
         },
-        DefaultStickers: {
+        defaultstickers: {
           include: {
             competition_stickers: true,
           },
         },
-        OptionalStickers: {
+        optionalstickers: {
           include: {
             competition_stickers: true,
           },

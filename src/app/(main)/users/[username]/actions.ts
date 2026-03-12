@@ -31,20 +31,25 @@ export async function updateUserProfile(values: UpdateUserProfileValues) {
     }
   }
 
-  // Handle socialLinks - ensure it's properly formatted for Prisma
-  // Prisma expects JSON fields to be passed as complete objects, not nested updates
-  const data: any = { ...validatedValues };
-  
-  // If socialLinks is provided, make sure it's a proper object
-  if (data.socialLinks !== undefined) {
-    // Ensure socialLinks is an object, not a string
-    if (typeof data.socialLinks === 'string') {
+  // Build update data, handling socialLinks correctly
+  // socialLinks is stored as a JSON string (String? @db.LongText), not a Prisma Json type
+  const { socialLinks, ...restValues } = validatedValues;
+  const data: any = { ...restValues };
+
+  if (socialLinks !== undefined) {
+    if (typeof socialLinks === 'string') {
+      // Already a string — store as-is (validate it's valid JSON first)
       try {
-        data.socialLinks = JSON.parse(data.socialLinks);
+        JSON.parse(socialLinks);
+        data.socialLinks = socialLinks;
       } catch (e) {
-        // If parsing fails, use empty object
-        data.socialLinks = {};
+        data.socialLinks = '{}';
       }
+    } else if (typeof socialLinks === 'object' && socialLinks !== null) {
+      // Object — serialize to JSON string for storage
+      data.socialLinks = JSON.stringify(socialLinks);
+    } else {
+      data.socialLinks = null;
     }
   }
 

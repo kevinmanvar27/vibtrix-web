@@ -2,7 +2,7 @@ import { validateRequest } from "@/auth";
 import prisma from "@/lib/prisma";
 import { getPostDataInclude } from "@/lib/types";
 import { NextRequest } from "next/server";
-
+import { getAuthenticatedUser } from "@/lib/api-auth";
 import debug from "@/lib/debug";
 
 export async function POST(
@@ -12,7 +12,7 @@ export async function POST(
   const { competitionId } = await params;
   try {
     debug.log(`POST /api/competitions/${competitionId}/submit-post - Starting request`);
-    const { user } = await validateRequest();
+    const user = await getAuthenticatedUser(req);
 
     if (!user) {
       debug.log(`POST /api/competitions/${competitionId}/submit-post - Unauthorized request`);

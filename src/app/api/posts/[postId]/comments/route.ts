@@ -106,20 +106,11 @@ export async function POST(
       select: { 
         id: true, 
         userId: true,
-        allowComments: true,
       },
     });
 
     if (!post) {
       return Response.json({ error: "Post not found" }, { status: 404 });
-    }
-
-    // Check if comments are allowed on this post
-    if (!post.allowComments) {
-      return Response.json(
-        { error: "Comments are disabled for this post" },
-        { status: 403 }
-      );
     }
 
     // Create comment and notification in a transaction
@@ -149,7 +140,11 @@ export async function POST(
 
     return Response.json(newComment, { status: 201 });
   } catch (error) {
-    debug.error(error);
-    return Response.json({ error: "Internal server error" }, { status: 500 });
+    debug.error("Error creating comment:", error);
+    console.error("Full error details:", error);
+    return Response.json({ 
+      error: "Internal server error",
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
   }
 }
