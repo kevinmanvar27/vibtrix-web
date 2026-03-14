@@ -57,7 +57,21 @@ export async function GET(
       return Response.json({ error: "Chat not found" }, { status: 404 });
     }
 
-    return Response.json(chat);
+    // Calculate unread count for this user in this chat
+    const unreadCount = await prisma.message.count({
+      where: {
+        chatId: chat.id,
+        senderId: {
+          not: user.id, // Messages not sent by current user
+        },
+        isRead: false, // Unread messages
+      },
+    });
+
+    return Response.json({
+      ...chat,
+      unreadCount,
+    });
   } catch (error) {
     debug.error("Error fetching chat:", error);
     return Response.json(

@@ -91,8 +91,29 @@ export async function GET(request: NextRequest) {
       nextCursor = nextItem!.id;
     }
 
+    // Calculate unread count for each chat
+    const chatsWithUnreadCount = await Promise.all(
+      chats.map(async (chat) => {
+        // Count unread messages for this user in this chat
+        const unreadCount = await prisma.message.count({
+          where: {
+            chatId: chat.id,
+            senderId: {
+              not: user.id, // Messages not sent by current user
+            },
+            isRead: false, // Unread messages
+          },
+        });
+
+        return {
+          ...chat,
+          unreadCount,
+        };
+      })
+    );
+
     return Response.json({
-      chats,
+      chats: chatsWithUnreadCount,
       nextCursor,
     });
   } catch (error) {
