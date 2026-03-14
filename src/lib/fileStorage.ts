@@ -21,7 +21,14 @@ const THUMBNAIL_DIR = path.join(UPLOAD_DIR, 'thumbnails');
  * Function to ensure upload directory exists
  * Creates the directory if it doesn't exist
  */
+let directoriesInitialized = false;
+
 export function ensureUploadDirectories() {
+  // Skip if already initialized or if we're in build mode
+  if (directoriesInitialized || process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL) {
+    return;
+  }
+
   try {
     // List of directories to create
     const directories = [
@@ -81,14 +88,25 @@ export function ensureUploadDirectories() {
         throw new Error(`Directory is not writable: ${dir}`);
       }
     }
+
+    directoriesInitialized = true;
   } catch (error) {
     debug.error('FileStorage: Failed to create or verify upload directory:', error);
-    throw new Error(`Failed to create upload directory: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    // Don't throw during build time
+    if (process.env.NODE_ENV !== 'production' || process.env.DATABASE_URL) {
+      throw new Error(`Failed to create upload directory: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 }
 
-// Ensure directory exists on module load
-ensureUploadDirectories();
+// Only initialize directories if not in build mode
+if (process.env.NODE_ENV !== 'production' || process.env.DATABASE_URL) {
+  try {
+    ensureUploadDirectories();
+  } catch (error) {
+    debug.error('FileStorage: Failed to initialize directories on module load:', error);
+  }
+}
 
 /**
  * Generate a unique filename to prevent collisions

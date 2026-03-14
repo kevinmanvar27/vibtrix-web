@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import { validateRequest } from "@/auth";
 // Remove server-side redirect
 import {
@@ -19,6 +20,9 @@ import debug from "@/lib/debug";
 export const metadata: Metadata = {
   title: "Admin Login",
 };
+
+// Force dynamic rendering - requires authentication check
+export const dynamic = 'force-dynamic';
 
 export default async function AdminLoginPage() {
   // Check if user is already logged in and is an admin
@@ -55,7 +59,7 @@ export default async function AdminLoginPage() {
         </CardContent>
         <CardFooter className="flex justify-center">
           <Button variant="link" asChild>
-            <a href="/">Back to site</a>
+            <Link href="/">Back to site</Link>
           </Button>
         </CardFooter>
       </Card>

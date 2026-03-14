@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UserTable from "./components/UserTable";
@@ -10,7 +11,8 @@ export const metadata = {
 };
 
 // Enable ISR with 60 second revalidation for admin pages
-export const revalidate = 60;
+// Force dynamic rendering - database not available at build time
+export const dynamic = 'force-dynamic';
 
 interface UsersPageProps {
   searchParams: {
@@ -119,13 +121,13 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
       <Tabs defaultValue={status || "all"} className="space-y-4">
         <TabsList>
           <TabsTrigger value="all" asChild>
-            <a href="/admin/users">All Users ({counts.totalCount})</a>
+            <Link href="/admin/users">All Users ({counts.totalCount})</Link>
           </TabsTrigger>
           <TabsTrigger value="active" asChild>
-            <a href="/admin/users?status=active">Active ({counts.activeCount})</a>
+            <Link href="/admin/users?status=active">Active ({counts.activeCount})</Link>
           </TabsTrigger>
           <TabsTrigger value="inactive" asChild>
-            <a href="/admin/users?status=inactive">Inactive ({counts.inactiveCount})</a>
+            <Link href="/admin/users?status=inactive">Inactive ({counts.inactiveCount})</Link>
           </TabsTrigger>
         </TabsList>
         

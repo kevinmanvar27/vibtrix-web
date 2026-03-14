@@ -13,6 +13,9 @@ import { redirect } from "next/navigation";
 
 import debug from "@/lib/debug";
 
+// Force dynamic rendering - database not available at build time
+export const dynamic = 'force-dynamic';
+
 interface AdvertisementPageProps {
   params: {
     id: string;

@@ -13,6 +13,9 @@ export const metadata = {
   description: "Participate in exciting competitions on Vibtrix",
 };
 
+// Force dynamic rendering - database not available at build time
+export const dynamic = 'force-dynamic';
+
 async function getCompetitions(status: "active" | "upcoming" | "past") {
   try {
     // Define the where clause based on status

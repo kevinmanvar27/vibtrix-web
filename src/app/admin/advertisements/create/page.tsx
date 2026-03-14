@@ -9,6 +9,9 @@ export const metadata = {
   title: "Create Global Advertisement",
 };
 
+// Force dynamic rendering - database not available at build time
+export const dynamic = 'force-dynamic';
+
 export default async function CreateAdvertisementPage() {
   const { user } = await validateRequest();
 

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TabsContent } from "@/components/ui/tabs";
@@ -31,9 +32,9 @@ export const metadata = {
 };
 
 interface CompetitionDetailsPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 async function getCompetition(id: string, userId: string) {
@@ -246,7 +247,10 @@ async function getCompetition(id: string, userId: string) {
 export default async function CompetitionDetailsPage({ params }: CompetitionDetailsPageProps) {
   // Add a try-catch block around the entire function to ensure it never crashes
   try {
-    debug.log(`Starting competition details page for slug: ${params.slug}`);
+    // Await params since it's now a Promise in Next.js 15
+    const { slug } = await params;
+    
+    debug.log(`Starting competition details page for slug: ${slug}`);
 
     const { user } = await validateRequest();
     const isLoggedIn = !!user;
@@ -255,44 +259,44 @@ export default async function CompetitionDetailsPage({ params }: CompetitionDeta
     // with a prompt to sign in for full access
 
     // First try to find by slug
-    let competitionId = params.slug;
+    let competitionId = slug;
     try {
-      debug.log(`Looking up competition with slug: ${params.slug}`);
+      debug.log(`Looking up competition with slug: ${slug}`);
 
       // Check if the slug is already a valid competition ID
       const competitionById = await prisma.competition.findUnique({
-        where: { id: params.slug },
+        where: { id: slug },
         select: { id: true }
       });
 
       if (competitionById) {
-        debug.log(`Found competition directly by ID: ${params.slug}`);
-        competitionId = params.slug;
+        debug.log(`Found competition directly by ID: ${slug}`);
+        competitionId = slug;
       } else {
         // Try to find by slug
         const competitionBySlug = await prisma.competition.findUnique({
-          where: { slug: params.slug },
+          where: { slug: slug },
           select: { id: true }
         });
 
         if (competitionBySlug) {
-          debug.log(`Found competition by slug: ${params.slug} -> ID: ${competitionBySlug.id}`);
+          debug.log(`Found competition by slug: ${slug} -> ID: ${competitionBySlug.id}`);
           competitionId = competitionBySlug.id;
         } else {
-          debug.log(`No competition found with slug or ID: ${params.slug}`);
+          debug.log(`No competition found with slug or ID: ${slug}`);
           return notFound();
         }
       }
     } catch (error) {
-      debug.error(`Error looking up competition by slug/ID: ${params.slug}`, error);
+      debug.error(`Error looking up competition by slug/ID: ${slug}`, error);
       // Try a fallback approach - search for competitions with similar slugs
       try {
-        debug.log(`Attempting fallback search for competition with similar slug: ${params.slug}`);
+        debug.log(`Attempting fallback search for competition with similar slug: ${slug}`);
         const competitions = await prisma.competition.findMany({
           where: {
             OR: [
-              { slug: { contains: params.slug } },
-              { title: { contains: params.slug } }
+              { slug: { contains: slug } },
+              { title: { contains: slug } }
             ]
           },
           select: { id: true, slug: true, title: true },
@@ -303,11 +307,11 @@ export default async function CompetitionDetailsPage({ params }: CompetitionDeta
           debug.log(`Found similar competition: ${competitions[0].title} (${competitions[0].id});`);
           competitionId = competitions[0].id;
         } else {
-          debug.log(`No similar competitions found for slug: ${params.slug}`);
+          debug.log(`No similar competitions found for slug: ${slug}`);
           return notFound();
         }
       } catch (fallbackError) {
-        debug.error(`Fallback search failed for slug: ${params.slug}`, fallbackError);
+        debug.error(`Fallback search failed for slug: ${slug}`, fallbackError);
         return notFound();
       }
     }
@@ -964,8 +968,11 @@ export default async function CompetitionDetailsPage({ params }: CompetitionDeta
       </div>
     );
   } catch (error) {
+    // Get slug from params for error logging
+    const { slug } = await params;
+    
     debug.error('Error in competition page:', error);
-    debug.error('Competition lookup failed for slug/ID:', params.slug);
+    debug.error('Competition lookup failed for slug/ID:', slug);
 
     // Log detailed error information
     if (error instanceof Error) {
@@ -986,9 +993,9 @@ export default async function CompetitionDetailsPage({ params }: CompetitionDeta
             Please try again later or contact support if the problem persists.
           </p>
           <div className="mt-6">
-            <a href="/competitions" className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90">
+            <Link href="/competitions" className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90">
               View All Competitions
-            </a>
+            </Link>
           </div>
         </div>
       </div>

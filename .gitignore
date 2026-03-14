@@ -1,18 +1,13 @@
 # Build
 .next/
-# Dependencies
-node_modules/
-.pnp
-.pnp.js
-
-# Build
-.next/
 out/
 build/
 dist/
 
-# Testing
-coverage/
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
 
 # TypeScript
 *.tsbuildinfo
@@ -26,6 +21,10 @@ next-env.d.ts
 .env.test.local
 .env.production
 .env.production.local
+.env.example
+.env.docker.example
+.env.razorpay.example
+.env.secure
 
 # Debug
 npm-debug.log*
@@ -59,3 +58,17 @@ prisma/migrations/*_migration_lock.toml
 
 # Local Netlify folder
 .netlify
+
+# Development files
+*.bat
+*.sql
+docs/
+
+# User uploads (production should use cloud storage)
+public/uploads/avatars/*
+public/uploads/posts/*
+public/uploads/stickers/*
+public/uploads/stickered/*
+public/uploads/thumbnails/*
+public/uploads/original/*
+!public/uploads/.gitkeep

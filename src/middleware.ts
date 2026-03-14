@@ -19,12 +19,13 @@ export function middleware(request: NextRequest) {
   } else if (pathname.startsWith('/api/upload/')) {
     rateLimitType = 'upload';
   } else if (pathname.startsWith('/api/admin/')) {
+    // Apply strict rate limiting only to admin API routes
     rateLimitType = 'admin';
   } else if (pathname.startsWith('/api/')) {
     rateLimitType = 'api';
-  } else if (pathname.startsWith('/admin/') || pathname.startsWith('/admin-login')) {
-    rateLimitType = 'admin';
   }
+  // Note: Admin pages (/admin/, /admin-login) now use 'default' rate limit
+  // This prevents legitimate admin users from being blocked while browsing
 
   // Check rate limiting (skip for static assets and media files)
   const isStaticAsset = pathname.match(/\.(jpg|jpeg|png|gif|webp|mp4|webm|mov|ico|svg|css|js|woff|woff2|ttf|eot)$/i);

@@ -9,6 +9,9 @@ export const metadata = {
   title: "Edit Management User",
 };
 
+// Force dynamic rendering - database not available at build time
+export const dynamic = 'force-dynamic';
+
 interface ManagementUserEditPageProps {
   params: {
     userId: string;

@@ -10,6 +10,9 @@ export const metadata = {
   title: "Management Users",
 };
 
+// Force dynamic rendering - database not available at build time
+export const dynamic = 'force-dynamic';
+
 async function getManagementUsers() {
   return await prisma.user.findMany({
     where: {

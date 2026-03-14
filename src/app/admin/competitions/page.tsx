@@ -13,7 +13,8 @@ export const metadata = {
 };
 
 // Enable ISR with 60 second revalidation
-export const revalidate = 60;
+// Force dynamic rendering - database not available at build time
+export const dynamic = 'force-dynamic';
 
 interface CompetitionsPageProps {
   searchParams: {
@@ -231,16 +232,16 @@ export default async function CompetitionsPage({ searchParams }: CompetitionsPag
       <Tabs defaultValue={status || "all"} className="space-y-4">
         <TabsList>
           <TabsTrigger value="all" asChild>
-            <a href="/admin/competitions">All ({counts.all})</a>
+            <Link href="/admin/competitions">All ({counts.all})</Link>
           </TabsTrigger>
           <TabsTrigger value="active" asChild>
-            <a href="/admin/competitions?status=active">Active ({counts.active})</a>
+            <Link href="/admin/competitions?status=active">Active ({counts.active})</Link>
           </TabsTrigger>
           <TabsTrigger value="upcoming" asChild>
-            <a href="/admin/competitions?status=upcoming">Upcoming ({counts.upcoming})</a>
+            <Link href="/admin/competitions?status=upcoming">Upcoming ({counts.upcoming})</Link>
           </TabsTrigger>
           <TabsTrigger value="completed" asChild>
-            <a href="/admin/competitions?status=completed">Completed ({counts.completed})</a>
+            <Link href="/admin/competitions?status=completed">Completed ({counts.completed})</Link>
           </TabsTrigger>
         </TabsList>
         

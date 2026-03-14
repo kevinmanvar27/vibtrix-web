@@ -16,7 +16,8 @@ export const metadata = {
 };
 
 // Enable ISR with 60 second revalidation
-export const revalidate = 60;
+// Force dynamic rendering - database not available at build time
+export const dynamic = 'force-dynamic';
 
 interface PaymentsPageProps {
   searchParams: {
