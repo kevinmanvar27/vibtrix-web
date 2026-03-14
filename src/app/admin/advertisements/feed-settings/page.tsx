@@ -8,6 +8,9 @@ import DynamicTabs from "./DynamicTabs";
 
 import debug from "@/lib/debug";
 
+// Force dynamic rendering - database not available at build time
+export const dynamic = 'force-dynamic';
+
 export default async function FeedSettingsPage() {
   const { user } = await validateRequest();
 

@@ -12,7 +12,8 @@ import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Enable ISR with 60 second revalidation
-export const revalidate = 60;
+// Force dynamic rendering - database not available at build time
+export const dynamic = 'force-dynamic';
 
 interface StickerUsagePageProps {
   searchParams: {

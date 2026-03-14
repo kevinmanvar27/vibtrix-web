@@ -8,6 +8,9 @@ export const metadata = {
   title: "Notification Settings",
 };
 
+// Force dynamic rendering - requires authentication
+export const dynamic = 'force-dynamic';
+
 export default async function NotificationSettingsPage() {
   const { user } = await validateRequest();
 

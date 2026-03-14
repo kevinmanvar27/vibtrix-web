@@ -5,20 +5,22 @@ import { Hash } from "lucide-react";
 import Link from "next/link";
 
 interface PageProps {
-  params: { tag: string };
+  params: Promise<{ tag: string }>;
 }
 
-export function generateMetadata({ params }: PageProps): Metadata {
-  const tag = decodeURIComponent(params.tag);
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { tag } = await params;
+  const decodedTag = decodeURIComponent(tag);
   return {
-    title: `#${tag} - Vibtrix`,
-    description: `Posts tagged with #${tag}`,
+    title: `#${decodedTag} - Vibtrix`,
+    description: `Posts tagged with #${decodedTag}`,
   };
 }
 
-export default function HashtagPage({ params }: PageProps) {
-  const tag = decodeURIComponent(params.tag);
-  const hashtag = `#${tag}`;
+export default async function HashtagPage({ params }: PageProps) {
+  const { tag } = await params;
+  const decodedTag = decodeURIComponent(tag);
+  const hashtag = `#${decodedTag}`;
 
   return (
     <main className="flex w-full min-w-0 gap-5">

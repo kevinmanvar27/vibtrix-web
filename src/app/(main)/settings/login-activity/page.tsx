@@ -10,6 +10,9 @@ export const metadata = {
   title: "Login Activity",
 };
 
+// Force dynamic rendering - requires authentication
+export const dynamic = 'force-dynamic';
+
 export default async function LoginActivityPage() {
   const { user } = await validateRequest();
 

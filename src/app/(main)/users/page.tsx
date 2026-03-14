@@ -8,17 +8,18 @@ export const metadata: Metadata = {
 };
 
 interface PageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     onlineStatus?: string;
     gender?: string;
-  };
+  }>;
 }
 
-export default function UsersPage({ searchParams }: PageProps) {
-  const page = searchParams.page ? parseInt(searchParams.page) : 1;
-  const onlineStatus = searchParams.onlineStatus || "";
-  const gender = searchParams.gender || "";
+export default async function UsersPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const page = params.page ? parseInt(params.page) : 1;
+  const onlineStatus = params.onlineStatus || "";
+  const gender = params.gender || "";
 
   return (
     <main className="flex w-full min-w-0 gap-5">

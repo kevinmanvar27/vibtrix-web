@@ -5,6 +5,9 @@ export const metadata = {
   title: "Advertisement Management",
 };
 
+// Force dynamic rendering - requires authentication
+export const dynamic = 'force-dynamic';
+
 export default async function AdvertisementsPage() {
   const { user } = await validateRequest();
 
