@@ -9,9 +9,6 @@ export const metadata: Metadata = {
   title: "Access Denied",
 };
 
-// Force dynamic rendering - requires authentication check
-export const dynamic = 'force-dynamic';
-
 export default async function AccessDeniedPage() {
   const { user } = await validateRequest();
 

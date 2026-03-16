@@ -1,6 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Link from "next/link";
 import AdvertisementTable from "../components/AdvertisementTable";
 import prisma from "@/lib/prisma";
 import { AdvertisementStatus } from "@prisma/client";
@@ -16,8 +15,7 @@ export const metadata = {
 };
 
 // Enable ISR with 60 second revalidation
-// Force dynamic rendering - database not available at build time
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 interface AdvertisementsListPageProps {
   searchParams: {
@@ -143,19 +141,19 @@ export default async function AdvertisementsListPage({ searchParams }: Advertise
       <Tabs defaultValue={status || "all"} className="space-y-4">
         <TabsList>
           <TabsTrigger value="all" asChild>
-            <Link href="/admin/advertisements/list">All ({counts.allCount})</Link>
+            <a href="/admin/advertisements/list">All ({counts.allCount})</a>
           </TabsTrigger>
           <TabsTrigger value="active" asChild>
-            <Link href="/admin/advertisements/list?status=active">Active ({counts.activeCount})</Link>
+            <a href="/admin/advertisements/list?status=active">Active ({counts.activeCount})</a>
           </TabsTrigger>
           <TabsTrigger value="paused" asChild>
-            <Link href="/admin/advertisements/list?status=paused">Paused ({counts.pausedCount})</Link>
+            <a href="/admin/advertisements/list?status=paused">Paused ({counts.pausedCount})</a>
           </TabsTrigger>
           <TabsTrigger value="scheduled" asChild>
-            <Link href="/admin/advertisements/list?status=scheduled">Scheduled ({counts.scheduledCount})</Link>
+            <a href="/admin/advertisements/list?status=scheduled">Scheduled ({counts.scheduledCount})</a>
           </TabsTrigger>
           <TabsTrigger value="expired" asChild>
-            <Link href="/admin/advertisements/list?status=expired">Expired ({counts.expiredCount})</Link>
+            <a href="/admin/advertisements/list?status=expired">Expired ({counts.expiredCount})</a>
           </TabsTrigger>
         </TabsList>
         

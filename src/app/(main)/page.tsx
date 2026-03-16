@@ -7,9 +7,6 @@ const GuestPostEditor = lazy(() => import("@/components/posts/editor/GuestPostEd
 const TrendsSidebar = lazy(() => import("@/components/TrendsSidebar"));
 const HomeTabs = lazy(() => import("./HomeTabs"));
 
-// Force dynamic rendering - requires authentication check
-export const dynamic = 'force-dynamic';
-
 export default async function Home() {
   const { user } = await validateRequest();
   const isLoggedIn = !!user;

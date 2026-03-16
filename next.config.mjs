@@ -1,13 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Temporarily disable type checking during build to fix deployment
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  
   // Ensure SPA behavior with proper client-side navigation
   skipTrailingSlashRedirect: true,
   
@@ -94,7 +86,10 @@ const nextConfig = {
   },
   
   // AGGRESSIVE: Reduce overhead in development
-  // Note: devIndicators options have been updated for Next.js 15
+  devIndicators: {
+    buildActivity: false, // Disable build indicator for faster perception
+    buildActivityPosition: 'bottom-right',
+  },
   
   // AGGRESSIVE: Optimize production builds too
   compress: true,

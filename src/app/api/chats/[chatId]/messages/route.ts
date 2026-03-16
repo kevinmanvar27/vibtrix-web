@@ -174,7 +174,7 @@ export async function POST(
     const body = await request.json();
     debug.log(`POST /api/chats/${chatId}/messages - Request body:`, body);
 
-    const { content } = body;
+    const { content, replyToId, mentions } = body;
 
     if (!content || typeof content !== "string" || content.trim() === "") {
       debug.log(`POST /api/chats/${chatId}/messages - Invalid content:`, content);
@@ -249,6 +249,7 @@ export async function POST(
             senderId: user.id,
             chatId,
             recipientId, // This can be null for group chats
+            replyToId: replyToId || undefined, // Reply to another message
             isRead: false, // Messages start as unread for the recipient
           },
           include: getMessageInclude(),

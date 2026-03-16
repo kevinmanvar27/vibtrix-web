@@ -8,8 +8,8 @@ export const metadata = {
   title: "Admin Dashboard",
 };
 
-// Force dynamic rendering - database not available at build time
-export const dynamic = 'force-dynamic';
+// Enable ISR with 60 second revalidation for admin dashboard
+export const revalidate = 60;
 
 // OPTIMIZED: Combine all stats into parallel queries with groupBy where possible
 async function getStats() {

@@ -419,16 +419,20 @@ model Message {
   senderId    String
   recipientId String?
   chatId      String
+  replyToId   String?  // Reply to another message
   isRead      Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   chat        Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
   recipient   User?    @relation("Recipient", fields: [recipientId], references: [id])
   sender      User     @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo     Message? @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies     Message[] @relation("MessageReplies")
 
   @@index([chatId])
   @@index([senderId])
   @@index([recipientId], map: "messages_recipientId_fkey")
+  @@index([replyToId])
   @@map("messages")
 }
 

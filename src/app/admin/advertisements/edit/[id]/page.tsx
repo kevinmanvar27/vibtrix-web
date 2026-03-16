@@ -5,9 +5,6 @@ import AdvertisementForm from "../../components/AdvertisementForm";
 
 import debug from "@/lib/debug";
 
-// Force dynamic rendering - database not available at build time
-export const dynamic = 'force-dynamic';
-
 interface EditAdvertisementPageProps {
   params: {
     id: string;

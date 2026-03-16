@@ -11,9 +11,6 @@ export const metadata = {
   title: "Settings",
 };
 
-// Force dynamic rendering - requires authentication
-export const dynamic = 'force-dynamic';
-
 export default async function SettingsPage() {
   const { user } = await validateRequest();
   const { userBlockingEnabled, loginActivityTrackingEnabled } = await getFeatureSettings();

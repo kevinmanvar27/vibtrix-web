@@ -27,10 +27,11 @@ export async function POST(req: NextRequest) {
     // Parse the form data
     const formData = await req.formData();
     const files = formData.getAll('files') as File[];
+    const thumbnail = formData.get('thumbnail') as File | null;
     const isCompetitionEntry = formData.get('isCompetitionEntry') === 'true';
     const competitionId = formData.get('competitionId') as string | null;
 
-    debug.log(`Upload API: Received ${files.length} files, isCompetitionEntry=${isCompetitionEntry}, competitionId=${competitionId || 'none'}`);
+    debug.log(`Upload API: Received ${files.length} files, thumbnail=${thumbnail ? 'yes' : 'no'}, isCompetitionEntry=${isCompetitionEntry}, competitionId=${competitionId || 'none'}`);
 
     // Check if files array is empty
     if (files.length === 0) {
@@ -238,6 +239,20 @@ export async function POST(req: NextRequest) {
             throw new Error(`File not found at ${videoUrl}`);
           }
 
+          // Process thumbnail if provided
+          let thumbnailUrl: string | null = null;
+          if (thumbnail) {
+            try {
+              debug.log('Upload API: Processing video thumbnail');
+              const thumbnailBuffer = Buffer.from(await thumbnail.arrayBuffer());
+              thumbnailUrl = await storeFile(thumbnailBuffer, `thumb_${file.name}.jpg`, 'thumbnails');
+              debug.log(`Upload API: Thumbnail stored at ${thumbnailUrl}`);
+            } catch (thumbError) {
+              debug.error('Upload API: Error processing thumbnail:', thumbError);
+              // Continue without thumbnail
+            }
+          }
+
           // Extract video duration using FFmpeg
           try {
             const { spawn } = require('child_process');
@@ -287,6 +302,8 @@ export async function POST(req: NextRequest) {
           const media = await prisma.media.create({
             data: {
               url: videoUrl, // This will be the stickered video URL if available
+              urlThumbnail: thumbnailUrl,
+              posterUrl: thumbnailUrl,
               width,
               height,
               duration,

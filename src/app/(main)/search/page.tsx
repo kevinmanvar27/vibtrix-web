@@ -7,19 +7,17 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 
 interface PageProps {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: { q?: string };
 }
 
-export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
-  const params = await searchParams;
+export function generateMetadata({ searchParams }: PageProps): Metadata {
   return {
-    title: params.q ? `Search results for "${params.q}"` : "Search",
+    title: searchParams.q ? `Search results for "${searchParams.q}"` : "Search",
   };
 }
 
-export default async function Page({ searchParams }: PageProps) {
-  const params = await searchParams;
-  const q = params.q || "";
+export default function Page({ searchParams }: PageProps) {
+  const q = searchParams.q || "";
   // Check if the search query is a hashtag search
   const isHashtagSearch = q.startsWith('#');
 

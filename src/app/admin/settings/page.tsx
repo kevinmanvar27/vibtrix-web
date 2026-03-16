@@ -132,8 +132,7 @@ async function getSettings() {
   }
 }
 
-// Force dynamic rendering - database not available at build time
-export const dynamic = 'force-dynamic';
+export const revalidate = 0; // Disable caching for this page
 
 export default async function SettingsPage({
   searchParams,

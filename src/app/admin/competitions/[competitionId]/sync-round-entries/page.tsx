@@ -7,9 +7,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Link from "next/link";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 
-// Force dynamic rendering - database not available at build time
-export const dynamic = 'force-dynamic';
-
 export default async function SyncRoundEntriesPage({
   params,
 }: {

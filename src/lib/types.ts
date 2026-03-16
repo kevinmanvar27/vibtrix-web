@@ -230,6 +230,18 @@ export function getMessageInclude() {
         avatarUrl: true,
       },
     },
+    replyTo: {
+      include: {
+        sender: {
+          select: {
+            id: true,
+            username: true,
+            displayName: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    },
   } satisfies Prisma.MessageInclude;
 }
 

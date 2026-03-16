@@ -48,7 +48,7 @@ const RATE_LIMIT_CONFIGS = {
   },
   admin: {
     windowMs: 5 * 60 * 1000, // 5 minutes
-    maxRequests: 100, // 100 requests per window (increased from 10 for normal admin usage)
+    maxRequests: 10,
     message: 'Too many admin requests. Please try again later.',
   },
   default: {

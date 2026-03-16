@@ -12,9 +12,6 @@ export const metadata = {
   title: "Edit Competition Advertisement",
 };
 
-// Force dynamic rendering - database not available at build time
-export const dynamic = 'force-dynamic';
-
 interface EditCompetitionAdvertisementPageProps {
   params: {
     competitionId: string;

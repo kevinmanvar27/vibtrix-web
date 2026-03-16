@@ -10,9 +10,6 @@ import { ChevronRight } from "lucide-react";
 
 import debug from "@/lib/debug";
 
-// Force dynamic rendering - database not available at build time
-export const dynamic = 'force-dynamic';
-
 interface CompetitionFeedSettingsPageProps {
   params: {
     competitionId: string;

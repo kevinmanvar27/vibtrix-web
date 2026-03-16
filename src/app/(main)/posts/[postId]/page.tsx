@@ -9,7 +9,7 @@ import { cache, Suspense } from "react";
 import UserInfoSidebarClient from "./UserInfoSidebarClient";
 
 interface PageProps {
-  params: Promise<{ postId: string }>;
+  params: { postId: string };
 }
 
 const getPost = cache(async (postId: string, loggedInUserId: string) => {
@@ -26,9 +26,8 @@ const getPost = cache(async (postId: string, loggedInUserId: string) => {
 });
 
 export async function generateMetadata({
-  params,
+  params: { postId },
 }: PageProps): Promise<Metadata> {
-  const { postId } = await params;
   const { user } = await validateRequest();
   const isLoggedIn = !!user;
 
@@ -40,8 +39,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function Page({ params }: PageProps) {
-  const { postId } = await params;
+export default async function Page({ params: { postId } }: PageProps) {
   const { user } = await validateRequest();
   const isLoggedIn = !!user;
 

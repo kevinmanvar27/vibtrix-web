@@ -10,9 +10,6 @@ export const metadata = {
   title: "Blocked Users",
 };
 
-// Force dynamic rendering - requires authentication
-export const dynamic = 'force-dynamic';
-
 export default async function BlockedUsersPage() {
   const { user } = await validateRequest();
   const { userBlockingEnabled } = await getFeatureSettings();

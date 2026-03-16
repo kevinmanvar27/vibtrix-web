@@ -7,7 +7,7 @@ import { cache } from "react";
 import { DEFAULT_STATIC_PAGES } from "@/lib/seed-static-pages";
 
 interface PageProps {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }
 
 const getPage = cache(async (slug: string) => {
@@ -24,9 +24,8 @@ const getPage = cache(async (slug: string) => {
 });
 
 export async function generateMetadata({
-  params,
+  params: { slug },
 }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
   const page = await getPage(slug);
 
   return {
@@ -34,8 +33,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function Page({ params }: PageProps) {
-  const { slug } = await params;
+export default async function Page({ params: { slug } }: PageProps) {
   const { user } = await validateRequest();
   const page = await getPage(slug);
 

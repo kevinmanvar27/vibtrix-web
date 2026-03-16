@@ -12,7 +12,7 @@ import UnblockUserProfileButton from "./UnblockUserProfileButton";
 // Metadata generation is handled below
 
 interface PageProps {
-  params: Promise<{ username: string }>;
+  params: { username: string };
 }
 
 const getUser = cache(async (username: string, loggedInUserId: string) => {
@@ -45,9 +45,8 @@ const getUser = cache(async (username: string, loggedInUserId: string) => {
 });
 
 export async function generateMetadata({
-  params,
+  params: { username },
 }: PageProps): Promise<Metadata> {
-  const { username } = await params;
   const { user: loggedInUser } = await validateRequest();
   const isLoggedIn = !!loggedInUser;
 
@@ -59,8 +58,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function Page({ params }: PageProps) {
-  const { username } = await params;
+export default async function Page({ params: { username } }: PageProps) {
   const { user: loggedInUser } = await validateRequest();
   const isLoggedIn = !!loggedInUser;
 

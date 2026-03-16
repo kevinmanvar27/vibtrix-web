@@ -7,9 +7,6 @@ export const metadata = {
   title: "Follow Requests",
 };
 
-// Force dynamic rendering - requires authentication
-export const dynamic = 'force-dynamic';
-
 export default async function FollowRequestsPage() {
   const { user } = await validateRequest();
 
