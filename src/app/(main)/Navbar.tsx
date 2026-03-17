@@ -24,8 +24,8 @@ export default async function Navbar() {
               <Image
                 src={settings.logoUrl}
                 alt="Vibtrix Logo"
-                width={settings.logoWidth || 150}
-                height={settings.logoHeight || 30}
+                width={settings.logoWidth || 50}
+                height={settings.logoHeight || 50}
                 className="object-contain"
                 priority
               />

@@ -1,0 +1,210 @@
+================================================================================
+VIBETRIX - DATA SAFETY & SECURITY STANDARDS
+================================================================================
+
+Last Updated: March 17, 2026
+URL: https://darkgrey-frog-862014.hostingersite.com/support/safety
+
+================================================================================
+OVERVIEW
+================================================================================
+
+Vibetrix is committed to protecting your personal information and your right to 
+privacy. This page explains what data we collect, how we use it, and the 
+security measures we take to protect your information.
+
+================================================================================
+DATA WE COLLECT
+================================================================================
+
+1. PERSONAL INFORMATION
+   Purpose: Account management, authentication, and personalization
+   
+   • Email address (for account creation and communication)
+   • Username and display name
+   • Profile picture and bio
+   • Date of birth (for age verification)
+
+2. USER-GENERATED CONTENT
+   Purpose: Platform functionality, content sharing, and social interaction
+   
+   • Videos, photos, and reels you upload
+   • Comments, likes, and shares
+   • Messages and chat conversations
+   • Competition entries
+
+3. USAGE & ANALYTICS DATA
+   Purpose: App improvement, bug fixes, and analytics
+   
+   • App usage patterns and interactions
+   • Device information (model, OS version)
+   • IP address and location data (approximate)
+   • Performance and crash data
+
+4. DEVICE & TECHNICAL INFORMATION
+   Purpose: Core app functionality and features
+   
+   • Device identifiers (for push notifications)
+   • Camera and microphone access (for content creation)
+   • Storage access (for media uploads)
+   • Network information
+
+================================================================================
+HOW WE USE YOUR DATA
+================================================================================
+
+✓ Provide Services: Enable core features like posting, messaging, and 
+  competitions
+
+✓ Personalization: Customize your feed and recommend content
+
+✓ Communication: Send notifications, updates, and support messages
+
+✓ Security: Detect fraud, abuse, and maintain platform safety
+
+✓ Analytics: Improve app performance and user experience
+
+✓ Legal Compliance: Meet legal obligations and enforce our terms
+
+================================================================================
+DATA SHARING & THIRD PARTIES
+================================================================================
+
+We DO NOT SELL your personal information. We may share data with:
+
+1. SERVICE PROVIDERS
+   Cloud storage, analytics, and infrastructure providers who help us operate 
+   the app
+
+2. AUTHENTICATION SERVICES
+   Google Sign-In, Apple Sign-In for secure authentication
+
+3. LEGAL REQUIREMENTS
+   When required by law, court order, or government request
+
+4. PUBLIC CONTENT
+   Your public posts and profile are visible to other users
+
+================================================================================
+SECURITY MEASURES
+================================================================================
+
+ENCRYPTION
+• HTTPS/TLS encryption for data in transit
+• Encrypted password storage
+• Secure API communications
+
+ACCESS CONTROL
+• Secure authentication (OAuth 2.0)
+• Role-based access control
+• Session management
+
+MONITORING
+• 24/7 security monitoring
+• Fraud detection systems
+• Regular security audits
+
+COMPLIANCE
+• GDPR compliant
+• Industry best practices
+• Regular updates
+
+================================================================================
+YOUR PRIVACY RIGHTS
+================================================================================
+
+👁️ ACCESS YOUR DATA
+   Request a copy of your personal data
+
+✏️ UPDATE INFORMATION
+   Correct or update your personal information
+
+🗑️ DELETE YOUR ACCOUNT
+   Permanently delete your account and data
+   Learn how: https://yourdomain.com/support/delete-account
+
+🔔 CONTROL NOTIFICATIONS
+   Manage your notification preferences
+
+🚫 OPT-OUT
+   Opt-out of marketing communications
+
+================================================================================
+DATA RETENTION
+================================================================================
+
+We retain your data for as long as your account is active or as needed to 
+provide services. When you delete your account, we remove your data within 
+30 DAYS, except where we're required to retain it for legal, security, or 
+fraud prevention purposes.
+
+================================================================================
+CHILDREN'S PRIVACY
+================================================================================
+
+Vibetrix is intended for users aged 13 AND ABOVE. We do not knowingly collect 
+personal information from children under 13. If we discover that we have 
+collected data from a child under 13, we will delete it immediately.
+
+Parents: If you believe your child has provided us with personal information, 
+please contact us at support@vibtrix.com
+
+================================================================================
+CONTACT US & POLICY UPDATES
+================================================================================
+
+QUESTIONS OR CONCERNS?
+If you have any questions about our data practices or this policy, please 
+contact us:
+
+Email: support@vibetrix.com
+Website: vibetrix.com
+
+POLICY UPDATES
+We may update this policy from time to time. We'll notify you of significant 
+changes via email or in-app notification.
+
+================================================================================
+GOOGLE PLAY STORE DATA SAFETY SUMMARY
+================================================================================
+
+DATA COLLECTED:
+✓ Personal Info (email, name, profile) - Account management
+✓ Photos & Videos - App functionality
+✓ Messages - Communication features
+✓ Location (Approximate) - Analytics
+✓ Device ID - Push notifications
+✓ Usage Data - Analytics & improvements
+
+DATA SHARED WITH THIRD PARTIES:
+✗ We DO NOT sell your data
+✗ We DO NOT share for advertising purposes
+✓ Only shared with service providers for app functionality
+
+DATA SECURITY:
+✓ Data is encrypted in transit (HTTPS/TLS)
+✓ Data is encrypted at rest
+✓ Users can request data deletion
+✓ Committed to following Play Families Policy
+
+USER CONTROLS:
+✓ Users can delete their data
+✓ Users can access their data
+✓ Users can update their information
+✓ Privacy controls available in-app
+
+AGE REQUIREMENT:
+✓ 13+ years old
+
+================================================================================
+RELATED LINKS
+================================================================================
+
+• Privacy Policy: https://yourdomain.com/privacy
+• Terms of Service: https://yourdomain.com/terms
+• Delete Account: https://yourdomain.com/support/delete-account
+• Home: https://yourdomain.com
+
+================================================================================
+© 2026 Vibetrix. All rights reserved.
+================================================================================
