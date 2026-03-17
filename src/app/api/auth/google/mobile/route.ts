@@ -13,18 +13,17 @@ import { slugify } from "@/lib/utils";
 import { trackLoginActivity } from "@/lib/track-login-activity";
 import debug from "@/lib/debug";
 import { z } from "zod";
-import { OAuth2Client } from "google-auth-library";
+import * as admin from "firebase-admin";
 
-// Initialize Google OAuth2 client
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+// Initialize Firebase Admin SDK if not already initialized
+if (!admin.apps.length) {
+  admin.initializeApp({
+    projectId: "vidibattle-fd3b2",
+  });
+}
 
-// Valid audience client IDs for token verification
-// Mobile apps use their platform-specific client IDs, so we need to accept both
-const VALID_AUDIENCE_CLIENT_IDS = [
-  process.env.GOOGLE_CLIENT_ID, // Web client ID
-  process.env.GOOGLE_ANDROID_CLIENT_ID, // Android client ID
-  process.env.GOOGLE_IOS_CLIENT_ID, // iOS client ID (for future)
-].filter(Boolean) as string[];
+// Get Firebase Auth instance
+const firebaseAuth = admin.auth();
 
 // Validation schema for Google Sign-In request
 const googleSignInSchema = z.object({
@@ -44,40 +43,43 @@ interface GoogleUserInfo {
 }
 
 /**
- * Verify Google ID token
- * @param idToken - The ID token from Google Sign-In
+ * Verify Firebase ID token
+ * @param idToken - The ID token from Firebase Auth
  * @returns Google user info
  */
 async function verifyGoogleToken(idToken: string): Promise<GoogleUserInfo> {
-  debug.log("verifyGoogleToken called");
+  debug.log("verifyGoogleToken called - using Firebase Admin SDK");
   
   try {
-    // Accept tokens from web, Android, and iOS clients
-    const ticket = await googleClient.verifyIdToken({
-      idToken,
-      audience: VALID_AUDIENCE_CLIENT_IDS,
+    // Verify the Firebase ID token using Firebase Admin SDK
+    const decodedToken = await firebaseAuth.verifyIdToken(idToken);
+    
+    debug.log("Token verified successfully for:", decodedToken.email);
+    debug.log("Token details:", {
+      uid: decodedToken.uid,
+      email: decodedToken.email,
+      email_verified: decodedToken.email_verified,
+      provider: decodedToken.firebase?.sign_in_provider,
     });
-    
-    const payload = ticket.getPayload();
-    if (!payload) {
-      debug.error("Token payload is null/undefined");
-      throw new Error("Invalid token payload");
-    }
-    
-    debug.log("Token verified for:", payload.email);
 
+    // Extract user info from decoded token
+    // IMPORTANT: Use the actual Google user ID from firebase.identities, not the Firebase UID
+    const googleUserId = decodedToken.firebase?.identities?.['google.com']?.[0] || decodedToken.uid;
+    
     return {
-      sub: payload.sub,
-      email: payload.email,
-      email_verified: payload.email_verified,
-      name: payload.name,
-      given_name: payload.given_name,
-      family_name: payload.family_name,
-      picture: payload.picture,
+      sub: googleUserId, // Use Google user ID, not Firebase UID
+      email: decodedToken.email,
+      email_verified: decodedToken.email_verified,
+      name: decodedToken.name,
+      given_name: decodedToken.given_name,
+      family_name: decodedToken.family_name,
+      picture: decodedToken.picture,
     };
-  } catch (error) {
-    debug.error("Google token verification failed:", error);
-    throw new Error("Invalid Google ID token");
+  } catch (error: any) {
+    debug.error("Firebase token verification failed:", error);
+    debug.error("Error code:", error.code);
+    debug.error("Error message:", error.message);
+    throw new Error("Invalid or expired Google ID token");
   }
 }
 
@@ -217,8 +219,9 @@ export async function POST(req: NextRequest) {
         });
 
         if (existingEmailUser) {
-          // Link Google ID to existing account
+          // Check if it's the same Google account or different
           if (!existingEmailUser.googleId) {
+            // No Google ID linked yet - link it now
             await prisma.user.update({
               where: { id: existingEmailUser.id },
               data: { 
@@ -241,8 +244,24 @@ export async function POST(req: NextRequest) {
             });
 
             debug.log(`POST /api/auth/google/mobile - Linked Google ID to existing account: ${existingEmailUser.id}`);
+          } else if (existingEmailUser.googleId === googleId) {
+            // Same Google account - allow login
+            user = await prisma.user.findUnique({
+              where: { id: existingEmailUser.id },
+              select: {
+                id: true,
+                username: true,
+                displayName: true,
+                avatarUrl: true,
+                role: true,
+                isActive: true,
+              },
+            });
+            
+            debug.log(`POST /api/auth/google/mobile - Logging in existing user: ${existingEmailUser.id}`);
           } else {
-            // Email already linked to different Google account
+            // Different Google account with same email - this is a conflict
+            debug.error(`POST /api/auth/google/mobile - Email conflict: ${email} already linked to different Google ID`);
             return Response.json(
               { error: "Email is already associated with another account" },
               { status: 409 }
