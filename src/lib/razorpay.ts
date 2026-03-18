@@ -243,7 +243,7 @@ export async function createRazorpayOrder(amount: number, currency: string = "IN
         currency,
         receipt,
         notes: {
-          source: "Vibtrix",
+          source: "Vibetrix",
         },
       },
     });
@@ -260,7 +260,7 @@ export async function createRazorpayOrder(amount: number, currency: string = "IN
         currency,
         receipt,
         notes: {
-          source: "Vibtrix",
+          source: "Vibetrix",
         },
       }),
     });
@@ -370,7 +370,7 @@ export async function generateQRCode(orderId: string, amount: number) {
       },
       body: JSON.stringify({
         type: "upi_qr",
-        name: "Vibtrix Payment",
+        name: "Vibetrix Payment",
         usage: "single_use",
         fixed_amount: true,
         payment_amount: amountInPaise,
@@ -410,6 +410,6 @@ export async function generateQRCode(orderId: string, amount: number) {
     debug.error("Error generating QR code:", error);
     // Return a fallback QR code for testing
     debug.log("Using fallback QR code due to API error");
-    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=VibtrixTestPayment_${orderId}_${amount}`;
+    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=VibetrixTestPayment_${orderId}_${amount}`;
   }
 }

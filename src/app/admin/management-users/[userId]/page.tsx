@@ -10,9 +10,9 @@ export const metadata = {
 };
 
 interface ManagementUserEditPageProps {
-  params: {
+  params: Promise<{
     userId: string;
-  };
+  }>;
 }
 
 // Define the type that matches what the component expects
@@ -68,7 +68,8 @@ async function getAllPermissions() {
   });
 }
 
-export default async function ManagementUserEditPage({ params }: ManagementUserEditPageProps) {
+export default async function ManagementUserEditPage(props: ManagementUserEditPageProps) {
+  const params = await props.params;
   // Check if the current user is a SUPER_ADMIN
   const { user: currentUser } = await validateRequest();
   

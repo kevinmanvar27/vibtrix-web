@@ -1,5 +1,6 @@
 "use client";
 
+import { use } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -10,9 +11,9 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 interface FixFeedVisibilityPageProps {
-  params: {
+  params: Promise<{
     competitionId: string;
-  };
+  }>;
 }
 
 interface Competition {
@@ -25,7 +26,7 @@ interface Competition {
 }
 
 export default function FixFeedVisibilityPage({ params }: FixFeedVisibilityPageProps) {
-  const { competitionId } = params;
+  const { competitionId } = use(params);
   const [competition, setCompetition] = useState<Competition | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);

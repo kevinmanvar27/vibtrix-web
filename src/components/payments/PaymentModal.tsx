@@ -345,7 +345,7 @@ export default function PaymentModal({
       key: orderData.keyId,
       amount: orderData.order.amount,
       currency: orderData.order.currency,
-      name: "Vibtrix",
+      name: "Vibetrix",
       description: `Payment for ${competitionTitle}`,
       order_id: orderData.order.id,
       handler: function (response: any) {

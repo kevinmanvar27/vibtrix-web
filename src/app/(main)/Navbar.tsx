@@ -23,7 +23,7 @@ export default async function Navbar() {
             <div className="relative overflow-hidden" style={{ height: `${settings.logoHeight}px`, width: `${settings.logoWidth}px` }}>
               <Image
                 src={settings.logoUrl}
-                alt="Vibtrix Logo"
+                alt="Vibetrix Logo"
                 width={settings.logoWidth || 50}
                 height={settings.logoHeight || 50}
                 className="object-contain"
@@ -31,7 +31,7 @@ export default async function Navbar() {
               />
             </div>
           ) : (
-            <span>Vibtrix</span>
+            <span>Vibetrix</span>
           )}
         </Link>
         <div className="flex-1 max-w-md mx-2 sm:mx-4">

@@ -31,27 +31,27 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
     title: {
-      template: "%s | Vibtrix",
-      default: "Vibtrix - Social Media Platform for Video Competitions",
+      template: "%s | Vibetrix",
+      default: "Vibetrix - Social Media Platform for Video Competitions",
     },
-    description: "Vibtrix is a social media platform where users can participate in video competitions, share content, and connect with others.",
-    keywords: ["video competitions", "social media", "content creation", "video sharing", "Vibtrix"],
-    authors: [{ name: "Vibtrix Team" }],
-    creator: "Vibtrix",
-    publisher: "Vibtrix",
+    description: "Vibetrix is a social media platform where users can participate in video competitions, share content, and connect with others.",
+    keywords: ["video competitions", "social media", "content creation", "video sharing", "Vibetrix"],
+    authors: [{ name: "Vibetrix Team" }],
+    creator: "Vibetrix",
+    publisher: "Vibetrix",
     openGraph: {
       type: "website",
       locale: "en_US",
       url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-      title: "Vibtrix - Social Media Platform for Video Competitions",
-      description: "Vibtrix is a social media platform where users can participate in video competitions, share content, and connect with others.",
-      siteName: "Vibtrix",
+      title: "Vibetrix - Social Media Platform for Video Competitions",
+      description: "Vibetrix is a social media platform where users can participate in video competitions, share content, and connect with others.",
+      siteName: "Vibetrix",
     },
     twitter: {
       card: "summary_large_image",
-      title: "Vibtrix - Social Media Platform for Video Competitions",
-      description: "Vibtrix is a social media platform where users can participate in video competitions, share content, and connect with others.",
-      creator: "@Vibtrix",
+      title: "Vibetrix - Social Media Platform for Video Competitions",
+      description: "Vibetrix is a social media platform where users can participate in video competitions, share content, and connect with others.",
+      creator: "@Vibetrix",
     },
     robots: {
       index: true,
@@ -86,7 +86,7 @@ export default async function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="referrer" content="strict-origin-when-cross-origin" />
-        <meta name="description" content="Vibtrix is a social media platform where users can participate in video competitions, share content, and connect with others." />
+        <meta name="description" content="Vibetrix is a social media platform where users can participate in video competitions, share content, and connect with others." />
         <link rel="preconnect" href={process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'} />
         <link rel="preconnect" href="https://api.dicebear.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://api.dicebear.com" />
@@ -100,10 +100,19 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-        <meta name="apple-mobile-web-app-title" content="Vibtrix" />
+        <meta name="apple-mobile-web-app-title" content="Vibetrix" />
 
-        {/* Use favicon from settings if available */}
-        {settings.faviconUrl && <link rel="icon" href={settings.faviconUrl} />}
+        {/* Favicons */}
+        {settings.faviconUrl ? (
+          <link rel="icon" href={settings.faviconUrl} />
+        ) : (
+          <>
+            <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png" />
+            <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png" />
+            <link rel="shortcut icon" href="/favicon.png" />
+            <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+          </>
+        )}
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
         {/* Add Google Analytics if enabled */}

@@ -8,9 +8,9 @@ export const metadata = {
 };
 
 interface EditPagePageProps {
-  params: {
+  params: Promise<{
     pageId: string;
-  };
+  }>;
 }
 
 async function getPage(id: string) {
@@ -25,7 +25,8 @@ async function getPage(id: string) {
   return page;
 }
 
-export default async function EditPagePage({ params }: EditPagePageProps) {
+export default async function EditPagePage(props: EditPagePageProps) {
+  const params = await props.params;
   const page = await getPage(params.pageId);
 
   return (

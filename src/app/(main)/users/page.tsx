@@ -3,19 +3,20 @@ import TrendsSidebar from "@/components/TrendsSidebar";
 import UserListingClient from "./UserListingClient";
 
 export const metadata: Metadata = {
-  title: "Users - Vibtrix",
-  description: "Browse and discover users on Vibtrix",
+  title: "Users - Vibetrix",
+  description: "Browse and discover users on Vibetrix",
 };
 
 interface PageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     onlineStatus?: string;
     gender?: string;
-  };
+  }>;
 }
 
-export default function UsersPage({ searchParams }: PageProps) {
+export default async function UsersPage(props: PageProps) {
+  const searchParams = await props.searchParams;
   const page = searchParams.page ? parseInt(searchParams.page) : 1;
   const onlineStatus = searchParams.onlineStatus || "";
   const gender = searchParams.gender || "";

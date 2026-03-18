@@ -8,4 +8,4 @@ Disallow: /admin-login/
 Disallow: /api/
 
 # Sitemap
-Sitemap: https://vibtrix.com/sitemap.xml
+Sitemap: https://vibetrix.com/sitemap.xml

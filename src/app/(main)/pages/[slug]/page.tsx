@@ -7,7 +7,7 @@ import { cache } from "react";
 import { DEFAULT_STATIC_PAGES } from "@/lib/seed-static-pages";
 
 interface PageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 const getPage = cache(async (slug: string) => {
@@ -23,22 +23,22 @@ const getPage = cache(async (slug: string) => {
   return page;
 });
 
-export async function generateMetadata({
-  params: { slug },
-}: PageProps): Promise<Metadata> {
-  const page = await getPage(slug);
+export async function generateMetadata(props: PageProps): Promise<Metadata> {
+  const params = await props.params;
+  const page = await getPage(params.slug);
 
   return {
     title: page.title,
   };
 }
 
-export default async function Page({ params: { slug } }: PageProps) {
+export default async function Page(props: PageProps) {
+  const params = await props.params;
   const { user } = await validateRequest();
-  const page = await getPage(slug);
+  const page = await getPage(params.slug);
 
   // Check if this is a static page (terms, privacy, etc.)
-  const isStaticPage = DEFAULT_STATIC_PAGES.some(p => p.slug === slug);
+  const isStaticPage = DEFAULT_STATIC_PAGES.some(p => p.slug === params.slug);
 
   // Allow access to static pages for all users, but require login for other pages
   if (!user && !isStaticPage) {

@@ -38,7 +38,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
       debug.log("SMTP_PORT:", process.env.SMTP_PORT || "587 (default)");
       debug.log("SMTP_USER:", process.env.SMTP_USER ? `${process.env.SMTP_USER.substring(0, 5)}...` : "NOT SET");
       debug.log("SMTP_PASS:", process.env.SMTP_PASS ? "SET (hidden)" : "NOT SET");
-      debug.log("EMAIL_FROM:", process.env.EMAIL_FROM || "Vibtrix <noreply@vibtrix.com> (default)");
+      debug.log("EMAIL_FROM:", process.env.EMAIL_FROM || "Vibetrix <noreply@vibetrix.com> (default)");
       debug.log("Sending to:", options.to);
       debug.log("Subject:", options.subject);
     }
@@ -46,7 +46,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
     const transporter = createTransporter();
 
     const mailOptions = {
-      from: process.env.EMAIL_FROM || "Vibtrix <noreply@vibtrix.com>",
+      from: process.env.EMAIL_FROM || "Vibetrix <noreply@vibetrix.com>",
       to: options.to,
       subject: options.subject,
       html: options.html,
@@ -89,7 +89,7 @@ export async function sendPasswordResetOTP(
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <tr>
           <td style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 40px 30px; text-align: center; border-radius: 16px 16px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">Vibtrix</h1>
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">Vibetrix</h1>
             <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0; font-size: 16px;">Password Reset Request</p>
           </td>
         </tr>
@@ -124,7 +124,7 @@ export async function sendPasswordResetOTP(
         <tr>
           <td style="padding: 25px 30px; text-align: center;">
             <p style="color: #9ca3af; font-size: 13px; margin: 0;">
-              © ${new Date().getFullYear()} Vibtrix. All rights reserved.
+              © ${new Date().getFullYear()} Vibetrix. All rights reserved.
             </p>
           </td>
         </tr>
@@ -144,12 +144,12 @@ export async function sendPasswordResetOTP(
 
     If you didn't request this password reset, please ignore this email.
 
-    - Vibtrix Team
+    - Vibetrix Team
   `;
 
   return sendEmail({
     to: email,
-    subject: "Reset Your Password - Vibtrix",
+    subject: "Reset Your Password - Vibetrix",
     html,
     text,
   });
@@ -175,7 +175,7 @@ export async function sendEmailVerificationOTP(
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <tr>
           <td style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 40px 30px; text-align: center; border-radius: 16px 16px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">Vibtrix</h1>
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">Vibetrix</h1>
             <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0; font-size: 16px;">Email Verification</p>
           </td>
         </tr>
@@ -203,14 +203,14 @@ export async function sendEmailVerificationOTP(
             </div>
             
             <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 25px 0 0;">
-              If you didn't create an account with Vibtrix, please ignore this email.
+              If you didn't create an account with Vibetrix, please ignore this email.
             </p>
           </td>
         </tr>
         <tr>
           <td style="padding: 25px 30px; text-align: center;">
             <p style="color: #9ca3af; font-size: 13px; margin: 0;">
-              © ${new Date().getFullYear()} Vibtrix. All rights reserved.
+              © ${new Date().getFullYear()} Vibetrix. All rights reserved.
             </p>
           </td>
         </tr>
@@ -228,14 +228,14 @@ export async function sendEmailVerificationOTP(
 
     This code expires in 10 minutes.
 
-    If you didn't create an account with Vibtrix, please ignore this email.
+    If you didn't create an account with Vibetrix, please ignore this email.
 
-    - Vibtrix Team
+    - Vibetrix Team
   `;
 
   return sendEmail({
     to: email,
-    subject: "Verify Your Email - Vibtrix",
+    subject: "Verify Your Email - Vibetrix",
     html,
     text,
   });
@@ -254,20 +254,20 @@ export async function sendWelcomeEmail(
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Welcome to Vibtrix</title>
+      <title>Welcome to Vibetrix</title>
     </head>
     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f5;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <tr>
           <td style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 40px 30px; text-align: center; border-radius: 16px 16px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">🎉 Welcome to Vibtrix!</h1>
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">🎉 Welcome to Vibetrix!</h1>
           </td>
         </tr>
         <tr>
           <td style="background-color: white; padding: 40px 30px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
             <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">Hi ${username},</h2>
             <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 25px;">
-              Welcome to Vibtrix! Your account has been created successfully. We're excited to have you join our community.
+              Welcome to Vibetrix! Your account has been created successfully. We're excited to have you join our community.
             </p>
             
             <div style="text-align: center; margin: 30px 0;">
@@ -285,7 +285,7 @@ export async function sendWelcomeEmail(
         <tr>
           <td style="padding: 25px 30px; text-align: center;">
             <p style="color: #9ca3af; font-size: 13px; margin: 0;">
-              © ${new Date().getFullYear()} Vibtrix. All rights reserved.
+              © ${new Date().getFullYear()} Vibetrix. All rights reserved.
             </p>
           </td>
         </tr>
@@ -296,7 +296,7 @@ export async function sendWelcomeEmail(
 
   return sendEmail({
     to: email,
-    subject: "Welcome to Vibtrix! 🎉",
+    subject: "Welcome to Vibetrix! 🎉",
     html,
   });
 }

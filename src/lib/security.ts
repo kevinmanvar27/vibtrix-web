@@ -1,5 +1,5 @@
 /**
- * Comprehensive Security Library for Vibtrix
+ * Comprehensive Security Library for Vibetrix
  * Implements security best practices and utilities
  */
 
@@ -201,7 +201,7 @@ export function getClientIP(req: NextRequest): string {
   if (realIP) return realIP;
   if (forwarded) return forwarded.split(',')[0].trim();
 
-  return req.ip || 'unknown';
+  return 'unknown';
 }
 
 /**

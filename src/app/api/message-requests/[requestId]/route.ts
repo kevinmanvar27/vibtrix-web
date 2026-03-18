@@ -5,7 +5,7 @@ import { getAuthenticatedUser } from "@/lib/api-auth";
 import debug from "@/lib/debug";
 
 interface RouteParams {
-  params: { requestId: string };
+  params: Promise<{ requestId: string }>;
 }
 
 /**
@@ -20,7 +20,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { requestId } = params;
+    const { requestId } = await params;
     const body = await request.json();
     const { action } = body; // "accept" | "reject"
 
@@ -122,7 +122,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { requestId } = params;
+    const { requestId } = await params;
 
     const messageRequest = await prisma.messageRequest.findUnique({
       where: { id: requestId },

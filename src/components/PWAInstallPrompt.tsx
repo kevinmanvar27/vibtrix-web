@@ -7,9 +7,9 @@ import { Download, Clock } from "lucide-react";
 import debug from "@/lib/debug";
 
 // Local storage keys
-const PWA_PROMPT_SNOOZED_KEY = "vibtrix_pwa_prompt_snoozed";
-const PWA_PROMPT_DISMISSED_KEY = "vibtrix_pwa_prompt_dismissed";
-const PWA_PROMPT_SECOND_ATTEMPT_KEY = "vibtrix_pwa_prompt_second_attempt";
+const PWA_PROMPT_SNOOZED_KEY = "vibetrix_pwa_prompt_snoozed";
+const PWA_PROMPT_DISMISSED_KEY = "vibetrix_pwa_prompt_dismissed";
+const PWA_PROMPT_SECOND_ATTEMPT_KEY = "vibetrix_pwa_prompt_second_attempt";
 
 export default function PWAInstallPrompt() {
   const [isOpen, setIsOpen] = useState(false);
@@ -212,7 +212,7 @@ export default function PWAInstallPrompt() {
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Install Vibtrix App</DialogTitle>
+          <DialogTitle>Install Vibetrix App</DialogTitle>
           <DialogDescription>
             {isSecondAttempt
               ? "Enjoy a faster, app-like experience! Install the app for quicker access, offline support, and push notifications."

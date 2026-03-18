@@ -14,7 +14,7 @@ export async function requireAuth(returnUrl?: string) {
   if (!user) {
     // Store the return URL in a cookie
     if (returnUrl) {
-      cookies().set("oauth_origin", returnUrl, {
+      (await cookies()).set("oauth_origin", returnUrl, {
         path: "/",
         secure: process.env.NODE_ENV === "production",
         httpOnly: true,

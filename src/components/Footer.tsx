@@ -18,7 +18,7 @@ export default function Footer() {
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
           <div>
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Vibtrix. All rights reserved.
+              © {new Date().getFullYear()} Vibetrix. All rights reserved.
             </p>
           </div>
 

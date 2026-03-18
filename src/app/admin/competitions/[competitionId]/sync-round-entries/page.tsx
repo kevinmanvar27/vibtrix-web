@@ -7,11 +7,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Link from "next/link";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 
-export default async function SyncRoundEntriesPage({
-  params,
-}: {
-  params: { competitionId: string };
+export default async function SyncRoundEntriesPage(props: {
+  params: Promise<{ competitionId: string }>;
 }) {
+  const params = await props.params;
   const { user } = await validateRequest();
 
   if (!user?.isAdmin) {

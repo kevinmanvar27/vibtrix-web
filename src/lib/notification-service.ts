@@ -205,7 +205,7 @@ async function sendPushNotification(notification: any) {
  */
 function generatePushNotificationContent(notification: any) {
   const issuerName = notification.issuer.displayName || notification.issuer.username;
-  let title = "Vibtrix";
+  let title = "Vibetrix";
   let body = "You have a new notification";
   let data: Record<string, string> = {
     notificationId: notification.id,
@@ -256,7 +256,7 @@ function generatePushNotificationContent(notification: any) {
       body = `${issuerName} sent you a message`;
       break;
     case "SYSTEM_NOTIFICATION":
-      title = "Vibtrix";
+      title = "Vibetrix";
       body = "You have a new system notification";
       break;
   }

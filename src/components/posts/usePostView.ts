@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import debug from "@/lib/debug";
 
 // Use localStorage to track viewed posts across page refreshes
-const LOCAL_STORAGE_KEY = 'vibtrix_viewed_posts';
+const LOCAL_STORAGE_KEY = 'vibetrix_viewed_posts';
 
 // Helper function to get viewed posts from localStorage
 function getViewedPosts(): Set<string> {

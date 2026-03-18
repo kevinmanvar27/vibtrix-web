@@ -37,11 +37,11 @@ function calculateAge(dateOfBirth: string): number | null {
 }
 
 interface ModelingPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     limit?: string;
     gender?: string;
-  };
+  }>;
 }
 
 async function getModelingUsers(page: number = 1, limit: number = 25, gender?: string) {
@@ -99,7 +99,8 @@ async function getModelingUsers(page: number = 1, limit: number = 25, gender?: s
   };
 }
 
-export default async function ModelingPage({ searchParams }: ModelingPageProps) {
+export default async function ModelingPage(props: ModelingPageProps) {
+  const searchParams = await props.searchParams;
   const page = parseInt(searchParams.page || '1', 10);
   const limit = parseInt(searchParams.limit || '25', 10);
   const gender = searchParams.gender;

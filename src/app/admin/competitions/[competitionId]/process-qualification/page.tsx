@@ -1,5 +1,6 @@
 "use client";
 
+import { use } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -9,9 +10,9 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 interface ProcessQualificationPageProps {
-  params: {
+  params: Promise<{
     competitionId: string;
-  };
+  }>;
 }
 
 interface Round {
@@ -29,7 +30,7 @@ interface Competition {
 }
 
 export default function ProcessQualificationPage({ params }: ProcessQualificationPageProps) {
-  const { competitionId } = params;
+  const { competitionId } = use(params);
   const router = useRouter();
   const { toast } = useToast();
   const [competition, setCompetition] = useState<Competition | null>(null);

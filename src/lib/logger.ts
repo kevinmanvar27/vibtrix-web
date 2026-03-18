@@ -27,7 +27,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 const defaultConfig: LoggerConfig = {
   enabled: !isProduction,
   level: isProduction ? LogLevel.NONE : LogLevel.ERROR, // Only errors in development
-  prefix: 'Vibtrix',
+  prefix: 'Vibetrix',
   includeTimestamp: !isProduction
 };
 

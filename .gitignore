@@ -53,6 +53,7 @@ prisma/migrations/*_migration_lock.toml
 # Misc
 *.log
 .turbo
+build-output*.txt
 
 # Sentry
 .sentryclirc

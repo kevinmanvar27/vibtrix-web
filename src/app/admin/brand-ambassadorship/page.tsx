@@ -37,11 +37,11 @@ function calculateAge(dateOfBirth: string): number | null {
 }
 
 interface BrandAmbassadorshipPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     limit?: string;
     gender?: string;
-  };
+  }>;
 }
 
 async function getBrandAmbassadorshipUsers(page: number = 1, limit: number = 25, gender?: string) {
@@ -99,7 +99,8 @@ async function getBrandAmbassadorshipUsers(page: number = 1, limit: number = 25,
   };
 }
 
-export default async function BrandAmbassadorshipPage({ searchParams }: BrandAmbassadorshipPageProps) {
+export default async function BrandAmbassadorshipPage(props: BrandAmbassadorshipPageProps) {
+  const searchParams = await props.searchParams;
   const page = parseInt(searchParams.page || '1', 10);
   const limit = parseInt(searchParams.limit || '25', 10);
   const gender = searchParams.gender;

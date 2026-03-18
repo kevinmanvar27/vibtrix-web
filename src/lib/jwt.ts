@@ -83,8 +83,8 @@ export async function generateToken(
       .setJti(tokenId)
       .setIssuedAt(now)
       .setExpirationTime(now + expiresIn)
-      .setAudience("vibtrix-app")
-      .setIssuer("vibtrix-api")
+      .setAudience("vibetrix-app")
+      .setIssuer("vibetrix-api")
       .sign(JWT_SECRET);
 
     // For refresh tokens, store in database for revocation capability

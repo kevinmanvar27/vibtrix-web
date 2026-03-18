@@ -21,7 +21,7 @@ export default async function ForgotPasswordPage() {
                 <div className="relative overflow-hidden" style={{ height: `60px`, width: `300px` }}>
                   <Image
                     src={settings.logoUrl}
-                    alt="Vibtrix Logo"
+                    alt="Vibetrix Logo"
                     width={300}
                     height={60}
                     className="object-contain"
@@ -29,7 +29,7 @@ export default async function ForgotPasswordPage() {
                 </div>
               </div>
             ) : (
-              <h1 className="text-3xl font-bold">Vibtrix</h1>
+              <h1 className="text-3xl font-bold">Vibetrix</h1>
             )}
             <div className="space-y-1">
               <h2 className="text-xl font-semibold">Forgot Password</h2>

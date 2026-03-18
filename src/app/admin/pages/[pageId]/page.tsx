@@ -13,9 +13,9 @@ export const metadata = {
 };
 
 interface PageDetailsPageProps {
-  params: {
+  params: Promise<{
     pageId: string;
-  };
+  }>;
 }
 
 async function getPage(id: string) {
@@ -30,7 +30,8 @@ async function getPage(id: string) {
   return page;
 }
 
-export default async function PageDetailsPage({ params }: PageDetailsPageProps) {
+export default async function PageDetailsPage(props: PageDetailsPageProps) {
+  const params = await props.params;
   const page = await getPage(params.pageId);
 
   return (

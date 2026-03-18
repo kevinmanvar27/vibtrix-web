@@ -6,14 +6,13 @@ import AdvertisementForm from "../../components/AdvertisementForm";
 import debug from "@/lib/debug";
 
 interface EditAdvertisementPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default async function EditAdvertisementPage({
-  params,
-}: EditAdvertisementPageProps) {
+export default async function EditAdvertisementPage(props: EditAdvertisementPageProps) {
+  const params = await props.params;
   const { user } = await validateRequest();
 
   // Check if user has admin access

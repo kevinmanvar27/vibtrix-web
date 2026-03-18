@@ -15,9 +15,9 @@ export const metadata = {
 };
 
 interface CompetitionDetailsPageProps {
-  params: {
+  params: Promise<{
     competitionId: string;
-  };
+  }>;
 }
 
 async function getCompetition(id: string) {
@@ -60,7 +60,8 @@ async function getCompetition(id: string) {
   return competition;
 }
 
-export default async function CompetitionDetailsPage({ params }: CompetitionDetailsPageProps) {
+export default async function CompetitionDetailsPage(props: CompetitionDetailsPageProps) {
+  const params = await props.params;
   const competition = await getCompetition(params.competitionId);
 
   // Filter out duplicate rounds by name

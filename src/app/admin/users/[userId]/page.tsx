@@ -9,9 +9,9 @@ export const metadata = {
 };
 
 interface UserEditPageProps {
-  params: {
+  params: Promise<{
     userId: string;
-  };
+  }>;
 }
 
 async function getUser(userId: string) {
@@ -35,7 +35,8 @@ async function getUser(userId: string) {
   return user;
 }
 
-export default async function UserEditPage({ params }: UserEditPageProps) {
+export default async function UserEditPage(props: UserEditPageProps) {
+  const params = await props.params;
   const user = await getUser(params.userId);
 
   return (

@@ -70,6 +70,16 @@ export default function Notification({ notification }: NotificationProps) {
       icon: <Users className="size-7 text-primary" />,
       href: `/users/${notification.issuer.username}`,
     },
+    MESSAGE_REQUEST: {
+      message: `${notification.issuer.displayName} sent you a message request`,
+      icon: <MessageCircle className="size-7 text-blue-500" />,
+      href: `/messages`,
+    },
+    MESSAGE_REQUEST_ACCEPTED: {
+      message: `${notification.issuer.displayName} accepted your message request`,
+      icon: <Check className="size-7 text-green-500" />,
+      href: `/messages`,
+    },
   };
 
   const { message, icon, href } = notificationTypeMap[notification.type];

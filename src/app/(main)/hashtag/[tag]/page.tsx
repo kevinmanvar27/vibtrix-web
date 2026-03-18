@@ -5,18 +5,20 @@ import { Hash } from "lucide-react";
 import Link from "next/link";
 
 interface PageProps {
-  params: { tag: string };
+  params: Promise<{ tag: string }>;
 }
 
-export function generateMetadata({ params }: PageProps): Metadata {
+export async function generateMetadata(props: PageProps): Promise<Metadata> {
+  const params = await props.params;
   const tag = decodeURIComponent(params.tag);
   return {
-    title: `#${tag} - Vibtrix`,
+    title: `#${tag} - Vibetrix`,
     description: `Posts tagged with #${tag}`,
   };
 }
 
-export default function HashtagPage({ params }: PageProps) {
+export default async function HashtagPage(props: PageProps) {
+  const params = await props.params;
   const tag = decodeURIComponent(params.tag);
   const hashtag = `#${tag}`;
 
@@ -58,10 +60,10 @@ export default function HashtagPage({ params }: PageProps) {
               <p className="text-sm text-muted-foreground">Trending in competitions</p>
             </Link>
             <Link
-              href="/hashtag/vibtrix"
+              href="/hashtag/vibetrix"
               className="block p-3 rounded-lg hover:bg-muted/50 transition-colors"
             >
-              <p className="font-medium text-primary">#vibtrix</p>
+              <p className="font-medium text-primary">#vibetrix</p>
               <p className="text-sm text-muted-foreground">Trending in videos</p>
             </Link>
             <Link

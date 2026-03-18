@@ -7,16 +7,18 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 
 interface PageProps {
-  searchParams: { q?: string };
+  searchParams: Promise<{ q?: string }>;
 }
 
-export function generateMetadata({ searchParams }: PageProps): Metadata {
+export async function generateMetadata(props: PageProps): Promise<Metadata> {
+  const searchParams = await props.searchParams;
   return {
     title: searchParams.q ? `Search results for "${searchParams.q}"` : "Search",
   };
 }
 
-export default function Page({ searchParams }: PageProps) {
+export default async function Page(props: PageProps) {
+  const searchParams = await props.searchParams;
   const q = searchParams.q || "";
   // Check if the search query is a hashtag search
   const isHashtagSearch = q.startsWith('#');
@@ -70,10 +72,10 @@ export default function Page({ searchParams }: PageProps) {
                 <p className="text-sm text-muted-foreground">Trending in competitions</p>
               </Link>
               <Link
-                href="/search?q=%23vibtrix"
+                href="/search?q=%23vibetrix"
                 className="block p-3 rounded-lg hover:bg-muted/50 transition-colors"
               >
-                <p className="font-medium text-primary">#vibtrix</p>
+                <p className="font-medium text-primary">#vibetrix</p>
                 <p className="text-sm text-muted-foreground">Trending in videos</p>
               </Link>
               <Link

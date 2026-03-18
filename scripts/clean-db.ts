@@ -84,11 +84,11 @@ async function cleanDatabase() {
 
     // Delete default stickers
     debug.log('Deleting default stickers...');
-    await prisma.defaultStickers.deleteMany();
+    await prisma.defaultstickers.deleteMany();
 
     // Delete optional stickers
     debug.log('Deleting optional stickers...');
-    await prisma.optionalStickers.deleteMany();
+    await prisma.optionalstickers.deleteMany();
 
     // Delete promotion stickers
     debug.log('Deleting promotion stickers...');

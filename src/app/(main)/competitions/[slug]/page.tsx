@@ -17,6 +17,7 @@ import UploadPostButton from "@/components/competitions/UploadPostButton";
 import TabsWithUrlSync from "./TabsWithUrlSync";
 import { IndianRupee, Users, Calendar, Clock, Trophy } from "lucide-react";
 import { HtmlContent } from "@/components/ui/html-content";
+import Link from "next/link";
 
 
 import debug from "@/lib/debug";
@@ -26,14 +27,14 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export const metadata = {
-  title: "Competition Details - Vibtrix",
+  title: "Competition Details - Vibetrix",
   description: "View competition details and participate",
 };
 
 interface CompetitionDetailsPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 async function getCompetition(id: string, userId: string) {
@@ -239,7 +240,10 @@ async function getCompetition(id: string, userId: string) {
   }
 }
 
-export default async function CompetitionDetailsPage({ params }: CompetitionDetailsPageProps) {
+export default async function CompetitionDetailsPage(props: CompetitionDetailsPageProps) {
+  // Await params in Next.js 15 - do this outside try-catch so it's accessible in catch block
+  const params = await props.params;
+  
   // Add a try-catch block around the entire function to ensure it never crashes
   try {
     debug.log(`Starting competition details page for slug: ${params.slug}`);
@@ -982,9 +986,9 @@ export default async function CompetitionDetailsPage({ params }: CompetitionDeta
             Please try again later or contact support if the problem persists.
           </p>
           <div className="mt-6">
-            <a href="/competitions" className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90">
+            <Link href="/competitions" className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90">
               View All Competitions
-            </a>
+            </Link>
           </div>
         </div>
       </div>

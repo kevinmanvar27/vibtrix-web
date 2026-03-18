@@ -7,6 +7,7 @@ import { validateRequest } from "@/auth";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
 
 import debug from "@/lib/debug";
 
@@ -18,11 +19,11 @@ export const metadata = {
 export const revalidate = 60;
 
 interface AdvertisementsListPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     limit?: string;
     status?: string;
-  };
+  }>;
 }
 
 async function getAdvertisements(page: number = 1, limit: number = 25, status?: string) {
@@ -111,7 +112,8 @@ function TableSkeleton() {
   );
 }
 
-export default async function AdvertisementsListPage({ searchParams }: AdvertisementsListPageProps) {
+export default async function AdvertisementsListPage(props: AdvertisementsListPageProps) {
+  const searchParams = await props.searchParams;
   const { user } = await validateRequest();
 
   // Check if user has admin access
@@ -141,19 +143,19 @@ export default async function AdvertisementsListPage({ searchParams }: Advertise
       <Tabs defaultValue={status || "all"} className="space-y-4">
         <TabsList>
           <TabsTrigger value="all" asChild>
-            <a href="/admin/advertisements/list">All ({counts.allCount})</a>
+            <Link href="/admin/advertisements/list">All ({counts.allCount})</Link>
           </TabsTrigger>
           <TabsTrigger value="active" asChild>
-            <a href="/admin/advertisements/list?status=active">Active ({counts.activeCount})</a>
+            <Link href="/admin/advertisements/list?status=active">Active ({counts.activeCount})</Link>
           </TabsTrigger>
           <TabsTrigger value="paused" asChild>
-            <a href="/admin/advertisements/list?status=paused">Paused ({counts.pausedCount})</a>
+            <Link href="/admin/advertisements/list?status=paused">Paused ({counts.pausedCount})</Link>
           </TabsTrigger>
           <TabsTrigger value="scheduled" asChild>
-            <a href="/admin/advertisements/list?status=scheduled">Scheduled ({counts.scheduledCount})</a>
+            <Link href="/admin/advertisements/list?status=scheduled">Scheduled ({counts.scheduledCount})</Link>
           </TabsTrigger>
           <TabsTrigger value="expired" asChild>
-            <a href="/admin/advertisements/list?status=expired">Expired ({counts.expiredCount})</a>
+            <Link href="/admin/advertisements/list?status=expired">Expired ({counts.expiredCount})</Link>
           </TabsTrigger>
         </TabsList>
         

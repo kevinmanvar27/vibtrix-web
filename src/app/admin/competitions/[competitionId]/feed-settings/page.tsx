@@ -11,12 +11,13 @@ import { ChevronRight } from "lucide-react";
 import debug from "@/lib/debug";
 
 interface CompetitionFeedSettingsPageProps {
-  params: {
+  params: Promise<{
     competitionId: string;
-  };
+  }>;
 }
 
-export default async function CompetitionFeedSettingsPage({ params }: CompetitionFeedSettingsPageProps) {
+export default async function CompetitionFeedSettingsPage(props: CompetitionFeedSettingsPageProps) {
+  const params = await props.params;
   const { competitionId } = params;
   const { user } = await validateRequest();
 

@@ -16,11 +16,11 @@ export const metadata = {
 export const revalidate = 60;
 
 interface CompetitionsPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     limit?: string;
     status?: string;
-  };
+  }>;
 }
 
 // OPTIMIZED: Use database-level filtering with raw SQL for status
@@ -199,7 +199,8 @@ function TableSkeleton() {
   );
 }
 
-export default async function CompetitionsPage({ searchParams }: CompetitionsPageProps) {
+export default async function CompetitionsPage(props: CompetitionsPageProps) {
+  const searchParams = await props.searchParams;
   const page = parseInt(searchParams.page || '1', 10);
   const limit = parseInt(searchParams.limit || '25', 10);
   const status = searchParams.status;
@@ -231,16 +232,16 @@ export default async function CompetitionsPage({ searchParams }: CompetitionsPag
       <Tabs defaultValue={status || "all"} className="space-y-4">
         <TabsList>
           <TabsTrigger value="all" asChild>
-            <a href="/admin/competitions">All ({counts.all})</a>
+            <Link href="/admin/competitions">All ({counts.all})</Link>
           </TabsTrigger>
           <TabsTrigger value="active" asChild>
-            <a href="/admin/competitions?status=active">Active ({counts.active})</a>
+            <Link href="/admin/competitions?status=active">Active ({counts.active})</Link>
           </TabsTrigger>
           <TabsTrigger value="upcoming" asChild>
-            <a href="/admin/competitions?status=upcoming">Upcoming ({counts.upcoming})</a>
+            <Link href="/admin/competitions?status=upcoming">Upcoming ({counts.upcoming})</Link>
           </TabsTrigger>
           <TabsTrigger value="completed" asChild>
-            <a href="/admin/competitions?status=completed">Completed ({counts.completed})</a>
+            <Link href="/admin/competitions?status=completed">Completed ({counts.completed})</Link>
           </TabsTrigger>
         </TabsList>
         

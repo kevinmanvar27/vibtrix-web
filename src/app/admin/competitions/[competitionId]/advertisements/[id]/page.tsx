@@ -16,15 +16,14 @@ import { Badge } from "@/components/ui/badge";
 import debug from "@/lib/debug";
 
 interface AdvertisementPageProps {
-  params: {
+  params: Promise<{
     competitionId: string;
     id: string;
-  };
+  }>;
 }
 
-export default async function CompetitionAdvertisementPage({
-  params,
-}: AdvertisementPageProps) {
+export default async function CompetitionAdvertisementPage(props: AdvertisementPageProps) {
+  const params = await props.params;
   const { competitionId, id } = params;
   const { user } = await validateRequest();
 

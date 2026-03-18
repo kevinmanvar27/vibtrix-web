@@ -65,7 +65,7 @@ async function seedReels() {
       port: 3306,
       user: 'root',
       password: '',
-      database: 'vibtrix_next',
+      database: 'vibetrix_next',
     });
 
     console.log('✅ Connected to database');

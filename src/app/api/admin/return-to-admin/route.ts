@@ -9,7 +9,8 @@ export async function POST() {
     debug.log("return-to-admin API - Starting request");
 
     // Get the admin user ID from the cookie
-    const adminUserId = cookies().get("admin_user_id")?.value;
+    const cookieStore = await cookies();
+    const adminUserId = cookieStore.get("admin_user_id")?.value;
     debug.log(`return-to-admin API - Admin user ID from cookie: ${adminUserId || 'Not found'}`);
 
     if (!adminUserId) {
@@ -37,13 +38,13 @@ export async function POST() {
     }
 
     // Delete the admin_user_id cookie
-    cookies().delete("admin_user_id");
+    cookieStore.delete("admin_user_id");
 
     // Create a new session for the admin user
     const session = await lucia.createSession(adminUser.id, {});
     const sessionCookie = lucia.createSessionCookie(session.id);
 
-    cookies().set(
+    cookieStore.set(
       sessionCookie.name,
       sessionCookie.value,
       sessionCookie.attributes,

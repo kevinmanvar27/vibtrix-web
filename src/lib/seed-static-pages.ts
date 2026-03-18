@@ -10,13 +10,13 @@ export const DEFAULT_STATIC_PAGES = [
 <p>Last Updated: ${new Date().toLocaleDateString()}</p>
 
 <h2>1. Acceptance of Terms</h2>
-<p>Welcome to Vibtrix, a social media platform for video competitions. By accessing or using our platform, you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not use our services.</p>
+<p>Welcome to Vibetrix, a social media platform for video competitions. By accessing or using our platform, you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not use our services.</p>
 
 <h2>2. User Accounts</h2>
-<p>When you create an account with us, you must provide accurate and complete information including your username, email, and optional details such as gender, date of birth, and WhatsApp number. You are responsible for maintaining the security of your account and password. Vibtrix cannot and will not be liable for any loss or damage from your failure to comply with this security obligation.</p>
+<p>When you create an account with us, you must provide accurate and complete information including your username, email, and optional details such as gender, date of birth, and WhatsApp number. You are responsible for maintaining the security of your account and password. Vibetrix cannot and will not be liable for any loss or damage from your failure to comply with this security obligation.</p>
 
 <h2>3. Authentication Methods</h2>
-<p>Vibtrix offers multiple authentication methods including:</p>
+<p>Vibetrix offers multiple authentication methods including:</p>
 <ul>
   <li>Email and password login</li>
   <li>Google authentication</li>
@@ -36,22 +36,22 @@ export const DEFAULT_STATIC_PAGES = [
   <li>Harasses, bullies, or intimidates others</li>
   <li>Impersonates another person</li>
 </ul>
-<p>Vibtrix supports multiple media types including images and videos with no size limits. Users can upload multiple images which will be displayed as a slider.</p>
+<p>Vibetrix supports multiple media types including images and videos with no size limits. Users can upload multiple images which will be displayed as a slider.</p>
 
 <h2>6. Competitions</h2>
-<p>Vibtrix hosts various competitions for users. By participating in competitions:</p>
+<p>Vibetrix hosts various competitions for users. By participating in competitions:</p>
 <ul>
   <li>You agree to follow all competition-specific rules</li>
   <li>You understand that paid competitions require payment through Razorpay before participation</li>
   <li>You acknowledge that competitions may have age restrictions and multiple rounds</li>
   <li>You can only upload one post per competition round</li>
-  <li>You grant Vibtrix the right to display your submissions</li>
+  <li>You grant Vibetrix the right to display your submissions</li>
   <li>You acknowledge that judging is based on likes received and decisions are final</li>
   <li>Prize money will be distributed automatically to winners through Razorpay</li>
 </ul>
 
 <h2>7. Communication Features</h2>
-<p>Vibtrix provides a custom chat system built with Next.js. When using our communication features:</p>
+<p>Vibetrix provides a custom chat system built with Next.js. When using our communication features:</p>
 <ul>
   <li>You can message other users directly</li>
   <li>You can share posts within messages</li>
@@ -60,19 +60,19 @@ export const DEFAULT_STATIC_PAGES = [
 </ul>
 
 <h2>8. Blocking and Reporting</h2>
-<p>Users can block other users, preventing them from searching for, messaging, or accessing their profiles. Vibtrix reserves the right to suspend or terminate accounts that violate our terms.</p>
+<p>Users can block other users, preventing them from searching for, messaging, or accessing their profiles. Vibetrix reserves the right to suspend or terminate accounts that violate our terms.</p>
 
 <h2>9. Advertisements</h2>
-<p>Vibtrix may display advertisements on the platform. Advertisements with expired dates will automatically be marked as expired.</p>
+<p>Vibetrix may display advertisements on the platform. Advertisements with expired dates will automatically be marked as expired.</p>
 
 <h2>10. Limitation of Liability</h2>
-<p>Vibtrix is provided "as is" without warranties of any kind. In no event shall Vibtrix be liable for any damages arising out of the use or inability to use our services. We implement adaptive quality streaming for images/videos based on internet speed, but cannot guarantee uninterrupted service.</p>
+<p>Vibetrix is provided "as is" without warranties of any kind. In no event shall Vibetrix be liable for any damages arising out of the use or inability to use our services. We implement adaptive quality streaming for images/videos based on internet speed, but cannot guarantee uninterrupted service.</p>
 
 <h2>11. Changes to Terms</h2>
 <p>We reserve the right to modify these terms at any time. We will provide notice of significant changes by updating the date at the top of this page.</p>
 
 <h2>12. Contact Information</h2>
-<p>If you have any questions about these Terms, please contact us at support@vibtrix.com.</p>`,
+<p>If you have any questions about these Terms, please contact us at support@vibetrix.com.</p>`,
     isPublished: true,
   },
   {
@@ -82,7 +82,7 @@ export const DEFAULT_STATIC_PAGES = [
 <p>Last Updated: ${new Date().toLocaleDateString()}</p>
 
 <h2>1. Information We Collect</h2>
-<p>We collect several types of information from and about users of our Vibtrix platform, including:</p>
+<p>We collect several types of information from and about users of our Vibetrix platform, including:</p>
 <ul>
   <li><strong>Personal Information:</strong> Name, email address, WhatsApp number, date of birth, and gender</li>
   <li><strong>Account Information:</strong> Username, display name, password, and profile details</li>
@@ -113,7 +113,7 @@ export const DEFAULT_STATIC_PAGES = [
 <h2>3. Information Sharing</h2>
 <p>We may share your information with:</p>
 <ul>
-  <li>Other Vibtrix users, as part of your public profile and content (if your profile is set to public)</li>
+  <li>Other Vibetrix users, as part of your public profile and content (if your profile is set to public)</li>
   <li>Razorpay for processing competition payments and prize distributions</li>
   <li>Service providers who perform services on our behalf, including for media storage on UploadThing (hostname 'utfs.io')</li>
   <li>Admin users who may access user information for platform management</li>
@@ -131,7 +131,7 @@ export const DEFAULT_STATIC_PAGES = [
 </ul>
 
 <h2>5. Admin Access</h2>
-<p>Please note that Vibtrix administrators can:</p>
+<p>Please note that Vibetrix administrators can:</p>
 <ul>
   <li>Access user information for platform management</li>
   <li>Log in as any user directly from the user list for support purposes</li>
@@ -155,7 +155,7 @@ export const DEFAULT_STATIC_PAGES = [
 <p>We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page.</p>
 
 <h2>11. Contact Us</h2>
-<p>If you have questions about this Privacy Policy, please contact us at privacy@vibtrix.com.</p>`,
+<p>If you have questions about this Privacy Policy, please contact us at privacy@vibetrix.com.</p>`,
     isPublished: true,
   },
   {
@@ -165,7 +165,7 @@ export const DEFAULT_STATIC_PAGES = [
 <p>Last Updated: ${new Date().toLocaleDateString()}</p>
 
 <h2>1. Competition Entry Fees</h2>
-<p>Vibtrix charges fees for entry into certain competitions, processed through Razorpay. Our refund policy for these fees is as follows:</p>
+<p>Vibetrix charges fees for entry into certain competitions, processed through Razorpay. Our refund policy for these fees is as follows:</p>
 
 <h3>1.1 Before Competition Start</h3>
 <p>If you withdraw from a competition before its official start date, you may be eligible for a full refund of your entry fee. Requests must be submitted at least 48 hours before the competition begins.</p>
@@ -181,7 +181,7 @@ export const DEFAULT_STATIC_PAGES = [
 </ul>
 
 <h3>1.3 Competition Cancellation</h3>
-<p>If Vibtrix cancels a competition, all participants will receive a full refund of their entry fees through Razorpay.</p>
+<p>If Vibetrix cancels a competition, all participants will receive a full refund of their entry fees through Razorpay.</p>
 
 <h2>2. Technical Issues</h2>
 <p>If you experience technical issues that prevent you from participating in a competition, you may request a refund by contacting our support team within 24 hours of the issue. Each case will be reviewed individually by our admin team.</p>
@@ -216,12 +216,12 @@ export const DEFAULT_STATIC_PAGES = [
 <h2>4. Refund Process</h2>
 <p>To request a refund:</p>
 <ol>
-  <li>Log in to your Vibtrix account</li>
+  <li>Log in to your Vibetrix account</li>
   <li>Go to your Payment History</li>
   <li>Select the transaction and click "Request Refund"</li>
   <li>Provide the reason for your refund request</li>
 </ol>
-<p>Alternatively, you can contact our support team at refunds@vibtrix.com.</p>
+<p>Alternatively, you can contact our support team at refunds@vibetrix.com.</p>
 
 <h2>5. Refund Timeline</h2>
 <p>Approved refunds will be processed within 5-7 business days through Razorpay. The time it takes for the refund to appear in your account depends on your payment method and financial institution.</p>
@@ -237,15 +237,15 @@ export const DEFAULT_STATIC_PAGES = [
 <p>Last Updated: ${new Date().toLocaleDateString()}</p>
 
 <h2>1. Copyright Ownership and Protection</h2>
-<p>Vibtrix respects the intellectual property rights of others and expects users to do the same. All content on Vibtrix, including but not limited to text, graphics, logos, icons, images, audio clips, digital downloads, and software, is the property of Vibtrix or its content suppliers and is protected by international copyright laws.</p>
+<p>Vibetrix respects the intellectual property rights of others and expects users to do the same. All content on Vibetrix, including but not limited to text, graphics, logos, icons, images, audio clips, digital downloads, and software, is the property of Vibetrix or its content suppliers and is protected by international copyright laws.</p>
 
-<p>The Vibtrix platform, including its unique features, user interface, and underlying code, is protected by copyright, trademark, and other intellectual property laws. Unauthorized use, reproduction, modification, distribution, display, or performance of the platform or its content is strictly prohibited.</p>
+<p>The Vibetrix platform, including its unique features, user interface, and underlying code, is protected by copyright, trademark, and other intellectual property laws. Unauthorized use, reproduction, modification, distribution, display, or performance of the platform or its content is strictly prohibited.</p>
 
 <h2>2. User Content Ownership and Licensing</h2>
-<p>When you upload content to Vibtrix:</p>
+<p>When you upload content to Vibetrix:</p>
 <ul>
   <li>You retain ownership of your content and all intellectual property rights associated with it</li>
-  <li>You grant Vibtrix a non-exclusive, royalty-free, transferable, sub-licensable, worldwide license to use, store, display, reproduce, modify, and distribute your content on our platform</li>
+  <li>You grant Vibetrix a non-exclusive, royalty-free, transferable, sub-licensable, worldwide license to use, store, display, reproduce, modify, and distribute your content on our platform</li>
   <li>This license allows us to display your content to other users, promote your content on and off the platform, and use your content to improve our services</li>
   <li>This license remains in effect even if you stop using our services, but you can delete your content at any time to terminate this license</li>
   <li>You represent and warrant that you own or have the necessary rights to the content you post</li>
@@ -254,7 +254,7 @@ export const DEFAULT_STATIC_PAGES = [
 </ul>
 
 <h2>3. Media Storage and Technical Implementation</h2>
-<p>Vibtrix uses UploadThing (hostname 'utfs.io') for file storage. When you upload media:</p>
+<p>Vibetrix uses UploadThing (hostname 'utfs.io') for file storage. When you upload media:</p>
 <ul>
   <li>There are no media size limits on the application, allowing you to upload high-quality content</li>
   <li>Multiple image uploads will display as a slider similar to Instagram, enhancing user experience</li>
@@ -265,18 +265,18 @@ export const DEFAULT_STATIC_PAGES = [
 </ul>
 
 <h2>4. Competition Content and Rights</h2>
-<p>When you participate in competitions on Vibtrix:</p>
+<p>When you participate in competitions on Vibetrix:</p>
 <ul>
-  <li>You grant Vibtrix the right to display your submissions across the platform</li>
+  <li>You grant Vibetrix the right to display your submissions across the platform</li>
   <li>You understand that competition entries may include promotion stickers or watermarks</li>
   <li>You acknowledge that your content will be judged based on likes received and other criteria specified in the competition rules</li>
   <li>You retain ownership of your competition submissions, but grant us license to use them for promotional purposes</li>
   <li>You agree that winning entries may be featured more prominently on the platform</li>
-  <li>You understand that Vibtrix may use competition entries for marketing purposes, including on social media and in advertisements</li>
+  <li>You understand that Vibetrix may use competition entries for marketing purposes, including on social media and in advertisements</li>
 </ul>
 
 <h2>5. Fair Use</h2>
-<p>Vibtrix respects the principle of fair use, which allows limited use of copyrighted material without permission for purposes such as commentary, criticism, news reporting, teaching, and research. However, determination of fair use depends on several factors, including:</p>
+<p>Vibetrix respects the principle of fair use, which allows limited use of copyrighted material without permission for purposes such as commentary, criticism, news reporting, teaching, and research. However, determination of fair use depends on several factors, including:</p>
 <ul>
   <li>The purpose and character of the use (commercial vs. non-commercial)</li>
   <li>The nature of the copyrighted work</li>
@@ -290,14 +290,14 @@ export const DEFAULT_STATIC_PAGES = [
 <ul>
   <li>A physical or electronic signature of the copyright owner or authorized person</li>
   <li>Identification of the copyrighted work claimed to have been infringed</li>
-  <li>Identification of the material that is claimed to be infringing (including URL or specific location on Vibtrix)</li>
+  <li>Identification of the material that is claimed to be infringing (including URL or specific location on Vibetrix)</li>
   <li>Your contact information (address, telephone number, email)</li>
   <li>A statement that you have a good faith belief that the disputed use is not authorized by the copyright owner, its agent, or the law</li>
   <li>A statement, under penalty of perjury, that the information in your notice is accurate and that you are the copyright owner or authorized to act on the copyright owner's behalf</li>
 </ul>
 
 <h2>7. DMCA Takedown Procedure</h2>
-<p>Vibtrix follows the procedures outlined in the Digital Millennium Copyright Act (DMCA) for addressing claims of copyright infringement. Upon receiving a valid DMCA notice, we will:</p>
+<p>Vibetrix follows the procedures outlined in the Digital Millennium Copyright Act (DMCA) for addressing claims of copyright infringement. Upon receiving a valid DMCA notice, we will:</p>
 <ol>
   <li>Remove or disable access to the allegedly infringing content promptly</li>
   <li>Notify the content provider of the takedown and provide them with a copy of the DMCA notice</li>
@@ -317,7 +317,7 @@ export const DEFAULT_STATIC_PAGES = [
 </ul>
 
 <h2>9. Repeat Infringer Policy</h2>
-<p>Vibtrix maintains a strict policy of terminating accounts of users who are repeat copyright infringers. We consider a user to be a repeat infringer when:</p>
+<p>Vibetrix maintains a strict policy of terminating accounts of users who are repeat copyright infringers. We consider a user to be a repeat infringer when:</p>
 <ul>
   <li>We receive multiple valid DMCA notices related to their content</li>
   <li>They repeatedly post content that clearly infringes on others' copyrights</li>
@@ -326,16 +326,16 @@ export const DEFAULT_STATIC_PAGES = [
 <p>Administrators have the ability to remove infringing content and take appropriate action against violating accounts, including temporary suspension or permanent termination.</p>
 
 <h2>10. Branding and Logos</h2>
-<p>The Vibtrix name, logo, and branding elements are protected by copyright and trademark laws. Unauthorized use of these elements is prohibited. Please note:</p>
+<p>The Vibetrix name, logo, and branding elements are protected by copyright and trademark laws. Unauthorized use of these elements is prohibited. Please note:</p>
 <ul>
   <li>Administrators can update the logo and favicon through the admin panel settings</li>
-  <li>The Vibtrix logo may not be used in a way that suggests partnership or endorsement without explicit permission</li>
-  <li>The Vibtrix name may not be used in domain names, social media handles, or business names without permission</li>
-  <li>Vibtrix's distinctive user interface elements may not be copied or imitated</li>
+  <li>The Vibetrix logo may not be used in a way that suggests partnership or endorsement without explicit permission</li>
+  <li>The Vibetrix name may not be used in domain names, social media handles, or business names without permission</li>
+  <li>Vibetrix's distinctive user interface elements may not be copied or imitated</li>
 </ul>
 
 <h2>11. Content License for Developers</h2>
-<p>Developers who wish to access Vibtrix content through our API must respect copyright restrictions and:</p>
+<p>Developers who wish to access Vibetrix content through our API must respect copyright restrictions and:</p>
 <ul>
   <li>Only access content through authorized API endpoints</li>
   <li>Respect user privacy settings and content visibility restrictions</li>
@@ -345,13 +345,13 @@ export const DEFAULT_STATIC_PAGES = [
 </ul>
 
 <h2>12. International Copyright Protection</h2>
-<p>Vibtrix respects copyright laws worldwide. We may respond to notices of alleged copyright infringement and terminate accounts of users according to the laws of multiple jurisdictions, not limited to the United States DMCA process.</p>
+<p>Vibetrix respects copyright laws worldwide. We may respond to notices of alleged copyright infringement and terminate accounts of users according to the laws of multiple jurisdictions, not limited to the United States DMCA process.</p>
 
 <h2>13. Contact Information</h2>
 <p>Our designated copyright agent can be reached at:</p>
 <p>Copyright Agent<br>
-Vibtrix<br>
-Email: copyright@vibtrix.com</p>
+Vibetrix<br>
+Email: copyright@vibetrix.com</p>
 
 <h2>14. Changes to This Policy</h2>
 <p>We reserve the right to modify this Copyright Policy at any time. Changes will be effective immediately upon posting to this page. We encourage users to review this policy periodically for updates.</p>`,

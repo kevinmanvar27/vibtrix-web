@@ -87,8 +87,15 @@ export function ensureUploadDirectories() {
   }
 }
 
-// Ensure directory exists on module load
-ensureUploadDirectories();
+// Ensure directory exists on module load (only in runtime, not during build)
+if (process.env.NODE_ENV !== 'production' || process.env.NEXT_PHASE !== 'phase-production-build') {
+  try {
+    ensureUploadDirectories();
+  } catch (error) {
+    // Silently fail during build - directories will be created at runtime
+    debug.log('FileStorage: Skipping directory check during build phase');
+  }
+}
 
 /**
  * Generate a unique filename to prevent collisions

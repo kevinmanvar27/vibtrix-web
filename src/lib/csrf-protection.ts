@@ -92,8 +92,8 @@ function cleanupExpiredTokens(): void {
 /**
  * Set CSRF token in cookie
  */
-export function setCSRFTokenCookie(token: string): void {
-  const cookieStore = cookies();
+export async function setCSRFTokenCookie(token: string): Promise<void> {
+  const cookieStore = await cookies();
   
   cookieStore.set(CSRF_CONFIG.COOKIE_NAME, token, {
     httpOnly: true,
@@ -107,9 +107,9 @@ export function setCSRFTokenCookie(token: string): void {
 /**
  * Get CSRF token from cookie
  */
-export function getCSRFTokenFromCookie(): string | null {
+export async function getCSRFTokenFromCookie(): Promise<string | null> {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get(CSRF_CONFIG.COOKIE_NAME);
     return token?.value || null;
   } catch (error) {
@@ -230,11 +230,11 @@ export class DoubleSubmitCSRF {
   /**
    * Generate and set double submit CSRF token
    */
-  static generateToken(): string {
+  static async generateToken(): Promise<string> {
     const token = generateSecureToken(32);
     
     // Set in cookie
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     cookieStore.set(this.COOKIE_NAME, token, {
       httpOnly: false, // Must be accessible to JavaScript
       secure: process.env.NODE_ENV === 'production',

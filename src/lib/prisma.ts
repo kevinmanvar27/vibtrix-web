@@ -18,6 +18,12 @@ const getRetryDelay = (attempt: number) => Math.min(500 * Math.pow(1.5, attempt)
 const prismaClientSingleton = () => {
   // Only create a new PrismaClient if we're in a Node.js environment
   if (typeof window === 'undefined') {
+    // Parse DATABASE_URL to add connection pooling parameters
+    const databaseUrl = process.env.DATABASE_URL || '';
+    const urlWithPooling = databaseUrl.includes('?')
+      ? `${databaseUrl}&connection_limit=10&pool_timeout=20&connect_timeout=10`
+      : `${databaseUrl}?connection_limit=10&pool_timeout=20&connect_timeout=10`;
+
     // In production, disable all logs except critical errors
     if (process.env.NODE_ENV === 'production') {
       return new PrismaClient({
@@ -25,7 +31,7 @@ const prismaClientSingleton = () => {
         errorFormat: 'minimal',
         datasources: {
           db: {
-            url: process.env.DATABASE_URL,
+            url: urlWithPooling,
           },
         },
       });
@@ -36,7 +42,7 @@ const prismaClientSingleton = () => {
         errorFormat: 'pretty',
         datasources: {
           db: {
-            url: process.env.DATABASE_URL,
+            url: urlWithPooling,
           },
         },
       });

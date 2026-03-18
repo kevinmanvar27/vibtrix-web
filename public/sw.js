@@ -1,7 +1,7 @@
 // PWA Service Worker
 
 // Cache name
-const CACHE_NAME = 'vibtrix-pwa-v1';
+const CACHE_NAME = 'vibetrix-pwa-v1';
 
 // Assets to cache
 const ASSETS_TO_CACHE = [

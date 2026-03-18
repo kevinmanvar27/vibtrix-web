@@ -9,7 +9,7 @@ import { cache, Suspense } from "react";
 import UserInfoSidebarClient from "./UserInfoSidebarClient";
 
 interface PageProps {
-  params: { postId: string };
+  params: Promise<{ postId: string }>;
 }
 
 const getPost = cache(async (postId: string, loggedInUserId: string) => {
@@ -25,26 +25,26 @@ const getPost = cache(async (postId: string, loggedInUserId: string) => {
   return post;
 });
 
-export async function generateMetadata({
-  params: { postId },
-}: PageProps): Promise<Metadata> {
+export async function generateMetadata(props: PageProps): Promise<Metadata> {
+  const params = await props.params;
   const { user } = await validateRequest();
   const isLoggedIn = !!user;
 
   // Get post data for both logged-in and guest users
-  const post = await getPost(postId, isLoggedIn ? user.id : '');
+  const post = await getPost(params.postId, isLoggedIn ? user.id : '');
 
   return {
     title: `${post.user.displayName}: ${post.content.slice(0, 50)}...`,
   };
 }
 
-export default async function Page({ params: { postId } }: PageProps) {
+export default async function Page(props: PageProps) {
+  const params = await props.params;
   const { user } = await validateRequest();
   const isLoggedIn = !!user;
 
   // Get post data for both logged-in and guest users
-  const post = await getPost(postId, isLoggedIn ? user.id : '');
+  const post = await getPost(params.postId, isLoggedIn ? user.id : '');
 
   return (
     <main className="flex w-full min-w-0 gap-5">

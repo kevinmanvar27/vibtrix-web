@@ -12,7 +12,7 @@ import UnblockUserProfileButton from "./UnblockUserProfileButton";
 // Metadata generation is handled below
 
 interface PageProps {
-  params: { username: string };
+  params: Promise<{ username: string }>;
 }
 
 const getUser = cache(async (username: string, loggedInUserId: string) => {
@@ -44,26 +44,26 @@ const getUser = cache(async (username: string, loggedInUserId: string) => {
   return user;
 });
 
-export async function generateMetadata({
-  params: { username },
-}: PageProps): Promise<Metadata> {
+export async function generateMetadata(props: PageProps): Promise<Metadata> {
+  const params = await props.params;
   const { user: loggedInUser } = await validateRequest();
   const isLoggedIn = !!loggedInUser;
 
   // Get user data for both logged-in and guest users
-  const user = await getUser(username, loggedInUser?.id || '');
+  const user = await getUser(params.username, loggedInUser?.id || '');
 
   return {
     title: `${user.displayName} (@${user.username})`,
   };
 }
 
-export default async function Page({ params: { username } }: PageProps) {
+export default async function Page(props: PageProps) {
+  const params = await props.params;
   const { user: loggedInUser } = await validateRequest();
   const isLoggedIn = !!loggedInUser;
 
   // Handle both logged-in and guest users
-  const user = await getUser(username, loggedInUser?.id || '');
+  const user = await getUser(params.username, loggedInUser?.id || '');
 
   // Only check blocks if user is logged in
   const blockExists = isLoggedIn ? await prisma.userBlock.findUnique({

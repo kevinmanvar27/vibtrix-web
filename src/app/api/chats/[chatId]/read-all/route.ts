@@ -4,9 +4,9 @@ import { getAuthenticatedUser } from "@/lib/api-auth";
 import debug from "@/lib/debug";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     chatId: string;
-  };
+  }>;
 }
 
 /**
@@ -26,7 +26,7 @@ export async function POST(
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { chatId } = params;
+    const { chatId } = await params;
 
     // Check if user is a participant in this chat
     const participant = await prisma.chatParticipant.findUnique({
@@ -52,10 +52,10 @@ export async function POST(
         senderId: {
           not: user.id, // Don't mark own messages
         },
-        readAt: null, // Only unread messages
+        isRead: false, // Only unread messages
       },
       data: {
-        readAt: new Date(),
+        isRead: true,
       },
     });
 
@@ -68,7 +68,7 @@ export async function POST(
         },
       },
       data: {
-        unreadCount: 0,
+        hasUnread: false,
         lastReadAt: new Date(),
       },
     });

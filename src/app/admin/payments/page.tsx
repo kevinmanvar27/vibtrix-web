@@ -19,11 +19,11 @@ export const metadata = {
 export const revalidate = 60;
 
 interface PaymentsPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     limit?: string;
     status?: string;
-  };
+  }>;
 }
 
 // OPTIMIZED: Combined stats query - removed N+1 for competition titles
@@ -154,7 +154,8 @@ function TableSkeleton() {
   );
 }
 
-export default async function PaymentsPage({ searchParams }: PaymentsPageProps) {
+export default async function PaymentsPage(props: PaymentsPageProps) {
+  const searchParams = await props.searchParams;
   const { user } = await validateRequest();
 
   if (!user || !user.isAdmin) {

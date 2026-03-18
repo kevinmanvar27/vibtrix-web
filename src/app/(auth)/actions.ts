@@ -15,7 +15,7 @@ export async function logout() {
   // Always create a blank session cookie to clear any existing cookie
   const sessionCookie = lucia.createBlankSessionCookie();
 
-  cookies().set(
+  (await cookies()).set(
     sessionCookie.name,
     sessionCookie.value,
     sessionCookie.attributes,

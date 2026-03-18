@@ -9,8 +9,9 @@ import debug from "@/lib/debug";
 // Get a specific promotion sticker
 export async function GET(
   req: NextRequest,
-  { params }: { params: { competitionId: string; stickerId: string } }
+  props: { params: Promise<{ competitionId: string; stickerId: string }> }
 ) {
+  const params = await props.params;
   try {
     const { user } = await validateRequest();
 
@@ -43,8 +44,9 @@ export async function GET(
 // Update a promotion sticker
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { competitionId: string; stickerId: string } }
+  props: { params: Promise<{ competitionId: string; stickerId: string }> }
 ) {
+  const params = await props.params;
   try {
     const { user } = await validateRequest();
 
@@ -95,8 +97,9 @@ export async function PATCH(
 // Delete a promotion sticker
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { competitionId: string; stickerId: string } }
+  props: { params: Promise<{ competitionId: string; stickerId: string }> }
 ) {
+  const params = await props.params;
   try {
     const { user } = await validateRequest();
 

@@ -16,11 +16,11 @@ export const metadata = {
 export const revalidate = 60;
 
 interface PostsPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     limit?: string;
     type?: string;
-  };
+  }>;
 }
 
 async function getPosts(page: number = 1, limit: number = 50, type?: string) {
@@ -119,7 +119,8 @@ function TableSkeleton() {
   );
 }
 
-export default async function PostsPage({ searchParams }: PostsPageProps) {
+export default async function PostsPage(props: PostsPageProps) {
+  const searchParams = await props.searchParams;
   const page = parseInt(searchParams.page || '1', 10);
   const limit = parseInt(searchParams.limit || '50', 10);
   const type = searchParams.type;

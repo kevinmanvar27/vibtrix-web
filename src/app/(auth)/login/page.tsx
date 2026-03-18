@@ -21,14 +21,14 @@ export default async function Page() {
               <div className="relative overflow-hidden" style={{ height: `60px`, width: `300px` }}>
                 <Image
                   src={settings.logoUrl}
-                  alt="Vibtrix Logo"
+                  alt="Vibetrix Logo"
                   width={300}
                   height={60}
                   className="object-contain"
                 />
               </div>
             ) : (
-              <h1 className="text-center text-3xl font-bold">Vibtrix</h1>
+              <h1 className="text-center text-3xl font-bold">Vibetrix</h1>
             )}
             <h2 className="text-center text-xl">Login to your account</h2>
           </div>

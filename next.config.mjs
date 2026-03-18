@@ -3,6 +3,8 @@ const nextConfig = {
   // Ensure SPA behavior with proper client-side navigation
   skipTrailingSlashRedirect: true,
   
+  // CRITICAL: Increase timeouts for server operations
+  // This prevents "Request Timeout" errors on slow operations
   experimental: {
     // Enable staleTimes for faster navigation - IMPORTANT for instant page loads
     staleTimes: {
@@ -26,19 +28,6 @@ const nextConfig = {
     optimizeServerReact: true,
     // Disable PPR (keep this off for stability)
     ppr: false,
-    // Enable server minification for smaller bundles
-    serverMinification: true,
-    // Disable ISR cache to save memory
-    isrMemoryCacheSize: 0,
-    // CRITICAL: Increase body size limit for API routes (not just Server Actions)
-    // This is required for large file uploads through API routes
-    serverComponentsExternalPackages: ['sharp', 'fluent-ffmpeg', '@ffmpeg-installer/ffmpeg', '@ffprobe-installer/ffprobe'],
-  },
-  
-  // IMPORTANT: Allow large file uploads for video processing
-  // This enables uploading videos up to 500MB via Server Actions
-  serverActions: {
-    bodySizeLimit: '500mb',
   },
   
   // AGGRESSIVE: Optimize webpack for faster builds
@@ -70,6 +59,31 @@ const nextConfig = {
       type: 'asset/source',
     });
     
+    // CRITICAL: Exclude video segments (.ts files in public/videos) from TypeScript processing
+    // These are MPEG-TS video segments, not TypeScript files
+    // We need to ensure they're excluded before TypeScript loader processes them
+    const tsRule = config.module.rules.find(
+      rule => rule.test && rule.test.toString().includes('tsx')
+    );
+    if (tsRule && tsRule.exclude) {
+      // Add public/videos to the exclude list
+      const originalExclude = tsRule.exclude;
+      tsRule.exclude = function(modulePath) {
+        // Exclude video segments
+        if (modulePath.includes('/public/videos/')) {
+          return true;
+        }
+        // Apply original exclude logic
+        if (typeof originalExclude === 'function') {
+          return originalExclude(modulePath);
+        }
+        if (originalExclude instanceof RegExp) {
+          return originalExclude.test(modulePath);
+        }
+        return false;
+      };
+    }
+    
     // CRITICAL: Externalize ffprobe and ffmpeg installers for server-side
     if (isServer) {
       config.externals = config.externals || [];
@@ -87,7 +101,7 @@ const nextConfig = {
   
   // Font optimization is now handled by Next.js automatically
   // optimizeFonts option removed as it's deprecated
-  serverExternalPackages: ["@node-rs/argon2", "sharp"],
+  serverExternalPackages: ["@node-rs/argon2", "sharp", "fluent-ffmpeg", "@ffmpeg-installer/ffmpeg", "@ffprobe-installer/ffprobe"],
   images: {
     // OPTIMIZATION: Allow SVG images from dicebear
     dangerouslyAllowSVG: true,
@@ -116,8 +130,7 @@ const nextConfig = {
   
   // AGGRESSIVE: Reduce overhead in development
   devIndicators: {
-    buildActivity: false, // Disable build indicator for faster perception
-    buildActivityPosition: 'bottom-right',
+    position: 'bottom-right',
   },
   
   // AGGRESSIVE: Optimize production builds too

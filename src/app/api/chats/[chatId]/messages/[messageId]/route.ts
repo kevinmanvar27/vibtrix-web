@@ -4,10 +4,10 @@ import { getAuthenticatedUser } from "@/lib/api-auth";
 import debug from "@/lib/debug";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     chatId: string;
     messageId: string;
-  };
+  }>;
 }
 
 /**
@@ -17,8 +17,9 @@ interface RouteParams {
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: RouteParams
+  props: RouteParams
 ) {
+  const params = await props.params;
   try {
     debug.log(`DELETE /api/chats/${params.chatId}/messages/${params.messageId} - Starting request`);
     

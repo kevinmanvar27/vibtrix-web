@@ -33,8 +33,9 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  const storedState = cookies().get("state")?.value;
-  const storedCodeVerifier = cookies().get("code_verifier")?.value;
+  const cookieStore = await cookies();
+  const storedState = cookieStore.get("state")?.value;
+  const storedCodeVerifier = cookieStore.get("code_verifier")?.value;
 
   if (
     !code ||
@@ -104,7 +105,7 @@ export async function GET(req: NextRequest) {
       });
 
       // Ensure the cookie is set with the correct attributes
-      cookies().set(
+      cookieStore.set(
         sessionCookie.name,
         sessionCookie.value,
         {
@@ -134,13 +135,13 @@ export async function GET(req: NextRequest) {
       });
 
       // Get the stored origin from the cookie
-      const storedOrigin = cookies().get("oauth_origin")?.value;
+      const storedOrigin = cookieStore.get("oauth_origin")?.value;
 
       // Determine the redirect location
       const redirectLocation = storedOrigin || "/";
 
       // Clear the oauth_origin cookie
-      cookies().set("oauth_origin", "", {
+      cookieStore.set("oauth_origin", "", {
         path: "/",
         expires: new Date(0),
       });
@@ -181,7 +182,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Ensure the cookie is set with the correct attributes
-    cookies().set(
+    cookieStore.set(
       sessionCookie.name,
       sessionCookie.value,
       {
@@ -212,13 +213,13 @@ export async function GET(req: NextRequest) {
     });
 
     // Get the stored origin from the cookie
-    const storedOrigin = cookies().get("oauth_origin")?.value;
+    const storedOrigin = cookieStore.get("oauth_origin")?.value;
 
     // Determine the redirect location
     const redirectLocation = storedOrigin || "/";
 
     // Clear the oauth_origin cookie
-    cookies().set("oauth_origin", "", {
+    cookieStore.set("oauth_origin", "", {
       path: "/",
       expires: new Date(0),
     });

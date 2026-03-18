@@ -14,14 +14,13 @@ import { redirect } from "next/navigation";
 import debug from "@/lib/debug";
 
 interface AdvertisementPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default async function AdvertisementPage({
-  params,
-}: AdvertisementPageProps) {
+export default async function AdvertisementPage(props: AdvertisementPageProps) {
+  const params = await props.params;
   const { user } = await validateRequest();
 
   // Check if user has admin access

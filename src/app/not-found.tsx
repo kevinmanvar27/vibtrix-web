@@ -13,7 +13,7 @@ export default function NotFound() {
       <div className="mx-auto max-w-md text-center space-y-8">
         {/* Logo or Site Name */}
         <div className="flex justify-center items-center">
-          <span className="text-3xl font-bold text-primary">Vibtrix</span>
+          <span className="text-3xl font-bold text-primary">Vibetrix</span>
         </div>
 
         {/* 404 Text */}

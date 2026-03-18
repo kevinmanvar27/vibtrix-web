@@ -16,9 +16,9 @@ const loginSchema = z.object({
 });
 
 // Create a function to get request data for tracking
-function createNextRequest(): NextRequest {
+async function createNextRequest(): Promise<NextRequest> {
   // Create a minimal NextRequest object with the headers we need
-  const headersList = headers();
+  const headersList = await headers();
   const url = new URL(headersList.get('referer') || 'http://localhost');
 
   return new NextRequest(url, {
@@ -34,7 +34,7 @@ export async function adminLogin(credentials: {
     debug.log("Admin login action - Starting login process");
     const { usernameOrEmail, password } = loginSchema.parse(credentials);
     debug.log(`Admin login action - Attempting login for: ${usernameOrEmail}`);
-    const request = createNextRequest();
+    const request = await createNextRequest();
 
     // Find user by username or email
     // Note: MySQL with default collation is case-insensitive by default
@@ -93,7 +93,7 @@ export async function adminLogin(credentials: {
     // Create session
     const session = await lucia.createSession(existingUser.id, {});
     const sessionCookie = lucia.createSessionCookie(session.id);
-    cookies().set(
+    (await cookies()).set(
       sessionCookie.name,
       sessionCookie.value,
       sessionCookie.attributes,

@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UserTable from "./components/UserTable";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
 
 export const metadata = {
   title: "User Management",
@@ -13,11 +14,11 @@ export const metadata = {
 export const revalidate = 60;
 
 interface UsersPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     limit?: string;
     status?: string;
-  };
+  }>;
 }
 
 async function getUsers(page: number = 1, limit: number = 50, status?: string) {
@@ -95,7 +96,8 @@ function TableSkeleton() {
   );
 }
 
-export default async function UsersPage({ searchParams }: UsersPageProps) {
+export default async function UsersPage(props: UsersPageProps) {
+  const searchParams = await props.searchParams;
   const page = parseInt(searchParams.page || '1', 10);
   const limit = parseInt(searchParams.limit || '50', 10);
   const status = searchParams.status;
@@ -119,13 +121,13 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
       <Tabs defaultValue={status || "all"} className="space-y-4">
         <TabsList>
           <TabsTrigger value="all" asChild>
-            <a href="/admin/users">All Users ({counts.totalCount})</a>
+            <Link href="/admin/users">All Users ({counts.totalCount})</Link>
           </TabsTrigger>
           <TabsTrigger value="active" asChild>
-            <a href="/admin/users?status=active">Active ({counts.activeCount})</a>
+            <Link href="/admin/users?status=active">Active ({counts.activeCount})</Link>
           </TabsTrigger>
           <TabsTrigger value="inactive" asChild>
-            <a href="/admin/users?status=inactive">Inactive ({counts.inactiveCount})</a>
+            <Link href="/admin/users?status=inactive">Inactive ({counts.inactiveCount})</Link>
           </TabsTrigger>
         </TabsList>
         

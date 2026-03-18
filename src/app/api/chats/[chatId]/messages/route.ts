@@ -5,9 +5,9 @@ import { getAuthenticatedUser } from "@/lib/api-auth";
 import debug from "@/lib/debug";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     chatId: string;
-  };
+  }>;
 }
 
 /**
@@ -37,7 +37,7 @@ export async function GET(
       return Response.json({ error: "Messaging feature is currently disabled" }, { status: 403 });
     }
 
-    const { chatId } = params;
+    const { chatId } = await params;
 
     // Check if user is a participant in this chat
     const participant = await prisma.chatParticipant.findUnique({
@@ -147,12 +147,13 @@ export async function POST(
   { params }: RouteParams
 ) {
   try {
-    debug.log(`POST /api/chats/${params.chatId}/messages - Starting request`);
+    const { chatId } = await params;
+    debug.log(`POST /api/chats/${chatId}/messages - Starting request`);
     // Support both JWT and session authentication
     const user = await getAuthenticatedUser(request);
 
     if (!user) {
-      debug.log(`POST /api/chats/${params.chatId}/messages - Unauthorized`);
+      debug.log(`POST /api/chats/${chatId}/messages - Unauthorized`);
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -163,12 +164,11 @@ export async function POST(
     });
 
     if (!settings?.messagingEnabled) {
-      debug.log(`POST /api/chats/${params.chatId}/messages - Messaging feature is disabled`);
+      debug.log(`POST /api/chats/${chatId}/messages - Messaging feature is disabled`);
       return Response.json({ error: "Messaging feature is currently disabled" }, { status: 403 });
     }
 
-    debug.log(`POST /api/chats/${params.chatId}/messages - User authenticated:`, user.id);
-    const { chatId } = params;
+    debug.log(`POST /api/chats/${chatId}/messages - User authenticated:`, user.id);
 
     // Parse request body
     const body = await request.json();

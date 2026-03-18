@@ -21,7 +21,7 @@ export async function adminLogout() {
 
   // Always clear the session cookie, regardless of whether we had a valid session
   const sessionCookie = lucia.createBlankSessionCookie();
-  cookies().set(
+  (await cookies()).set(
     sessionCookie.name,
     sessionCookie.value,
     sessionCookie.attributes,

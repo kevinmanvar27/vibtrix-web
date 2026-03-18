@@ -5,8 +5,9 @@ import debug from "@/lib/debug";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { competitionId: string; postId: string } }
+  props: { params: Promise<{ competitionId: string; postId: string }> }
 ) {
+  const params = await props.params;
   try {
     const { competitionId, postId } = params;
 

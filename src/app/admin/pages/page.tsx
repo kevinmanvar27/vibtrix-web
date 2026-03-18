@@ -17,11 +17,10 @@ async function getPages() {
   });
 }
 
-export default async function PagesPage({
-  searchParams,
-}: {
-  searchParams: { slug?: string };
+export default async function PagesPage(props: {
+  searchParams: Promise<{ slug?: string }>;
 }) {
+  const searchParams = await props.searchParams;
   // If a slug is provided, find the page and redirect to its edit page
   if (searchParams.slug) {
     const page = await prisma.page.findFirst({

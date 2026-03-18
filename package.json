@@ -1,5 +1,5 @@
 {
-  "name": "vibtrix-social-media-app",
+  "name": "vibetrix-social-media-app",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -13,6 +13,7 @@
     "build:safe": "./scripts/build-fixed.sh",
     "build:legacy": "./scripts/build-without-optimization.sh",
     "start": "node scripts/start-prod.js",
+    "start:hostinger": "NODE_ENV=production node server-production.js",
     "start:quiet": "NODE_ENV=production NEXT_DISABLE_SERVER_LOGS=1 NODE_OPTIONS='--no-warnings' next start -p 3000",
     "start:proxy": "node proxy-server.js",
     "start:with-proxy": "concurrently \"npm run start\" \"npm run start:proxy\"",
@@ -33,6 +34,8 @@
     "generate-competition-slugs": "tsx scripts/generate-competition-slugs.ts",
     "check-status": "node scripts/check-app-status.js",
     "check-db": "node scripts/check-database.js",
+    "test:db": "node scripts/test-db-connection.js",
+    "test:load": "node scripts/test-load.js",
     "security-test": "node scripts/security-test.js",
     "security-audit": "node scripts/security-audit.js",
     "security-scan": "node scripts/security-scanner.js",

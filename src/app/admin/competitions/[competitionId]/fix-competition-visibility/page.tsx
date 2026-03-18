@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -11,9 +11,9 @@ import { useToast } from "@/components/ui/use-toast";
 export default function FixCompetitionVisibilityPage({
   params,
 }: {
-  params: { competitionId: string };
+  params: Promise<{ competitionId: string }>;
 }) {
-  const { competitionId } = params;
+  const { competitionId } = use(params);
   const router = useRouter();
   const { toast } = useToast();
   const [processing, setProcessing] = useState(false);

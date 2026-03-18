@@ -8,8 +8,9 @@ import debug from "@/lib/debug";
 
 export async function POST(
   request: Request,
-  { params }: { params: { competitionId: string; postId: string } }
+  props: { params: Promise<{ competitionId: string; postId: string }> }
 ) {
+  const params = await props.params;
   try {
     const { user } = await validateRequest();
     

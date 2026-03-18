@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 // Debug client removed
 import AdminLoginClientForm from "./AdminLoginClientForm";
 import RedirectIfLoggedIn from "./RedirectIfLoggedIn";
@@ -55,7 +56,7 @@ export default async function AdminLoginPage() {
         </CardContent>
         <CardFooter className="flex justify-center">
           <Button variant="link" asChild>
-            <a href="/">Back to site</a>
+            <Link href="/">Back to site</Link>
           </Button>
         </CardFooter>
       </Card>

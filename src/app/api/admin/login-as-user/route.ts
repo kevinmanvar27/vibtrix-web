@@ -49,7 +49,8 @@ export async function POST(req: Request) {
     }
 
     // Store the admin's user ID in a separate cookie to allow returning to admin
-    cookies().set("admin_user_id", adminUser.id, {
+    const cookieStore = await cookies();
+    cookieStore.set("admin_user_id", adminUser.id, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24, // 24 hours
@@ -60,7 +61,7 @@ export async function POST(req: Request) {
     const session = await lucia.createSession(targetUser.id, {});
     const sessionCookie = lucia.createSessionCookie(session.id);
 
-    cookies().set(
+    cookieStore.set(
       sessionCookie.name,
       sessionCookie.value,
       sessionCookie.attributes,

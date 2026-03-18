@@ -7,9 +7,9 @@ export const metadata = {
 };
 
 interface EditCompetitionPageProps {
-  params: {
+  params: Promise<{
     competitionId: string;
-  };
+  }>;
 }
 
 async function getCompetition(id: string) {
@@ -86,7 +86,8 @@ async function getCompetition(id: string) {
   };
 }
 
-export default async function EditCompetitionPage({ params }: EditCompetitionPageProps) {
+export default async function EditCompetitionPage(props: EditCompetitionPageProps) {
+  const params = await props.params;
   const competition = await getCompetition(params.competitionId);
 
   // Determine competition lifecycle status

@@ -89,7 +89,7 @@ app.prepare().then(() => {
   server.listen(port, (err) => {
     if (err) throw err;
     console.log(`\n${'='.repeat(70)}`);
-    console.log(`🚀 Vibtrix Development Server`);
+    console.log(`🚀 Vibetrix Development Server`);
     console.log(`${'='.repeat(70)}`);
     console.log(`   URL: http://${hostname}:${port}`);
     console.log(`   Environment: ${dev ? 'DEVELOPMENT' : 'PRODUCTION'}`);

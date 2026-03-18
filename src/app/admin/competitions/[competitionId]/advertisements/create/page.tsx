@@ -13,12 +13,13 @@ export const metadata = {
 };
 
 interface CreateCompetitionAdvertisementPageProps {
-  params: {
+  params: Promise<{
     competitionId: string;
-  };
+  }>;
 }
 
-export default async function CreateCompetitionAdvertisementPage({ params }: CreateCompetitionAdvertisementPageProps) {
+export default async function CreateCompetitionAdvertisementPage(props: CreateCompetitionAdvertisementPageProps) {
+  const params = await props.params;
   const { competitionId } = params;
   const { user } = await validateRequest();
 

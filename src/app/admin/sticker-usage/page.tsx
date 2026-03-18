@@ -15,10 +15,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 export const revalidate = 60;
 
 interface StickerUsagePageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     limit?: string;
-  };
+  }>;
 }
 
 // Loading skeleton for the table
@@ -32,7 +32,8 @@ function TableSkeleton() {
   );
 }
 
-export default async function StickerUsagePage({ searchParams }: StickerUsagePageProps) {
+export default async function StickerUsagePage(props: StickerUsagePageProps) {
+  const searchParams = await props.searchParams;
   const { user } = await validateRequest();
 
   if (!user || !user.isAdmin) {

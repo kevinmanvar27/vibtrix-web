@@ -134,11 +134,10 @@ async function getSettings() {
 
 export const revalidate = 0; // Disable caching for this page
 
-export default async function SettingsPage({
-  searchParams,
-}: {
-  searchParams: { tab?: string };
+export default async function SettingsPage(props: {
+  searchParams: Promise<{ tab?: string }>;
 }) {
+  const searchParams = await props.searchParams;
   // Add a timestamp to force fresh data on each request
   const timestamp = Date.now();
   const settings = await getSettings();

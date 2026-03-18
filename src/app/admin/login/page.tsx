@@ -4,11 +4,10 @@ import { redirect } from "next/navigation";
  * Admin login redirect page
  * Redirects from /admin/login to /admin-login to bypass admin authentication middleware
  */
-export default function AdminLoginRedirect({
-  searchParams,
-}: {
-  searchParams: { redirect?: string; error?: string };
+export default async function AdminLoginRedirect(props: {
+  searchParams: Promise<{ redirect?: string; error?: string }>;
 }) {
+  const searchParams = await props.searchParams;
   // Get the query parameters
   const redirectParam = searchParams.redirect ? `?redirect=${searchParams.redirect}` : "";
   const errorParam = searchParams.error ? `${redirectParam ? "&" : "?"}error=${searchParams.error}` : "";

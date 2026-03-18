@@ -9,8 +9,8 @@ import { validateRequest } from "@/auth";
 import debug from "@/lib/debug";
 
 export const metadata = {
-  title: "Competitions - Vibtrix",
-  description: "Participate in exciting competitions on Vibtrix",
+  title: "Competitions - Vibetrix",
+  description: "Participate in exciting competitions on Vibetrix",
 };
 
 async function getCompetitions(status: "active" | "upcoming" | "past") {

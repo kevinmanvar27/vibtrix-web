@@ -13,13 +13,14 @@ export const metadata = {
 };
 
 interface EditCompetitionAdvertisementPageProps {
-  params: {
+  params: Promise<{
     competitionId: string;
     id: string;
-  };
+  }>;
 }
 
-export default async function EditCompetitionAdvertisementPage({ params }: EditCompetitionAdvertisementPageProps) {
+export default async function EditCompetitionAdvertisementPage(props: EditCompetitionAdvertisementPageProps) {
+  const params = await props.params;
   const { competitionId, id } = params;
   const { user } = await validateRequest();
 

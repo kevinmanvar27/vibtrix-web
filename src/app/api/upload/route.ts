@@ -2,7 +2,7 @@ import prisma from "@/lib/prisma";
 import { storeFile, getFileType } from "@/lib/fileStorage";
 import { processImageWithSticker, processVideoWithSticker, isMediaEligibleForSticker, autoApplyStickerToMedia, isMediaBufferEligibleForSticker } from "@/lib/imageProcessing";
 import { processMedia } from "@/lib/mediaProcessing";
-import { processVideoToHLS, generateVideoThumbnail, checkFFmpegInstalled } from "@/lib/video-processing";
+import { processVideoToHLS, generateThumbnail, checkFFmpegInstalled } from "@/lib/video-processing";
 import { NextRequest } from "next/server";
 import { StickerPosition } from "@prisma/client";
 import sharp from "sharp";

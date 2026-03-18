@@ -221,7 +221,7 @@ export async function trackLoginAttempt(
     const uaResult = parser.getResult();
     
     // Get geolocation from IP (temporarily disabled due to geoip-lite path issues)
-    let locationData = null;
+    let locationData: { city?: string; region?: string; country?: string; } | null = null;
     // TODO: Fix geoip-lite installation and re-enable location detection
     
     // Determine device type - prioritize device info from request body (mobile app)
@@ -238,9 +238,9 @@ export async function trackLoginAttempt(
     }
     
     // Determine browser and OS - prioritize device info from mobile app
-    // For mobile app: browser = "Vibtrix App", OS = from deviceInfo
+    // For mobile app: browser = "Vibetrix App", OS = from deviceInfo
     // For web: browser = parsed from UA, OS = parsed from UA
-    const browser = deviceInfo?.deviceType ? 'Vibtrix App' : (uaResult.browser.name || null);
+    const browser = deviceInfo?.deviceType ? 'Vibetrix App' : (uaResult.browser.name || null);
     const os = deviceInfo?.osVersion || 
                (uaResult.os.name ? `${uaResult.os.name} ${uaResult.os.version || ''}`.trim() : null);
     const deviceBrand = deviceInfo?.deviceBrand || uaResult.device.vendor || null;
@@ -252,7 +252,7 @@ export async function trackLoginAttempt(
       deviceType,
       deviceBrand,
       deviceModel,
-      location: locationData ? `${locationData.city || ''}, ${locationData.country || ''}`.trim() : null
+      location: locationData ? `${(locationData as any).city || ''}, ${(locationData as any).country || ''}`.trim() : null
     });
     
     await prisma.userLoginActivity.create({
@@ -265,10 +265,10 @@ export async function trackLoginAttempt(
         deviceType,
         deviceBrand,
         deviceModel,
-        location: locationData ? `${locationData.city || ''}, ${locationData.country || ''}`.trim().replace(/^,\s*/, '') : null,
-        city: locationData?.city || null,
-        region: locationData?.region || null,
-        country: locationData?.country || null,
+        location: locationData ? `${(locationData as any).city || ''}, ${(locationData as any).country || ''}`.trim().replace(/^,\s*/, '') : null,
+        city: locationData ? (locationData as any).city || null : null,
+        region: locationData ? (locationData as any).region || null : null,
+        country: locationData ? (locationData as any).country || null : null,
         status: success ? 'SUCCESS' : 'FAILED',
         loginAt: new Date(),
       },

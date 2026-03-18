@@ -1,5 +1,6 @@
 "use client";
 
+import { use } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/use-toast";
@@ -16,9 +17,9 @@ import debug from "@/lib/debug";
 export default function SyncCompetitionEntriesPage({
   params,
 }: {
-  params: { competitionId: string };
+  params: Promise<{ competitionId: string }>;
 }) {
-  const { competitionId } = params;
+  const { competitionId } = use(params);
   const [isSyncing, setIsSyncing] = useState(false);
   const [result, setResult] = useState<{ entriesUpdated?: number; error?: string } | null>(null);
   const router = useRouter();
