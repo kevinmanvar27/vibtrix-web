@@ -55,17 +55,22 @@ async function main() {
     const port = await findAvailablePort();
     console.log(`\n🚀 Starting development server on port ${port}...\n`);
     
-    // Use Turbopack for 10x faster compilation (Next.js 15 feature)
-    // Directly use Next.js CLI from node_modules/.bin
+    // Use custom server for large file upload support
+    // The custom server removes body size limits that Next.js App Router enforces
     const isWindows = process.platform === 'win32';
     const command = isWindows ? 'node.exe' : 'node';
-    const nextCliPath = require.resolve('next/dist/bin/next');
-    const args = ['dev', '--turbo', '-p', port.toString()];
+    const serverPath = require('path').join(process.cwd(), 'server.js');
     
-    const nextDev = spawn(command, [nextCliPath, ...args], {
+    const nextDev = spawn(command, [serverPath], {
       stdio: 'inherit',
       cwd: process.cwd(),
-      env: { ...process.env }
+      env: { 
+        ...process.env,
+        PORT: port.toString(),
+        // CRITICAL: Set NODE_OPTIONS for large file uploads
+        // This must be set here because .env.local is loaded AFTER Node.js starts
+        NODE_OPTIONS: '--max-http-header-size=80000 --max-old-space-size=4096'
+      }
     });
 
     nextDev.on('error', (err) => {

@@ -1,0 +1,18 @@
+╔══════════════════════════════════════════════════════════════
+I/flutter (23106): ║ 🚀 API REQUEST
+I/flutter (23106): ║ POST http://10.0.2.2:3000/api/upload
+I/flutter (23106): ║ Body: Instance of 'FormData'
+I/flutter (23106): ╚══════════════════════════════════════════════════════════════
+I/flutter (23106): ║ 🔐 Auth token added: eyJhbGciOiJIUzI1NiIsInR5cCI6Ik...
+I/flutter (23106): 
+I/flutter (23106): ╔══════════════════════════════════════════════════════════════
+I/flutter (23106): ║ ❌ API ERROR [500]
+I/flutter (23106): ║ POST http://10.0.2.2:3000/api/upload
+I/flutter (23106): ║ Type: DioExceptionType.badResponse
+I/flutter (23106): ║ Message: This exception was thrown because the response has a status code of 500 and RequestOptions.validateStatus was configured to throw for this status code.
+I/flutter (23106): The status code of 500 has the following meaning: "Server error - the server failed to fulfil an apparently valid request"
+I/flutter (23106): Read more about status codes at https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+I/flutter (23106): In order to resolve this exception you typically have either to verify and fix your request code or you have to fix the server code.
+I/flutter (23106): 
+I/flutter (23106): ║ Response: <!DOCTYPE html><html><head><meta charSet="utf-8" data-next-head=""/><meta name="viewport" content="width=device-width" data-next-head=""/><style data-next-hide-fouc="true">body{display:none}</style><noscript data-next-hide-fouc="true"><style>body{display:block}</style></noscript><noscript data-n-css=""></noscript><script src="/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_5277ebc8.js" defer=""></script><script src="/_next/static/chunks/node_modules_next_dist_compiled_166120c5._.js" defer=""></script><script src="/_next/static/chunks/node_modules_next_dist_shared_lib_2c2ec201._.js" defer=""></script><script src="/_next/static/chunks/node_modules_next_dist_client_d0aa886c._.js" defer=""></script><script src="/_next/static/chunks/node_modules_next_dist_5b402162._.js" defer=""></script><script src="/_next/static/chunks/node_modules_next_app_72f3d36f.js" defer=""></script><script src="/_next/static/chunks/%5Bnext%5D_entry_page-loader_ts_742e4b53._.js" defer=""></script><scr
+I/flutter (23106): ╚══════════════════════════════════════════════════════════════

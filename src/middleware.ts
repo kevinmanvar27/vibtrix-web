@@ -16,7 +16,7 @@ export function middleware(request: NextRequest) {
 
   if (pathname.startsWith('/api/auth/')) {
     rateLimitType = 'auth';
-  } else if (pathname.startsWith('/api/upload/')) {
+  } else if (pathname.startsWith('/api/upload')) {
     rateLimitType = 'upload';
   } else if (pathname.startsWith('/api/admin/')) {
     rateLimitType = 'admin';

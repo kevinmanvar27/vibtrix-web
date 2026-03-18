@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { storeFile, getFileType } from "@/lib/fileStorage";
 import { processImageWithSticker, processVideoWithSticker, isMediaEligibleForSticker, autoApplyStickerToMedia, isMediaBufferEligibleForSticker } from "@/lib/imageProcessing";
 import { processMedia } from "@/lib/mediaProcessing";
+import { processVideoToHLS, generateVideoThumbnail, checkFFmpegInstalled } from "@/lib/video-processing";
 import { NextRequest } from "next/server";
 import { StickerPosition } from "@prisma/client";
 import sharp from "sharp";
@@ -10,28 +11,88 @@ import path from "path";
 import { getAuthenticatedUser } from "@/lib/api-auth";
 import debug from "@/lib/debug";
 
+// Helper function to check FFmpeg availability
+async function checkFFmpegAvailable(): Promise<boolean> {
+  try {
+    return await checkFFmpegInstalled();
+  } catch (error) {
+    debug.error('Upload API: Error checking FFmpeg:', error);
+    return false;
+  }
+}
+
 const MAX_FILES = 5;
 
+// Next.js Route Segment Config for large file uploads
+// CRITICAL: These settings are required for file uploads to work
+export const dynamic = 'force-dynamic'; // Disable static optimization
+export const maxDuration = 300; // 5 minutes for video processing
+export const runtime = 'nodejs'; // Use Node.js runtime (not Edge)
+
+// IMPORTANT: Next.js API routes automatically handle FormData
+// No need to set bodyParser: false (that's for Pages Router, not App Router)
+
 export async function POST(req: NextRequest) {
+  // Wrap EVERYTHING in try-catch to prevent server crashes
   try {
-    debug.log('Upload API: Starting file upload process');
+    debug.log('='.repeat(60));
+    debug.log('Upload API: NEW UPLOAD REQUEST STARTED');
+    debug.log('='.repeat(60));
+    debug.log('Upload API: Request URL:', req.url);
+    debug.log('Upload API: Request method:', req.method);
+    debug.log('Upload API: Content-Type:', req.headers.get('content-type'));
+    debug.log('Upload API: Content-Length:', req.headers.get('content-length'));
 
     // Validate user authentication (supports both JWT and session)
-    const user = await getAuthenticatedUser(req);
-    if (!user) {
-      debug.log('Upload API: Unauthorized user');
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    let user;
+    try {
+      user = await getAuthenticatedUser(req);
+      if (!user) {
+        debug.log('Upload API: Unauthorized user');
+        return Response.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      debug.log(`Upload API: ✅ Authenticated user ${user.id}`);
+    } catch (authError) {
+      debug.error('Upload API: Authentication error:', authError);
+      return Response.json({ 
+        error: "Authentication failed", 
+        details: authError instanceof Error ? authError.message : 'Unknown error'
+      }, { status: 401 });
     }
-    debug.log(`Upload API: Authenticated user ${user.id}`);
 
-    // Parse the form data
-    const formData = await req.formData();
+    // Parse the form data with timeout
+    debug.log('Upload API: Starting FormData parsing...');
+    let formData;
+    try {
+      const startTime = Date.now();
+      formData = await Promise.race([
+        req.formData(),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('FormData parsing timeout after 60 seconds')), 60000)
+        )
+      ]);
+      const parseTime = Date.now() - startTime;
+      debug.log(`Upload API: ✅ FormData parsed successfully in ${parseTime}ms`);
+    } catch (formDataError) {
+      debug.error('Upload API: ❌ Error parsing form data:', formDataError);
+      debug.error('Upload API: Error type:', formDataError instanceof Error ? formDataError.constructor.name : typeof formDataError);
+      debug.error('Upload API: Error message:', formDataError instanceof Error ? formDataError.message : String(formDataError));
+      return Response.json({ 
+        error: "Failed to parse upload data", 
+        details: formDataError instanceof Error ? formDataError.message : 'File might be too large or corrupted',
+        hint: 'Try uploading a smaller file or check your internet connection'
+      }, { status: 400 });
+    }
+    
     const files = formData.getAll('files') as File[];
     const thumbnail = formData.get('thumbnail') as File | null;
     const isCompetitionEntry = formData.get('isCompetitionEntry') === 'true';
     const competitionId = formData.get('competitionId') as string | null;
 
-    debug.log(`Upload API: Received ${files.length} files, thumbnail=${thumbnail ? 'yes' : 'no'}, isCompetitionEntry=${isCompetitionEntry}, competitionId=${competitionId || 'none'}`);
+    debug.log(`Upload API: Received ${files.length} files`);
+    debug.log(`Upload API: Thumbnail: ${thumbnail ? 'yes' : 'no'}`);
+    debug.log(`Upload API: Competition entry: ${isCompetitionEntry}`);
+    debug.log(`Upload API: Competition ID: ${competitionId || 'none'}`);
 
     // Check if files array is empty
     if (files.length === 0) {
@@ -222,7 +283,7 @@ export async function POST(req: NextRequest) {
             mediaId: media.id,
           });
         } else if (mediaType === 'VIDEO') {
-          // Process the video into multiple qualities
+          // Process the video into HLS chunks for progressive streaming (Instagram-style)
           // If we have a stickered video, use that for processing
           // Otherwise, use the original video
           let videoUrl = fileUrl;
@@ -239,61 +300,128 @@ export async function POST(req: NextRequest) {
             throw new Error(`File not found at ${videoUrl}`);
           }
 
-          // Process thumbnail if provided
+          // Generate unique ID for this video
+          const { v4: uuidv4 } = require('uuid');
+          const videoId = uuidv4();
+          
+          // Create output directory for HLS files
+          const outputDir = path.join(process.cwd(), 'public', 'videos', videoId);
+          await fs.promises.mkdir(outputDir, { recursive: true });
+
+          debug.log(`Upload API: Processing video to HLS chunks at ${outputDir}`);
+
+          // Process video into HLS chunks
+          let hlsResult;
+          try {
+            debug.log('Upload API: Starting HLS processing...');
+            
+            // Check if FFmpeg is available first
+            const ffmpegAvailable = await checkFFmpegAvailable();
+            if (!ffmpegAvailable) {
+              debug.error('Upload API: FFmpeg not available, skipping HLS processing');
+              hlsResult = null;
+            } else {
+              hlsResult = await processVideoToHLS({
+                inputPath: filePath,
+                outputDir: outputDir,
+              });
+              debug.log(`Upload API: HLS processing complete:`, hlsResult);
+            }
+          } catch (hlsError) {
+            debug.error('Upload API: Error processing video to HLS:', hlsError);
+            debug.error('Upload API: HLS Error details:', hlsError instanceof Error ? hlsError.message : String(hlsError));
+            // Fall back to direct video URL if HLS processing fails
+            hlsResult = null;
+          }
+
+          // Process thumbnail if provided, otherwise generate from video
           let thumbnailUrl: string | null = null;
           if (thumbnail) {
             try {
-              debug.log('Upload API: Processing video thumbnail');
+              debug.log('Upload API: Processing provided video thumbnail');
               const thumbnailBuffer = Buffer.from(await thumbnail.arrayBuffer());
               thumbnailUrl = await storeFile(thumbnailBuffer, `thumb_${file.name}.jpg`, 'thumbnails');
               debug.log(`Upload API: Thumbnail stored at ${thumbnailUrl}`);
             } catch (thumbError) {
               debug.error('Upload API: Error processing thumbnail:', thumbError);
-              // Continue without thumbnail
             }
           }
+          
+          // If no thumbnail provided and HLS processing succeeded, use generated thumbnail
+          if (!thumbnailUrl && hlsResult?.thumbnailUrl) {
+            thumbnailUrl = `/videos/${videoId}/${hlsResult.thumbnailUrl}`;
+            debug.log(`Upload API: Using HLS-generated thumbnail at ${thumbnailUrl}`);
+          }
 
-          // Extract video duration using FFmpeg
-          try {
-            const { spawn } = require('child_process');
+          // Use HLS data if available
+          let finalVideoUrl = videoUrl;
+          let urlHigh = null;
+          let urlMedium = null;
+          let urlLow = null;
+          
+          if (hlsResult) {
+            // Construct URLs for HLS playlists
+            const baseUrl = `/videos/${videoId}`;
+            finalVideoUrl = `${baseUrl}/${hlsResult.masterPlaylistUrl}`; // Master HLS playlist
+            
+            // Set quality-specific URLs
+            const highQuality = hlsResult.qualities.find(q => q.quality === 'high');
+            const mediumQuality = hlsResult.qualities.find(q => q.quality === 'medium');
+            const lowQuality = hlsResult.qualities.find(q => q.quality === 'low');
+            
+            if (highQuality) urlHigh = `${baseUrl}/${highQuality.playlistUrl}`;
+            if (mediumQuality) urlMedium = `${baseUrl}/${mediumQuality.playlistUrl}`;
+            if (lowQuality) urlLow = `${baseUrl}/${lowQuality.playlistUrl}`;
+            
+            debug.log(`Upload API: HLS URLs - Master: ${finalVideoUrl}, High: ${urlHigh}, Medium: ${urlMedium}, Low: ${urlLow}`);
+            
+            // Update width, height, duration from HLS processing
+            if (hlsResult.width) width = hlsResult.width;
+            if (hlsResult.height) height = hlsResult.height;
+            if (hlsResult.duration) duration = hlsResult.duration;
+          } else {
+            // Fallback: Extract video duration using FFmpeg if HLS processing failed
+            try {
+              const { spawn } = require('child_process');
 
-            // Get video duration using ffprobe
-            const durationPromise = new Promise<number>((resolve, reject) => {
-              const ffprobe = spawn('ffprobe', [
-                '-v', 'error',
-                '-show_entries', 'format=duration',
-                '-of', 'default=noprint_wrappers=1:nokey=1',
-                filePath
-              ]);
+              // Get video duration using ffprobe
+              const durationPromise = new Promise<number>((resolve, reject) => {
+                const ffprobe = spawn('ffprobe', [
+                  '-v', 'error',
+                  '-show_entries', 'format=duration',
+                  '-of', 'default=noprint_wrappers=1:nokey=1',
+                  filePath
+                ]);
 
-              let output = '';
+                let output = '';
 
-              ffprobe.stdout.on('data', (data: Buffer) => {
-                output += data.toString();
-              });
+                ffprobe.stdout.on('data', (data: Buffer) => {
+                  output += data.toString();
+                });
 
-              ffprobe.on('close', (code: number) => {
-                if (code === 0 && output) {
-                  const videoDuration = parseFloat(output.trim());
-                  debug.log(`Upload API: Video duration: ${videoDuration} seconds`);
-                  resolve(videoDuration);
-                } else {
-                  debug.error(`Upload API: FFprobe process exited with code ${code}`);
+                ffprobe.on('close', (code: number) => {
+                  if (code === 0 && output) {
+                    const videoDuration = parseFloat(output.trim());
+                    debug.log(`Upload API: Video duration: ${videoDuration} seconds`);
+                    resolve(videoDuration);
+                  } else {
+                    debug.error(`Upload API: FFprobe process exited with code ${code}`);
+                    resolve(0); // Default to 0 if we can't determine duration
+                  }
+                });
+
+                ffprobe.on('error', (err: Error) => {
+                  debug.error(`Upload API: FFprobe error: ${err}`);
                   resolve(0); // Default to 0 if we can't determine duration
-                }
+                });
               });
 
-              ffprobe.on('error', (err: Error) => {
-                debug.error(`Upload API: FFprobe error: ${err}`);
-                resolve(0); // Default to 0 if we can't determine duration
-              });
-            });
-
-            // Wait for duration to be extracted
-            duration = await durationPromise;
-          } catch (durationError) {
-            debug.error('Upload API: Error extracting video duration:', durationError);
-            // Continue without duration
+              // Wait for duration to be extracted
+              duration = await durationPromise;
+            } catch (durationError) {
+              debug.error('Upload API: Error extracting video duration:', durationError);
+              // Continue without duration
+            }
           }
 
           // Create a media record in the database
@@ -301,7 +429,10 @@ export async function POST(req: NextRequest) {
 
           const media = await prisma.media.create({
             data: {
-              url: videoUrl, // This will be the stickered video URL if available
+              url: finalVideoUrl, // HLS master playlist or original video URL
+              urlHigh: urlHigh,
+              urlMedium: urlMedium,
+              urlLow: urlLow,
               urlThumbnail: thumbnailUrl,
               posterUrl: thumbnailUrl,
               width,
@@ -316,7 +447,7 @@ export async function POST(req: NextRequest) {
 
           results.push({
             name: file.name,
-            url: videoUrl, // This will be the stickered video URL if available
+            url: finalVideoUrl, // HLS master playlist or original video URL
             mediaId: media.id,
           });
         }
