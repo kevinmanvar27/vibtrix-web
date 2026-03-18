@@ -22,15 +22,18 @@ export function middleware(request: NextRequest) {
     rateLimitType = 'admin';
   } else if (pathname.startsWith('/api/')) {
     rateLimitType = 'api';
-  } else if (pathname.startsWith('/admin/') || pathname.startsWith('/admin-login')) {
-    rateLimitType = 'admin';
   }
+  // REMOVED: Admin page rate limiting to prevent "Too many admin requests" error
+  // } else if (pathname.startsWith('/admin/') || pathname.startsWith('/admin-login')) {
+  //   rateLimitType = 'admin';
+  // }
 
-  // Check rate limiting (skip for static assets and media files)
+  // Check rate limiting (skip for static assets, media files, and admin pages)
   const isStaticAsset = pathname.match(/\.(jpg|jpeg|png|gif|webp|mp4|webm|mov|ico|svg|css|js|woff|woff2|ttf|eot)$/i);
   const isNextStatic = pathname.startsWith('/_next/static');
+  const isAdminPage = pathname.startsWith('/admin'); // Skip rate limit for admin pages
   
-  if (!isStaticAsset && !isNextStatic) {
+  if (!isStaticAsset && !isNextStatic && !isAdminPage) {
     const rateLimitResult = applyRateLimit(request, rateLimitType);
     if (!rateLimitResult.allowed && rateLimitResult.response) {
       return rateLimitResult.response;
